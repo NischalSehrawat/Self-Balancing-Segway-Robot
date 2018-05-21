@@ -7,6 +7,15 @@ Created on Wed May 16 20:22:19 2018
 
 from datetime import datetime
 
+def is_float(text):
+    
+    try:
+                
+        float(text)
+        return True
+    except Exception: 
+        return False
+
 class PID:
     
     def __init__(self, Kp, Kd, Ki, SetPoint, SampleTime, OutMin, OutMax, mode):
@@ -34,24 +43,23 @@ class PID:
         self.Ki = ki # Set Ki to new ki
         self.Kd_scaled = self.Kd / (self.sampletime / 1000) # Scaled new Kd
         self.Ki_scaled = self.Ki * (self.sampletime / 1000) # Scaled new Ki
-
+    
     def get_serial_data(self, my_serial):
+    
+        dd = my_serial.readline().decode().replace("\r\n","").split(',')
         
-        dd = my_serial.readline().decode()
-        
-        dd = dd.replace("\r\n","").split(',')
-        
-        if len(dd)==4:
+        if ((len(dd)==4)):
             
-            dd = [float(i) for i in dd]
+            if ((is_float(dd[0])) and ((is_float(dd[1]))) and (is_float(dd[2])) and (is_float(dd[3]))):
             
-            Kp, Kd, Ki, Theta_x = dd
-            
-            return Kp, Kd, Ki, Theta_x
+                Kp, Kd, Ki, Theta_x = [float(i) for i in dd]
+                
+                return Kp, Kd, Ki, Theta_x
             
         else:
             
-            pass        
+            pass 
+    
         
     def Compute_PID_Output(self, Input):
         

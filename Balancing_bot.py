@@ -18,28 +18,53 @@ arduino = serial.Serial('COM3', baudrate = 115200) # Initialise arduino serial
 
 
 
-print("I am going the start the system soon...!")
+for i in reversed(range(5)):
+    
+    print("I am going the start the system in "+(str(i))+ "[sec]" )
+    
+    time.sleep(1.5)
 
-time.sleep(5)
+def is_float(text):
+    
+    try:
+                
+        float(text)
+        return True
+    except Exception: 
+        return False
+
+def get_serial_data(self, my_serial):
+    
+    dd = my_serial.readline().decode()
+    
+    print(dd)
+    
+    dd = float(dd.replace("\r\n",""))
+    
+    return dd
 
 while 1:
     
-    data = cont.get_serial_data(arduino)
+    data = arduino.readline().decode().replace("\r\n","")
     
-    if data is not None:
+    time.sleep(0.03)
         
-        Kp, Kd, Ki, Theta_x = data
-
-#        cont.set_tunings(Kp,Kd,Ki) # Set controller parameters
+    if is_float(data):
+        
+        Theta_x = data
                 
-        print(" Arduino sent Kp = ", Kp, "Kd = ", Kd, "Ki = ", Ki, "Theta_x = ", Theta_x)
+        print(" \nTheta_x = ", Theta_x)
         
-        Output_scaled = cont.Compute_PID_Output(Input = Theta_x) # Compute the output of PID Algorithm
+#        Output_scaled = cont.Compute_PID_Output(Input = Theta_x) # Compute the output of PID Algorithm
 #        
-        ff = str(Output_scaled)+','+str(cont.error)
+#        ff = str(Output_scaled)+','+str(cont.error)
 #            
-        arduino.write(ff.encode())
-#        
-        print("\n Computed data sent TO ARDUINO Output_scaled = ", Output_scaled, "Error = ", cont.error)
+#        arduino.write(ff.encode())
         
+#        time.sleep(0.1)
+        
+        arduino.write("50,2".encode())
+#        
+#        print("\n Computed data sent TO ARDUINO Output_scaled = ", Output_scaled, "Error = ", cont.error)
+                
 arduino.close()
