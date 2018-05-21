@@ -105,7 +105,7 @@ class PID:
                     
                     # if the Ouput lies between -Out_max to + Out_max, scale it to +Out_min to +Out_max
                     
-                    Output_scaled = float(format(self.Output_ratio * abs(Output) + self.OutMin, '.2f')) 
+                    Output_scaled = float(format(self.Output_ratio * abs(Output) + self.OutMin, '.2f')) # Only take 2 significant figures after decimal
                                         
                     return Output_scaled
                 
