@@ -84,16 +84,22 @@ class PID:
                 if (Output > self.OutMax):
                     self.Integral_Term = self.Integral_Term - self.Ki_scaled * self.error # Keep Integral term same
                     Output = self.OutMax # Set Output to maximum output limit
+                    
+                    return Output
                 
                 elif (Output < -self.OutMax):
                     self.Integral_Term = self.Integral_Term + self.Ki_scaled * self.error # Keep Integral term same
-                    Output = -self.OutMax # Set Output to minimum output limit              
+                    Output = -self.OutMax # Set Output to minimum output limit
+                    
+                    return Output
                 
                 elif (-self.OutMax <= Output <= self.OutMax):
                     
                     # if the Ouput lies between -Out_max to + Out_max, scale it to +Out_min to +Out_max
                     
-                    Output_scaled = self.Output_ratio * abs(Output) + self.OutMin  
+                    Output_scaled = self.Output_ratio * abs(Output) + self.OutMin 
+                    
+                    return Output_scaled
                 
                 self.t_start = t_now
             
