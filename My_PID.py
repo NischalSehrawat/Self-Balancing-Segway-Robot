@@ -9,7 +9,7 @@ from datetime import datetime
 
 class PID:
     
-    def __init__(self, Kp, Kd, Ki, SetPoint, SampleTime, OutMin, OutMax):
+    def __init__(self, Kp, Kd, Ki, SetPoint, SampleTime, OutMin, OutMax, mode):
         
         self.Kp = Kp
         self.Kd = Kd
