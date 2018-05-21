@@ -30,18 +30,16 @@ while 1:
         
         Kp, Kd, Ki, Theta_x = data
 
-        cont.set_tunings(Kp,Kd,Ki) # Set controller parameters
+#        cont.set_tunings(Kp,Kd,Ki) # Set controller parameters
                 
-        print("Arduino sent Kp = ", Kp, "Kd = ", Kd, "Ki = ", Ki, "Theta_x = ", Theta_x)
+        print(" Arduino sent Kp = ", Kp, "Kd = ", Kd, "Ki = ", Ki, "Theta_x = ", Theta_x)
         
         Output_scaled = cont.Compute_PID_Output(Input = Theta_x) # Compute the output of PID Algorithm
-        
+#        
         ff = str(Output_scaled)+','+str(cont.error)
-            
+#            
         arduino.write(ff.encode())
+#        
+        print("\n Computed data sent TO ARDUINO Output_scaled = ", Output_scaled, "Error = ", cont.error)
         
-        print("Computed data sent TO ARDUINO Output_scaled = ", Output_scaled, "Error = ", cont.error)
-        
-        time.sleep(0.5)
-
 arduino.close()
