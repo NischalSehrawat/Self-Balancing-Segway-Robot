@@ -24,47 +24,32 @@ for i in reversed(range(5)):
     
     time.sleep(1.5)
 
-def is_float(text):
-    
-    try:
-                
-        float(text)
-        return True
-    except Exception: 
-        return False
 
-def get_serial_data(self, my_serial):
-    
-    dd = my_serial.readline().decode()
-    
-    print(dd)
-    
-    dd = float(dd.replace("\r\n",""))
-    
-    return dd
 
 while 1:
     
-    data = arduino.readline().decode().replace("\r\n","")
+    data = cont.get_serial_data(arduino)
     
-    time.sleep(0.03)
+    time.sleep(0.1)
         
-    if is_float(data):
+    if data is not None:
         
-        Theta_x = data
+        Kp, Kd, Ki, Theta_x = data
                 
-        print(" \nTheta_x = ", Theta_x)
+        print(" \n Arduino sent Kp = ", Kp , "Kd = ",Kd , "Ki = ", Ki, "Theta_x = ", Theta_x)
         
-#        Output_scaled = cont.Compute_PID_Output(Input = Theta_x) # Compute the output of PID Algorithm
+        cont.set_tunings(Kp, Kd, Ki)
+        
+        Output_scaled = cont.Compute_PID_Output(Input = Theta_x) # Compute the output of PID Algorithm
 #        
-#        ff = str(Output_scaled)+','+str(cont.error)
+        ff = str(Output_scaled)+','+str(cont.error)
 #            
 #        arduino.write(ff.encode())
         
 #        time.sleep(0.1)
         
-        arduino.write("50,2".encode())
+#        arduino.write("50,2".encode())
 #        
-#        print("\n Computed data sent TO ARDUINO Output_scaled = ", Output_scaled, "Error = ", cont.error)
+        print("\n Computed data sent TO ARDUINO Output_scaled = ", Output_scaled, "Error = ", cont.error)
                 
 arduino.close()
