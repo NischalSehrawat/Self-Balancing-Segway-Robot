@@ -33,7 +33,25 @@ class PID:
         self.Kd = kd # Set Kd to new kd
         self.Ki = ki # Set Ki to new ki
         self.Kd_scaled = self.Kd / (self.sampletime / 1000) # Scaled new Kd
-        self.Ki_scaled = self.Ki * (self.sampletime / 1000) # Scaled new Ki		
+        self.Ki_scaled = self.Ki * (self.sampletime / 1000) # Scaled new Ki
+
+    def get_serial_data(self, my_serial):
+        
+        dd = my_serial.readline().decode()
+        
+        dd = dd.replace("\r\n","").split(',')
+        
+        if len(dd)==4:
+            
+            dd = [float(i) for i in dd]
+            
+            Kp, Kd, Ki, Theta_x = dd
+            
+            return Kp, Kd, Ki, Theta_x
+            
+        else:
+            
+            pass        
         
     def Compute_PID_Output(self, Input):
         
@@ -64,11 +82,11 @@ class PID:
                 '''
             
                 if (Output > self.OutMax):
-                    self.Intergral_Term = self.Intergral_Term - self.Ki_scaled * self.error # Keep Integral term same
+                    self.Integral_Term = self.Integral_Term - self.Ki_scaled * self.error # Keep Integral term same
                     Output = self.OutMax # Set Output to maximum output limit
                 
                 elif (Output < -self.OutMax):
-                    self.Intergral_Term = self.Intergral_Term + self.Ki_scaled * self.error # Keep Integral term same
+                    self.Integral_Term = self.Integral_Term + self.Ki_scaled * self.error # Keep Integral term same
                     Output = -self.OutMax # Set Output to minimum output limit              
                 
                 elif (-self.OutMax <= Output <= self.OutMax):
