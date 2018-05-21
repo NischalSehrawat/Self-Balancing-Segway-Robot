@@ -105,8 +105,8 @@ class PID:
                     
                     # if the Ouput lies between -Out_max to + Out_max, scale it to +Out_min to +Out_max
                     
-                    Output_scaled = self.Output_ratio * abs(Output) + self.OutMin 
-                    
+                    Output_scaled = float(format(self.Output_ratio * abs(Output) + self.OutMin, '.2f')) 
+                                        
                     return Output_scaled
                 
                 self.t_start = t_now
