@@ -25,6 +25,7 @@ class PID:
         self.OutMax = OutMax # Maximum value of output
         self.error = 0 # To get the error term while PID Tuning
         self.Output_ratio = (1-self.OutMin / self.OutMax) # Used for Scaling the output from (0 to Outmax) to (Outmin to Outmax) 
+        self.mode = mode; # Attribute to turn PID "ON" or "OFF"
     
     def set_tunings(self, kp, kd, ki): # Suppose we want to set parameters (using potentiometer) while the alorithm is running
         
@@ -34,13 +35,13 @@ class PID:
         self.Kd_scaled = self.Kd / (self.sampletime / 1000) # Scaled new Kd
         self.Ki_scaled = self.Ki * (self.sampletime / 1000) # Scaled new Ki		
         
-    def Compute_PID_Output(self, Input, mode):
+    def Compute_PID_Output(self, Input):
         
-        if mode == "Manual":
+        if self.mode == "Manual":
             
             pass
         
-        elif mode == "Auto":
+        elif self.mode == "Auto":
             
             t_now = datetime.now()
         
