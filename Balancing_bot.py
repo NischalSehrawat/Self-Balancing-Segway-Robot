@@ -38,10 +38,6 @@ while 1:
                 
         print(" \n Arduino sent Kp = ", Kp , "Kd = ",Kd , "Ki = ", Ki, "Theta_x = ", Theta_x)
         
-        # FLush the input buffer else the data will get corrupted *VERY IMPORTANT*
-        
-        arduino.flushInput() 
-        
         cont.set_tunings(Kp, Kd, 0)
         
         Output_scaled = cont.Compute_PID_Output(Input = Theta_x) # Compute the output of PID Algorithm
@@ -49,15 +45,10 @@ while 1:
         if Output_scaled is not None: # If the PID sample time was exceeded only then the output is not None, else the output is None 
             
             ff = str(Output_scaled)+','+str(cont.error) #  wrap the processed data around delimiters
-                
+#                
             arduino.write(ff.encode())
             
-#            time.sleep(0.05)
-            
-#            arduino.write("50,2".encode())
-            
             print("\n Pi Sent = ", Output_scaled, "Error = ", cont.error)
-            
-#            arduino.flushOutput()
+                        
                 
 arduino.close()
