@@ -41,15 +41,17 @@ while 1:
         cont.set_tunings(Kp, Kd, 0)
         
         Output_scaled = cont.Compute_PID_Output(Input = Theta_x) # Compute the output of PID Algorithm
-#        
-        ff = str(Output_scaled)+','+str(cont.error)
-#            
-#        arduino.write(ff.encode())
         
-#        time.sleep(0.1)
-        
-#        arduino.write("50,2".encode())
-#        
-        print("\n Computed data sent TO ARDUINO Output_scaled = ", Output_scaled, "Error = ", cont.error)
+        if Output_scaled is not None: # If the PID sample time was exceeded only then the output is not None, else the output is None 
+    #        
+            ff = str(Output_scaled)+','+str(cont.error)
+    #            
+    #        arduino.write(ff.encode())
+            
+    #        time.sleep(0.1)
+            
+    #        arduino.write("50,2".encode())
+    #        
+            print("\n Computed data sent TO ARDUINO Output_scaled = ", Output_scaled, "Error = ", cont.error)
                 
 arduino.close()
