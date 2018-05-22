@@ -44,7 +44,7 @@ while 1:
         
         if Output_scaled is not None: # If the PID sample time was exceeded only then the output is not None, else the output is None 
     #        
-            ff = str(Output_scaled)+','+str(cont.error)
+            ff = "<"+str(Output_scaled)+','+str(cont.error)+">" #  wrap the processed data around delimiters
     #            
     #        arduino.write(ff.encode())
             
