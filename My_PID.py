@@ -52,7 +52,7 @@ class PID:
         
         if ((dd[0] == "<") and (dd[-1] == ">")): # This has the data that Arduino sent
             
-            Kp, Kd, Ki, Theta_x = [float(i) for i in dd]
+            Kp, Kd, Ki, Theta_x = [float(i) for i in dd[1:-1]]
             
             return Kp, Kd, Ki, Theta_x                
             
@@ -93,13 +93,13 @@ class PID:
                     self.Integral_Term = self.Integral_Term - self.Ki_scaled * self.error # Keep Integral term same
                     Output = self.OutMax # Set Output to maximum output limit
                     
-                    return Output
+                    return abs(Output)
                 
                 elif (Output < -self.OutMax):
                     self.Integral_Term = self.Integral_Term + self.Ki_scaled * self.error # Keep Integral term same
                     Output = -self.OutMax # Set Output to minimum output limit
                     
-                    return Output
+                    return abs(Output)
                 
                 elif (-self.OutMax <= Output <= self.OutMax):
                     
@@ -112,8 +112,7 @@ class PID:
                 self.t_start = t_now
             
                 self.lastInput = Input
-            
-                return Output_scaled
+        
             
             else:  # Do nothing if elapsed time < sampletime
                 pass
