@@ -45,16 +45,16 @@ class PID:
         self.Ki_scaled = self.Ki * (self.sampletime / 1000) # Scaled new Ki
     
     def get_serial_data(self, my_serial):
+        
+        # The arduino will send data like <,Kp,Kd,Ki,Theta_x,>\r\n
     
         dd = my_serial.readline().decode().replace("\r\n","").split(',')
         
-        if ((len(dd)==4)):
+        if ((dd[0] == "<") and (dd[-1] == ">")): # This has the data that Arduino sent
             
-            if ((is_float(dd[0])) and ((is_float(dd[1]))) and (is_float(dd[2])) and (is_float(dd[3]))):
+            Kp, Kd, Ki, Theta_x = [float(i) for i in dd]
             
-                Kp, Kd, Ki, Theta_x = [float(i) for i in dd]
-                
-                return Kp, Kd, Ki, Theta_x
+            return Kp, Kd, Ki, Theta_x                
             
         else:
             
