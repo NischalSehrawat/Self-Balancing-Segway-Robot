@@ -22,7 +22,7 @@ for i in reversed(range(5)):
     
     print("I am going the start the system in "+(str(i))+ "[sec]" )
     
-    time.sleep(1.5)
+    time.sleep(0.1)
 
 
 
@@ -30,7 +30,7 @@ while 1:
     
     data = cont.get_serial_data(arduino)
     
-    time.sleep(0.1)
+#    time.sleep(0.05)
         
     if data is not None:
         
@@ -38,20 +38,26 @@ while 1:
                 
         print(" \n Arduino sent Kp = ", Kp , "Kd = ",Kd , "Ki = ", Ki, "Theta_x = ", Theta_x)
         
+        # FLush the input buffer else the data will get corrupted *VERY IMPORTANT*
+        
+        arduino.flushInput() 
+        
         cont.set_tunings(Kp, Kd, 0)
         
         Output_scaled = cont.Compute_PID_Output(Input = Theta_x) # Compute the output of PID Algorithm
         
         if Output_scaled is not None: # If the PID sample time was exceeded only then the output is not None, else the output is None 
-    #        
-            ff = "<"+str(Output_scaled)+','+str(cont.error)+">" #  wrap the processed data around delimiters
-    #            
-    #        arduino.write(ff.encode())
             
-    #        time.sleep(0.1)
+            ff = str(Output_scaled)+','+str(cont.error) #  wrap the processed data around delimiters
+                
+            arduino.write(ff.encode())
             
-    #        arduino.write("50,2".encode())
-    #        
-            print("\n Computed data sent TO ARDUINO Output_scaled = ", Output_scaled, "Error = ", cont.error)
+#            time.sleep(0.05)
+            
+#            arduino.write("50,2".encode())
+            
+            print("\n Pi Sent = ", Output_scaled, "Error = ", cont.error)
+            
+#            arduino.flushOutput()
                 
 arduino.close()
