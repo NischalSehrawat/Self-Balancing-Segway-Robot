@@ -7,15 +7,6 @@ Created on Wed May 16 20:22:19 2018
 
 from datetime import datetime
 
-def is_float(text):
-    
-    try:
-                
-        float(text)
-        return True
-    except Exception: 
-        return False
-
 class PID:
     
     def __init__(self, Kp, Kd, Ki, SetPoint, SampleTime, OutMin, OutMax, mode):
