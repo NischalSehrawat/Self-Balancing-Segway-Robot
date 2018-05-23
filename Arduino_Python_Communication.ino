@@ -164,7 +164,9 @@ void loop() {
 }
 ////////////////////////// FUNCTIONS FOR SENDING / RECEIVING / PARSING SERIAL DATA TO / FROM PYTHON / RASPBERRY PI /////////////////
 
-/*All the data recieving and parsing functions have been taken from (http://forum.arduino.cc/index.php?topic=396450)*/
+/*All the data recieving and parsing functions have been taken from (http://forum.arduino.cc/index.php?topic=396450)
+
+ and modified as per my needs*/
 
 void send_data(){
 
