@@ -22,16 +22,14 @@ for i in reversed(range(5)):
     
     print("I am going the start the system in "+(str(i))+ "[sec]" )
     
-    time.sleep(0.1)
+    time.sleep(0.5)
 
 
 
 while 1:
     
     data = cont.get_serial_data(arduino)
-    
-#    time.sleep(0.05)
-        
+            
     if data is not None:
         
         Kp, Kd, Ki, Theta_x = data
@@ -44,11 +42,11 @@ while 1:
         
         if Output_scaled is not None: # If the PID sample time was exceeded only then the output is not None, else the output is None 
             
-            ff = str(Output_scaled)+','+str(cont.error) #  wrap the processed data around delimiters
+            ff = "<"+str(Output_scaled)+','+str(cont.error)+">" #  wrap the processed data around delimiters
 #                
             arduino.write(ff.encode())
             
             print("\n Pi Sent = ", Output_scaled, "Error = ", cont.error)
-                        
+                                    
                 
 arduino.close()
