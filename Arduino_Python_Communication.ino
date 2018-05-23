@@ -162,7 +162,9 @@ void loop() {
 // mot_cont(Output, error); // Apply the calculated output to control the motor
 
 }
-////////////////////////// FUNCTION FOR SENDING & RECEIVING SERIAL DATA TO / FROM PYTHON / RASPBERRY PI /////////////////////////
+////////////////////////// FUNCTIONS FOR SENDING / RECEIVING / PARSING SERIAL DATA TO / FROM PYTHON / RASPBERRY PI /////////////////
+
+/*All the data recieving and parsing functions have been taken from (http://forum.arduino.cc/index.php?topic=396450)*/
 
 void send_data(){
 
@@ -204,7 +206,6 @@ void recvWithStartEndMarkers() {
     }
 }
 
-////////////////////////// FUNCTION TO PARSE RECEIVED DATA /////////////////////////////////////
 
 void parseData() {      // split the data into its parts
 
