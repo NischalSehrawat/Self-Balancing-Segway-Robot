@@ -30,21 +30,21 @@ while 1:
     
     data = cont.get_serial_data(arduino)
             
-    if data is not None:
+    if data is not None: #If arduino returned reliable data, then do the computing
         
         Kp, Kd, Ki, Theta_x = data
                 
         print(" \n Arduino sent Kp = ", Kp , "Kd = ",Kd , "Ki = ", Ki, "Theta_x = ", Theta_x)
         
-        cont.set_tunings(Kp, Kd, 0)
+        cont.set_tunings(Kp, Kd, 0) # Update new PID parameters
         
         Output_scaled = cont.Compute_PID_Output(Input = Theta_x) # Compute the output of PID Algorithm
         
         if Output_scaled is not None: # If the PID sample time was exceeded only then the output is not None, else the output is None 
             
-            ff = "<"+str(Output_scaled)+','+str(cont.error)+">" #  wrap the processed data around delimiters
+            ff = "<"+str(Output_scaled)+','+str(cont.error)+">" #  wrap the processed data around delimiters so it can be parsed by Arduino
                
-            arduino.write(ff.encode())
+            arduino.write(ff.encode()) # Send the data to Arduino
             
             print("\n Pi Sent = ", Output_scaled, "Error = ", cont.error)
                                     
