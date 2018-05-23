@@ -97,8 +97,8 @@ void setup() {
 
   delay(100);
    
-  // calculate initial Roll and Pitch angles. Rotation about X axis is called ROLL, 
-  // Rotation about Y axis is called PITCH. My MPU X axis is aligned with the motor axis
+  /* calculate initial Roll and Pitch angles. Rotation about X axis is called ROLL, 
+    Rotation about Y axis is called PITCH. My MPU X axis is aligned with the motor axis */
   
   roll = (atan2(accelY + A[1], accelZ + A[2]))*57.32; // Rotation about X axis [deg]
   pitch = (atan2(-accelX + A[0], accelZ + A[2]))*57.32; // Rotation about Y axis [deg] although we do not need this value
@@ -137,7 +137,7 @@ void loop() {
   Theta_x = alpha * (Theta_x + (omega_x * dt_gyro)) + (1-alpha) * roll; // Calculate the total angle using a Complimentary filter
   
   
-  ////////////////////////////////////////// PID Action //////////////////////////////////////////////////
+  ////////////////////////////////////////// PID ACTION //////////////////////////////////////////////////
   
   Kp = (float)(Kp_upper/1024.0)*analogRead(p_pin); // Read Kp values from potentiometer and map it to a value that is less than Kp_upper
   
