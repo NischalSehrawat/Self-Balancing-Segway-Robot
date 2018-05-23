@@ -143,15 +143,17 @@ void loop() {
   
   Kd = (float)(Kd_upper/1024.0)*analogRead(d_pin); // Read Kd values from potentiometer and map it to a value that is less than Kd_upper
 
-  send_data();
+  send_data(); // Send data to Python / Raspberry Pi
   
-  recvWithStartEndMarkers();
+  recvWithStartEndMarkers(); // Recieve data from Python / Raspberry Pi
   
   if (newData == true) {
       strcpy(tempChars, receivedChars);
-          // this temporary copy is necessary to protect the original data
-          //   because strtok() used in parseData() replaces the commas with \0
-      parseData();
+          /* this temporary copy is necessary to protect the original data
+             because strtok() used in parseData() replaces the commas with \0 */
+			 
+      parseData(); // Parse recieved data
+	  
 //      showParsedData();
       newData = false;
 
