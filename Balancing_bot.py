@@ -17,15 +17,13 @@ cont = PID(Kp = 0, Kd = 0 , Ki = 0,
 arduino = serial.Serial('COM3', baudrate = 115200) # Initialise arduino serial
 
 
-
 for i in reversed(range(5)):
     
     print("I am going the start the system in "+(str(i))+ "[sec]" )
     
     time.sleep(0.5)
 
-
-
+	
 while 1:
     
     data = cont.get_serial_data(arduino)
