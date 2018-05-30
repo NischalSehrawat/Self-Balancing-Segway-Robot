@@ -43,9 +43,9 @@ class PID:
         
         if ((dd[0] == "<") and (dd[-1] == ">")): # This has the data that Arduino sent
             
-            Kp, Kd, Ki, Theta_x = [float(i) for i in dd[1:-1]]
+            Kp, Kd, Ki = [float(i) for i in dd[1:-1]]
             
-            return Kp, Kd, Ki, Theta_x                
+            return Kp, Kd, Ki               
             
         else:
             
