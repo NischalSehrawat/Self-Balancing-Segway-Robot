@@ -1,7 +1,7 @@
 from numpy import arctan
 from time import sleep
 from mpu6050 import mpu6050
-from gpiozero import Robot
+from gpiozero import Robot, DistanceSensor
 from My_PID import PID
 
 cont = PID(Kp = 0, Kd = 0 , Ki = 0, 
