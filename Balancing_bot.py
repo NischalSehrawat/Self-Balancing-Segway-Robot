@@ -12,7 +12,7 @@ from numpy import array, zeros, mean, random
 from My_PID import PID
 
 cont = PID(Kp = 0, Kd = 0 , Ki = 0, 
-           SetPoint = 0, SampleTime = 200, OutMin = 30, OutMax = 255, mode = "Auto") # Initialise controller
+           SetPoint = 0, SampleTime = 200, OutMin = 0.3, OutMax = 1, mode = "Auto") # Initialise controller
 
 arduino = serial.Serial('COM3', baudrate = 115200) # Initialise arduino serial
 
