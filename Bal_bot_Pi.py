@@ -5,7 +5,7 @@ from gpiozero import Robot
 from My_PID import PID
 
 cont = PID(Kp = 0, Kd = 0 , Ki = 0, 
-           SetPoint = 0, SampleTime = 200, OutMin = 30, OutMax = 255, mode = "Auto") # Initialise PID controller
+           SetPoint = 0, SampleTime = 200, OutMin = 0.30, OutMax = 1, mode = "Auto") # Initialise PID controller
 
 arduino = serial.Serial('COM3', baudrate = 115200) # Initialise arduino serial for reading Kp, Kd, and Ki analogue input from the potentiometer
 
