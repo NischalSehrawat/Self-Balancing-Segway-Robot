@@ -16,9 +16,9 @@ r_mot_1 = 17; GPIO.setup(r_mot_1,GPIO.OUT); r_mot_2 = 15; GPIO.setup(r_mot_2,GPI
 
 #=========== SETUP ENCODER PINS ===============
 
-enc_l_1 = 22; GPIO.setup(enc_l_1,GPIO.IN); enc_l_2 = 25; GPIO.setup(enc_l_2,GPIO.IN);
+enc_L_1 = 22; GPIO.setup(enc_L_1,GPIO.IN); enc_L_2 = 25; GPIO.setup(enc_L_2,GPIO.IN);
 
-enc_r_1 = 29; GPIO.setup(enc_r_1,GPIO.IN); enc_r_2 = 30; GPIO.setup(enc_r_2,GPIO.IN);
+enc_R_1 = 29; GPIO.setup(enc_R_1,GPIO.IN); enc_R_2 = 30; GPIO.setup(enc_R_2,GPIO.IN);
 
 #%% ===============================================================
 
@@ -35,6 +35,6 @@ a_y, a_z = my_mpu.get_accel_data()['y'], my_mpu.get_accel_data()['z'] # Accelera
 
 omega_x = my_mpu.get_gyro_data()['x'] # Gyro data
 
-roll = (arctan(a_y/a_z ))*57.32; # Rotation about X axis [deg]
+roll = arctan(a_y/a_z ); # Rotation about X axis [rad]
 
 
