@@ -25,7 +25,7 @@ enc_r_1 = 29; GPIO.setup(enc_r_1,GPIO.IN); enc_r_2 = 30; GPIO.setup(enc_r_2,GPIO
 
 
 cont = PID(Kp = 0, Kd = 0 , Ki = 0, 
-           SetPoint = 0, SampleTime = 200, OutMin = 0.30, OutMax = 1, mode = "Auto") # Initialise PID controller
+           SetPoint = 0, SampleTime = 200, OutMin = 0.10, OutMax = 1, mode = "Auto") # Initialise PID controller
 
 arduino = Serial('COM3', baudrate = 115200) # Initialise arduino serial for reading Kp, Kd, and Ki analogue input from the potentiometer
 

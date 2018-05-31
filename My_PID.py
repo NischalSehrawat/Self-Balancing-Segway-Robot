@@ -49,8 +49,7 @@ class PID:
             
         else:
             
-            pass 
-    
+            pass     
         
     def Compute_PID_Output(self, Input):
         
@@ -100,9 +99,9 @@ class PID:
                                         
                     return Output_scaled
                 
-                self.t_start = t_now
+                self.t_start = t_now # Store the previous time variable for calculating "dt" and sampling time
             
-                self.lastInput = Input
+                self.lastInput = Input # Store last input to calculate dInput
         
             
             else:  # Do nothing if elapsed time < sampletime
