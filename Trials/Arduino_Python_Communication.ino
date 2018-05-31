@@ -25,7 +25,7 @@ double roll, pitch, Theta_x, Theta_y;
 									 
 double dt_gyro; // Variable to store time difference values for gyro angle calculations 
 
-uint32_t timer_gyro; // timer for gyro unit
+uint32_t t_start, t_now; // timer for gyro unit
 
 float alpha = 0.98; // Complimentary filter control parameter
 
@@ -109,7 +109,7 @@ void setup() {
 
   //Take a time reading in microseconds when the compiler passes this line
   
-  timer_gyro = millis(); // Reading for gyro angle calculations
+  t_start = millis(); // Reading for gyro angle calculations
 
   delay(500);
   
@@ -123,10 +123,10 @@ void loop() {
   delay(sen_del);
   
   omega_x = (gyroX + A[3]) / 131.0; // Converting raw gyro data to Angular velocity [deg/s]
-
-  dt_gyro = ((millis() - timer_gyro)/1000.0); // Time difference for gyro angle calculations
   
-  timer_gyro = millis(); // Take a reading again at this step.
+  t_now = millis();
+
+  dt_gyro = ((t_now - t_start)/1000.0); // Time difference for gyro angle calculations
   
   /*Since we will only need the ratios of accelerometer readings to calculate accelerometer angles, 
   we do not need to convert raw data to actual data */
@@ -159,6 +159,8 @@ void loop() {
   }
 
 // mot_cont(Output, error); // Apply the calculated output to control the motor
+
+  t_start = t_now; // Store the previous time variable for calculating "dt_gyro"
 
 }
 ////////////////////////// FUNCTIONS FOR SENDING / RECEIVING / PARSING SERIAL DATA TO / FROM PYTHON / RASPBERRY PI /////////////////
