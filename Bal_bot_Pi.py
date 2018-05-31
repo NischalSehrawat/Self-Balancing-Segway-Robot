@@ -31,7 +31,7 @@ arduino = Serial('COM3', baudrate = 115200) # Initialise arduino serial for read
 
 my_mpu = mpu6050(0x68)
 
-robot = Robot(left=(4, 14), right=(17, 27)) # Initialise robot object and its pin numbers
+robot = Robot(left=(l_mot_1, l_mot_2), right=(r_mot_1, r_mot_2)) # Initialise robot object and its pin numbers
 
 a_y, a_z = my_mpu.get_accel_data()['y'], my_mpu.get_accel_data()['z'] # Acceleration data
 
