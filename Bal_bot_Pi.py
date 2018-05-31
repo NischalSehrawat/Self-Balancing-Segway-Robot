@@ -8,7 +8,7 @@ import RPi.GPIO as GPIO
 
 GPIO.setmode(GPIO.BOARD) # Initialize the GPIO to use the BOARD pin numbering schemes
 
-#%% Setup motor control + encoder pins to output / input
+#%%=============== Setup motor control + encoder pins to output / input ==================
 
 l_mot_1 = 11; GPIO.setup(l_mot_1,GPIO.OUT); l_mot_2 = 12; GPIO.setup(l_mot_2,GPIO.OUT)
 
@@ -20,7 +20,7 @@ enc_l_1 = 22; GPIO.setup(enc_l_1,GPIO.IN); enc_l_2 = 25; GPIO.setup(enc_l_2,GPIO
 
 enc_r_1 = 29; GPIO.setup(enc_r_1,GPIO.IN); enc_r_2 = 30; GPIO.setup(enc_r_2,GPIO.IN);
 
-#%%
+#%% ===============================================================
 
 
 
