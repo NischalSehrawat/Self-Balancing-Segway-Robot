@@ -29,7 +29,7 @@ cont = PID(Kp = 0, Kd = 0 , Ki = 0,
 
 arduino = Serial('COM3', baudrate = 115200) # Initialise arduino serial for reading Kp, Kd, and Ki analogue input from the potentiometer
 
-my_mpu = mpu6050(0x68)
+my_mpu = mpu6050(0x68) # Initialize MPU to get acceleration and rotation data
 
 robot = Robot(left=(l_mot_1, l_mot_2), right=(r_mot_1, r_mot_2)) # Initialise robot object and its pin numbers
 
