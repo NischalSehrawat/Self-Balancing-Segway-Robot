@@ -35,7 +35,7 @@ class PID:
         self.Kd_scaled = self.Kd / (self.sampletime / 1000) # Scaled new Kd
         self.Ki_scaled = self.Ki * (self.sampletime / 1000) # Scaled new Ki
     
-    def get_serial_data(self, my_serial):
+    def get_serial_data(self, my_serial, kp_max, kd_max, ki_max):
         
         # The arduino will send data like <,Kp,Kd,Ki,>\r\n
     
@@ -45,7 +45,7 @@ class PID:
             
             Kp, Kd, Ki = [float(i) for i in dd[1:-1]]
             
-            return Kp, Kd, Ki               
+            return Kp*(kp_max/1024), Kd*(kd_max/1024), Ki*(ki_max/1024)               
             
         else:
             
