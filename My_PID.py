@@ -37,7 +37,7 @@ class PID:
     
     def get_serial_data(self, my_serial):
         
-        # The arduino will send data like <,Kp,Kd,Ki,Theta_x,>\r\n
+        # The arduino will send data like <,Kp,Kd,Ki,>\r\n
     
         dd = my_serial.readline().decode().replace("\r\n","").split(',')
         
@@ -106,7 +106,5 @@ class PID:
             
             else:  # Do nothing if elapsed time < sampletime
                 pass
-            
-    
 
-         
+
