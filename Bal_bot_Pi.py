@@ -1,4 +1,5 @@
-from numpy import floor, ceil, arctan, deg2rad, rad2deg, arange, array, mean
+from numpy import floor, ceil, arctan, deg2rad, rad2deg, arange, array, mean, zeros
+import matplotlib.pyplot as plt
 from time import sleep
 from datetime import datetime
 from mpu6050 import mpu6050
@@ -33,7 +34,7 @@ enc_L = 4; tick_L = 0;  # Left motor
 
 enc_R = 17; tick_R = 0; # Right motor
 
-ppr = 990; RPM_limit = 1 # RPM below which we read "0"
+ppr = 990; RPM_limit = 5 # RPM below which we read "0"
 
 num_avg_point = 10 # Number of points to be used for exponential avergaing and smoothing out RPM data 
 
@@ -98,14 +99,21 @@ class my_motors:
         dn = n_now - self.n_prev # Difference between motor encoder counts
         
         # Calculate RPMs and smooth out the data usinge exponential averaging
+        ''' From Andrew Ngs lectrues
+        
+        V_t = beta * V_(t-1) + (1-beta) * Theta_t 
+        
+        i.e. more weight is given to previous value and less weight to the present value
+        
+        '''
 
-        RPM_now = ceil(self.beta * (dn / dt)*(60.0 / self.ppr) + (1 - self.beta) *  self.RPM_prev)
+        RPM_now = self.beta*self.RPM_prev + (1 - self.beta)*(dn / dt)*(60.0 / self.ppr) # This is Revolutions / min
         
         if RPM_now < self.RPM_limit:
             
             RPM_now = 0 # If RPM is less than the limiting RPM, make it "0"
             
-        RPM_dot = (RPM_now - self.RPM_prev) / dt # Time derivative of omega
+        #RPM_dot = (RPM_now - self.RPM_prev) / dt # Time derivative of omega
         
         self.t_prev = t_now # Make previous time equal to present time
         
@@ -113,7 +121,7 @@ class my_motors:
         
         self.RPM_prev = RPM_now # Make previous RPM equal to present RPM
         
-        return RPM_now, RPM_dot
+        return RPM_now
     
 class my_accel:
     
@@ -189,11 +197,73 @@ my_robot = Robot(left=(l_mot_1, l_mot_2), right=(r_mot_1, r_mot_2)) # Initialise
 
 my_robot.stop()
 
+t_init = datetime.now()
+
+t_sample = 10 # Loop time in miliseconds
+
 sleep(2)
 
 print("Starting the system..!!!")
 
 while 1:
-    a, _ = My_Mpu.get_Theta_X()
-
-    print("Current angle = ", ceil(a))
+    
+    try:
+            
+        t_now = datetime.now()
+        
+        dt = (t_now - t_init).total_seconds()*1000 # Miliseconds
+        
+        if dt > t_sample:
+            
+            a = right_motor.get_RPM()
+            
+            if 0<a<200:
+                
+                file_name = 'data17.txt'
+                
+                with open(file_name, 'a') as file:
+                    
+                    file.write(format(a, "0.2f")); 
+                    file.write(',')
+                    file.write(datetime.now().strftime("%d-%m-%Y-%H:%M:%S.%f"))
+                    file.write('\n')
+                    
+            t_init = t_now # Restart clock
+            
+        else:
+            
+            pass # Do nothing, just wait for t_sample to elapse
+            
+    except:               
+        
+        with open(file_name, 'r') as file:
+            
+            ff = file.readlines()
+            
+        dd = []; my_data = zeros((len(ff),2))
+        
+        for i, line in enumerate(ff):
+            
+            jj = line.split(',')
+            
+            my_data[i,1] = float(jj[0]); # Angular velocity in RPM
+            
+            t = jj[1][:-1]# Time stamp in string format
+            
+            Time = datetime.strptime(t, "%d-%m-%Y-%H:%M:%S.%f") # Convert it to datetime object
+            
+            if i == 0:
+                
+                t_init = Time
+                
+                my_data[i,0] = 0
+                
+            else:
+                
+                my_data[i,0] = (Time - t_init).total_seconds()
+                
+        plt.plot(my_data[:,0],(2*3.14/60)*my_data[:,1] ,linewidth = 1, label = file_name)
+        
+        plt.xticks(fontsize = 18); plt.yticks(fontsize = 18)
+        plt.xlabel('T [s]', fontsize = 18); plt.ylabel(r'$\Omega$ [rad/s]', fontsize = 18)
+        plt.legend(loc = 'upper right', fontsize = 18)
