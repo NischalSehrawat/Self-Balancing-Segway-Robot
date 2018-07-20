@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 
 #%% parameters 
 
-m_0 = 2 # total Mass of the body [Kg]
 
 m_wh = 1; # MAss of one wheel [kg]
 
@@ -20,6 +19,8 @@ a = 0.08 # Chassis width (perpendicular to the axle) [m]
 m_plat = 0.1 # mass of 1 wooden platform [kg]
 
 m_bolt = 0.1 # Mass of 1 bolt [kg]
+
+m_0 = 2*m_mot + 2*m_plat + 4*m_bolt # total Mass of the body [Kg]
 
 d1 = 0.0325 # distance of the axle from the lower woodden platform [m]
 
@@ -67,7 +68,7 @@ J_y = get_Jy() # Moment of inertia of the main body about its principle Y axis
 
 J_z = 52 # Moment of inertia of the main body about its principle Z axis
 
-l = 0.5; # Distance of vertical CG of the body from wheel centre [m]
+l = (m_plat*d1+4*m_bolt*(0.5*L1+d1)+m_plat*(L1+d1))/m_0; # Distance of vertical CG of the body from wheel centre [m]
 
 g = 9.8 # Acceleration due to gravity [m/s2]
 
