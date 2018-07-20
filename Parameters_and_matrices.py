@@ -66,7 +66,7 @@ def get_Jz():
 
 J_y = get_Jy() # Moment of inertia of the main body about its principle Y axis
 
-J_z = 52 # Moment of inertia of the main body about its principle Z axis
+J_z = get_Jz() # Moment of inertia of the main body about its principle Z axis
 
 l = (m_plat*d1+4*m_bolt*(0.5*L1+d1)+m_plat*(L1+d1))/m_0; # Distance of vertical CG of the body from wheel centre [m]
 
