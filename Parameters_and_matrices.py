@@ -25,6 +25,8 @@ d1 = 0.0325 # distance of the axle from the lower woodden platform [m]
 
 L1 = 0.1; # Length of 1 bolt [m]
 
+L_diag = (a**2 + b**2)**0.5 # Digonal distance of the woodden platform [m]
+
 J_wh = 12 ; # Moment of inertia of the wheel and motor rotating parts [kgm2]
 
 J_mot_y = J_wh # It is assumed that the I_y of motor stator = I of wheel + gearbox
@@ -41,9 +43,25 @@ def get_Jy():
     
     J_bolt = (m_bolt*L1**2)/12 + m_bolt*(L1/2+d1)**2 + m_bolt*(a/2)**2
     
-    J_y_total = J_lp + J_up + 4*J_bolt + J_mot_y
+    J_y_total = J_lp + J_up + 4*J_bolt + 2*J_mot_y
     
     return J_y_total
+
+def get_Jz():
+    
+    '''
+    This function is used for calculating the moment of inertia of the
+    robot main body about the Z axis . 
+    '''
+    J_lp = m_plat*(a*a + b*b)/12 # I for 1 platform about Z axis    
+  
+    J_bolt = m_bolt * (0.5*L_diag)**2
+    
+    J_mot_z = m_mot * (0.5*b)**2
+    
+    J_z_total = 2*J_lp + 4*J_bolt + 2*J_mot_z
+    
+    return J_z_total
 
 J_y = get_Jy() # Moment of inertia of the main body about its principle Y axis
 
