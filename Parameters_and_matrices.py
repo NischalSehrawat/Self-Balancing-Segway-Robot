@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 
 #%% parameters 
 
-
 m_wh = 1; # MAss of one wheel [kg]
 
 m_mot = 0.2 # Mass of 1 motor stator [Kg]
