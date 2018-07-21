@@ -5,25 +5,25 @@ import matplotlib.pyplot as plt
 
 #%% parameters 
 
-m_wh = 1; # MAss of one wheel [kg]
+m_wh = 0.058; # MAss of one wheel [kg]
 
 m_mot = 0.2 # Mass of 1 motor stator [Kg]
 
 r = 0.5 * 0.085 # Wheel radius [m]
 
-b = 0.1 # Chassis length (along the axle) [m]
+b = 0.255 # Chassis length (along the axle) [m]
 
-a = 0.08 # Chassis width (perpendicular to the axle) [m]
+a = 0.1 # Chassis width (perpendicular to the axle) [m]
 
-m_plat = 0.1 # mass of 1 wooden platform [kg]
+m_plat = 0.081 # mass of 1 wooden platform [kg]
 
-m_bolt = 0.1 # Mass of 1 bolt [kg]
+m_bolt = 0.03 # Mass of 1 bolt [kg]
 
 m_0 = 2*m_mot + 2*m_plat + 4*m_bolt # total Mass of the body [Kg]
 
 d1 = 0.0325 # distance of the axle from the lower woodden platform [m]
 
-L1 = 0.1; # Length of 1 bolt [m]
+L1 = 0.15; # Length of 1 bolt [m]
 
 L_diag = (a**2 + b**2)**0.5 # Digonal distance of the woodden platform [m]
 
