@@ -28,7 +28,7 @@ L1 = 0.1; # Length of 1 bolt [m]
 
 L_diag = (a**2 + b**2)**0.5 # Digonal distance of the woodden platform [m]
 
-J_wh = 0.025 ; # Moment of inertia of the wheel and motor rotating parts [kgm2]
+J_wh = 0.025 ; # Moment of inertia of the wheel and motor rotating parts [kg.m2]
 
 J_mot_y = J_wh # It is assumed that the I_y of motor stator = I of wheel + gearbox
 
