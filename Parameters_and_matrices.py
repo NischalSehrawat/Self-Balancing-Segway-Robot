@@ -2,6 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+from control import ctrb
 
 #%% parameters 
 
@@ -29,7 +30,7 @@ L_diag = (a**2 + b**2)**0.5 # Digonal distance of the woodden platform [m]
 
 J_wh = 0.025 ; # Moment of inertia of the wheel and motor rotating parts [kg.m2] obtained by experiment
 
-J_mot_y = J_wh # It is assumed that the I_y of motor stator = I of wheel + gearbox
+J_mot_y = 2*J_wh # It is assumed that the I_y of motor stator = 2 * (I of wheel + gearbox)
 
 def get_Jy():
     
@@ -86,4 +87,8 @@ A[2,1] = -m_0*m_0*l*l*r*r*g / M
 B[0,0] = -(l*m_0*r+m_0*r*r+2*m_wh*r*r+2*J_wh)/M
 
 B[2,0] = r*(l*l*m_0+l*m_0*r+J_y)/M; B[3,1] = b/(2*r*J5)
+
+B_mot_torq = np.dot(B, np.array([[1 ,1],[1,-1]]))
+
+C = np.linalg.matrix_rank(ctrb(A, B))
 
