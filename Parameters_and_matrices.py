@@ -2,7 +2,8 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from control import ctrb
+import  scipy.io
+
 
 #%% parameters 
 
@@ -84,11 +85,14 @@ A[1,0] = 1 ; A[0, 1] = (m_0*r*r+2*m_wh*r*r+2*J_wh)*m_0*l*g / M
 
 A[2,1] = -m_0*m_0*l*l*r*r*g / M
 
-B[0,0] = -(l*m_0*r+m_0*r*r+2*m_wh*r*r+2*J_wh)/M
+B[0,0] = -(l*m_0*r+m_0*r*r+2*m_wh*r*r+2*J_wh)/M  # motor torques in terms of sum and difference of motor torques
 
 B[2,0] = r*(l*l*m_0+l*m_0*r+J_y)/M; B[3,1] = b/(2*r*J5)
 
-B_mot_torq = np.dot(B, np.array([[1 ,1],[1,-1]]))
+B_mot_torq = np.dot(B, np.array([[1 ,1],[1,-1]])) # Individual motor torques
 
-C = np.linalg.matrix_rank(ctrb(A, B))
+Q = np.zeros((4,4)); Q[0,0] = 100; Q[1,1] = 10; Q[2,2] = 1; Q[3,3] = 1; 
 
+scipy.io.savemat('C:/Users/Nischal/Documents/MATLAB/A.mat', mdict={'A': A})
+scipy.io.savemat('C:/Users/Nischal/Documents/MATLAB/B.mat', mdict={'B': B_mot_torq})
+scipy.io.savemat('C:/Users/Nischal/Documents/MATLAB/Q.mat', mdict={'Q': Q})
