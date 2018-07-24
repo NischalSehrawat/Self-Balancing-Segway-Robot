@@ -1,4 +1,6 @@
 
+
+pkg load control
 %% parameters 
 
 m_wh = 0.058; % MAss of one wheel [kg]
@@ -51,7 +53,27 @@ B(1,1) = -(l*m_0*r+m_0*r*r+2*m_wh*r*r+2*J_wh)/M ; % motor torques in terms of su
 B(3,1) = r*(l*l*m_0+l*m_0*r+J_y)/M; 
 B(4,2) = b/(2*r*J5);
 
-B_mot_torq = B*[1 1;1 -1] ;% Individual motor torques
+PRM.B_mot_torq = B*[1 1;1 -1] ;% Individual motor torques
 
-Q = zeros(4,4); Q(1,1) = 100; Q(2,2) = 10; Q(3,3) = 1; Q(4,4) = 1; 
+PRM.A= A;
 
+Q = zeros(4,4); Q(1,1) = 100; Q(2,2) = 10; Q(3,3) = 1; Q(4,4) = 1;
+
+R = 10*[1 0;0 1];
+
+PRM.K = lqr(A,B,Q,R) 
+
+%% Simulate the robot
+
+t1=0:0.01:100;
+
+IC=[0.10;0.10;0;0]; % defining initial conditions for the robot
+
+function dx = rob_sim(t,y,PRM)
+  
+  dx = (PRM.A - PRM.B_mot_torq*PRM.K)*y;
+  
+  end
+[t_out,q_out] = ode45(@(t,y)rob_sim(t,y,PRM),t1,IC);
+
+plot(t_out, q_out(:,1))
