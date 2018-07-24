@@ -1,7 +1,8 @@
 
 
-pkg load control
-graphics_toolkit('gnuplot')
+%pkg load control
+%graphics_toolkit('gnuplot')
+
 %% parameters 
 
 m_wh = 0.058; % MAss of one wheel [kg]
@@ -74,7 +75,8 @@ function dx = rob_sim(t,y,PRM)
   
   dx = (PRM.A - PRM.B_mot_torq*PRM.K)*y;
   
-  end
+end
+  
 [t_out,q_out] = ode45(@(t,y)rob_sim(t,y,PRM),t1,IC);
 
 subplot(2,2,1)
