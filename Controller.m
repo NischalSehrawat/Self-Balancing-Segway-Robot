@@ -3,6 +3,8 @@
 %pkg load control
 %graphics_toolkit('gnuplot')
 
+%clear all; close all;
+
 %% parameters 
 
 m_wh = 0.058; % MAss of one wheel [kg]
@@ -59,31 +61,39 @@ PRM.B_mot_torq = B*[1 1;1 -1] ;% Individual motor torques
 
 PRM.A= A;
 
-Q = zeros(4,4); Q(1,1) = 10; Q(2,2) = 1; Q(3,3) = 1; Q(4,4) = 1;
+Q = zeros(4,4); Q(3,3) = 1; Q(4,4) = 1;
+Q(1,1) = 10; Q(2,2) = 5;
 
-R = 10*[1 0;0 1];
+R = 100*[1 0;0 1];
 
-PRM.K = lqr(A,PRM.B_mot_torq,Q,R) 
+PRM.K = lqr(A,PRM.B_mot_torq,Q,R);
+
+lw = 1;
 
 %% Simulate the robot
 
-t1=0:0.01:100;
+t1=0:0.01:50;
 
-IC=[0.10;0.10;0;0]; % defining initial conditions for the robot
-
-function dx = rob_sim(t,y,PRM)
-  
-  dx = (PRM.A - PRM.B_mot_torq*PRM.K)*y;
-  
-end
-  
+IC=[-0.10;0.01;0;0]; % defining initial conditions for the robot
+ 
 [t_out,q_out] = ode45(@(t,y)rob_sim(t,y,PRM),t1,IC);
 
 subplot(2,2,1)
-plot(t_out, q_out(:,1)); ylabel('Theta_dot [rad/s]'); xlabel('T [s]');
+plot(t_out, q_out(:,1),'LineWidth',lw); xlabel('T [s]');
+hold on;
+hl = ylabel('$\dot{\Theta} [rad/s]$');
+set(hl, 'Interpreter', 'latex');
+%%
 subplot(2,2,2)
-plot(t_out, q_out(:,2)); ylabel('\Theta [rad]'); xlabel('T [s]');
+plot(t_out, q_out(:,2),'LineWidth',lw); ylabel('\Theta [rad]'); xlabel('T [s]');
+hold on;
+
 subplot(2,2,3)
-plot(t_out, q_out(:,3)); ylabel('V [m/s]'); xlabel('T [s]');
+plot(t_out, q_out(:,3),'LineWidth',lw); ylabel('V [m/s]'); xlabel('T [s]');
+hold on;
+
 subplot(2,2,4)
-plot(t_out, q_out(:,4)); ylabel('\Omega [rad/s]'); xlabel('T [s]');
+pp = q_out(:,4);
+pp(abs(pp)<1e-3)=0 ;
+plot(t_out, pp,'LineWidth',lw); ylabel('\Omega [rad/s]'); xlabel('T [s]');
+hold on;
