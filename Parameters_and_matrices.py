@@ -3,6 +3,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import  scipy.io
+from control import *
 
 
 #%% parameters 
@@ -93,6 +94,6 @@ B_mot_torq = np.dot(B, np.array([[1 ,1],[1,-1]])) # Individual motor torques
 
 Q = np.zeros((4,4)); Q[0,0] = 100; Q[1,1] = 10; Q[2,2] = 1; Q[3,3] = 1; 
 
-scipy.io.savemat('C:/Users/Nischal/Documents/MATLAB/A.mat', mdict={'A': A})
-scipy.io.savemat('C:/Users/Nischal/Documents/MATLAB/B.mat', mdict={'B': B_mot_torq})
-scipy.io.savemat('C:/Users/Nischal/Documents/MATLAB/Q.mat', mdict={'Q': Q})
+R = 10*np.array([[1,0],[0,1]])
+
+a, b, K = lqr(A, B_mot_torq, Q, R)
