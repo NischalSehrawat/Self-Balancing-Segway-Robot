@@ -97,3 +97,9 @@ pp = q_out(:,4);
 pp(abs(pp)<1e-3)=0 ;
 plot(t_out, pp,'LineWidth',lw); ylabel('\Omega [rad/s]'); xlabel('T [s]');
 hold on;
+
+outputs = q_out*PRM.K';
+
+figure
+
+plot(t_out, outputs);
