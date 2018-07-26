@@ -1,7 +1,7 @@
 
 
-%pkg load control
-%graphics_toolkit('gnuplot')
+pkg load control
+graphics_toolkit('gnuplot')
 
 %clear all; close all;
 
@@ -61,8 +61,12 @@ PRM.B_mot_torq = B*[1 1;1 -1] ;% Individual motor torques
 
 PRM.A= A;
 
-Q = zeros(4,4); Q(3,3) = 1; Q(4,4) = 1;
-Q(1,1) = 10; Q(2,2) = 5;
+Q = zeros(4,4); 
+Q(1,1) = 10; % For Angular velocity 
+Q(2,2) = 5; % For Angle
+Q(3,3) = 1; # For Linear velocity
+Q(4,4) = 1; # For turning velocity
+
 
 R = 100*[1 0;0 1];
 
@@ -72,7 +76,7 @@ lw = 1;
 
 %% Simulate the robot
 
-t1=0:0.01:50;
+t1=0:0.01:10;
 
 IC=[-0.10;0.01;0;0]; % defining initial conditions for the robot
  
@@ -102,4 +106,6 @@ outputs = q_out*PRM.K';
 
 figure
 
-plot(t_out, outputs);
+plot(t_out, outputs,'LineWidth',lw);
+
+xlabel('T [s]'); ylabel('Torque [Nm]'); 
