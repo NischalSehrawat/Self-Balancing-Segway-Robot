@@ -1,15 +1,15 @@
 
 
-pkg load control
-graphics_toolkit('gnuplot')
+%pkg load control
+%graphics_toolkit('gnuplot')
 
-%clear all; close all;
+clear all; close all;
 
 %% parameters 
 
-m_wh = 0.058; % MAss of one wheel [kg]
+t_sim = 2; % Total simulation time [s]
 
-m_mot = 0.2; % Mass of 1 motor stator [Kg]
+m_wh = 0.058 + 0.2; % MAss of one wheel + mass of 1 motor [kg]
 
 r = 0.5 * 0.085; % Wheel radius [m]
 
@@ -21,7 +21,7 @@ m_plat = 0.081; % mass of 1 wooden platform [kg]
 
 m_bolt = 0.03; % Mass of 1 bolt [kg]
 
-m_0 = 2*m_mot + 2*m_plat + 4*m_bolt; % total Mass of the body [Kg]
+m_0 = 2*m_plat + 4*m_bolt; % total Mass of the body / chassis (excluding wheel and motors) [Kg]
 
 d1 = 0.0325; % distance of the axle from the lower woodden platform [m]
 
@@ -29,15 +29,13 @@ L1 = 0.15; % Length of 1 bolt [m]
 
 L_diag = (a^2 + b^2)^0.5; % Digonal distance of the woodden platform [m]
 
-J_wh = 0.025 ; % Moment of inertia of the wheel and motor rotating parts [kg.m2] obtained by experiment
+J_y = 2*(m_plat*a*a/12 + m_plat*(0.5*L1)^2) + 4*(m_bolt*(L1^2)/12 + m_bolt*(0.5*a)^2);
 
-J_mot_y = 2*J_wh; % It is assumed that the I_y of motor stator = 2 * (I of wheel + gearbox)
+J_z = 2*(m_plat*(a*a + b*b)/12) + 4*(m_bolt * (0.5*L_diag)^2);
 
-J_y = (m_plat*a*a/12 + m_plat*d1^2) + (m_plat*a*a/12 + m_plat*(L1+d1)^2) + 4*((m_bolt*L1^2)/12 + m_bolt*(L1/2+d1)^2 + m_bolt*(a/2)^2) + 2*J_mot_y;
+J_wh = 0.5*m_wh * r^2; % Moment of inertia of wheel + motor through its axis i.e. 0.5*mr^2 [kgm2] 
 
-J_z = 2*(m_plat*(a*a + b*b)/12) + 4*(m_bolt * (0.5*L_diag)^2) +2*(m_mot * (0.5*b)^2);
-
-l = (m_plat*d1+4*m_bolt*(0.5*L1+d1)+m_plat*(L1+d1))/m_0; % Distance of vertical CG of the body from axle [m]
+l = (m_plat*d1+4*m_bolt*(0.5*L1+d1)+m_plat*(L1+d1))/m_0 ; % Distance of vertical CG of the body from axle [m]
 
 g = 9.8; % Acceleration due to gravity [m/s2]
 
@@ -62,10 +60,10 @@ PRM.B_mot_torq = B*[1 1;1 -1] ;% Individual motor torques
 PRM.A= A;
 
 Q = zeros(4,4); 
-Q(1,1) = 10; % For Angular velocity 
-Q(2,2) = 5; % For Angle
-Q(3,3) = 1; # For Linear velocity
-Q(4,4) = 1; # For turning velocity
+Q(1,1) = 2; % For Angular velocity 
+Q(2,2) = 2; % For Angle
+Q(3,3) = 1; % For Linear velocity
+Q(4,4) = 1; % For turning velocity
 
 
 R = 100*[1 0;0 1];
@@ -76,9 +74,9 @@ lw = 1;
 
 %% Simulate the robot
 
-t1=0:0.01:10;
+t1=0:0.01:t_sim;
 
-IC=[-0.10;0.01;0;0]; % defining initial conditions for the robot
+IC=[0.10;0.1;0;0]; % defining initial conditions for the robot
  
 [t_out,q_out] = ode45(@(t,y)rob_sim(t,y,PRM),t1,IC);
 
