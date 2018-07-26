@@ -7,7 +7,7 @@ clear all; close all;
 
 %% parameters 
 
-t_sim = 2; % Total simulation time [s]
+t_sim = 5; % Total simulation time [s]
 
 m_wh = 0.058 + 0.2; % MAss of one wheel + mass of 1 motor [kg]
 
@@ -60,13 +60,13 @@ PRM.B_mot_torq = B*[1 1;1 -1] ;% Individual motor torques
 PRM.A= A;
 
 Q = zeros(4,4); 
-Q(1,1) = 2; % For Angular velocity 
-Q(2,2) = 2; % For Angle
+Q(1,1) = 10; % For Angular velocity 
+Q(2,2) = 10; % For Angle
 Q(3,3) = 1; % For Linear velocity
 Q(4,4) = 1; % For turning velocity
 
 
-R = 100*[1 0;0 1];
+R = 1000*[1 0;0 1];
 
 PRM.K = lqr(A,PRM.B_mot_torq,Q,R);
 
@@ -76,7 +76,7 @@ lw = 1;
 
 t1=0:0.01:t_sim;
 
-IC=[0.10;0.1;0;0]; % defining initial conditions for the robot
+IC=[0.10;0.10;0;0]; % defining initial conditions for the robot
  
 [t_out,q_out] = ode45(@(t,y)rob_sim(t,y,PRM),t1,IC);
 
