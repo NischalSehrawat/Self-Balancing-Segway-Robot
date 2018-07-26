@@ -37,7 +37,7 @@ J_y = (m_plat*a*a/12 + m_plat*d1^2) + (m_plat*a*a/12 + m_plat*(L1+d1)^2) + 4*((m
 
 J_z = 2*(m_plat*(a*a + b*b)/12) + 4*(m_bolt * (0.5*L_diag)^2) +2*(m_mot * (0.5*b)^2);
 
-l = (m_plat*d1+4*m_bolt*(0.5*L1+d1)+m_plat*(L1+d1))/m_0; % Distance of vertical CG of the body from wheel centre [m]
+l = (m_plat*d1+4*m_bolt*(0.5*L1+d1)+m_plat*(L1+d1))/m_0; % Distance of vertical CG of the body from axle [m]
 
 g = 9.8; % Acceleration due to gravity [m/s2]
 
