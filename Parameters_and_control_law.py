@@ -129,15 +129,21 @@ X_vec = odeint(msd,IC,t_vec)
 
 #%%
 
-plt.plot(t_vec, X_vec[:,2])
+plt.plot(t_vec, X_vec[:,2], label = "Around 0")
 
-y_labs = [r'$\dot\Theta_{y}$ [rad/s]', r'$\Theta_{y}$ [rad]', 'V [m/s]', r'$\Omega_z$ [rad/s]']
+x_delta = X_vec - np.array([0,0,-0.5,-0.5])
+
+plt.plot(t_vec, x_delta[:,2], label = "Not 0")
+
+plt.legend(loc = 'best')
+
+y_labs = [r'$\dot\alpha_{y}$ [rad/s]', r'$\alpha_{y}$ [rad]', 'V [m/s]', r'$\Omega_z$ [rad/s]']
+
+plt.figure()
 
 for i, j in enumerate(y_labs):
     
     plt.subplot(int(str(22)+str(i+1)))
     
     plt.plot(t_vec, X_vec[:,i])
-    plt.ylabel(j, fontsize = 16)
-    plt.yticks(fontsize = 16)
-    plt.xlabel('T [s]', fontsize = 16)
+    plt.ylabel(j, fontsize = 20)
