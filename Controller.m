@@ -1,7 +1,7 @@
 
 
-%pkg load control
-%graphics_toolkit('gnuplot')
+pkg load control
+graphics_toolkit('gnuplot')
 
 clear all; close all;
 
@@ -60,13 +60,13 @@ PRM.B_mot_torq = B*[1 1;1 -1] ;% Individual motor torques
 PRM.A= A;
 
 Q = zeros(4,4); 
-Q(1,1) = 10; % For Angular velocity 
-Q(2,2) = 10; % For Angle
+Q(1,1) = 1; % For Angular velocity 
+Q(2,2) = 1; % For Angle
 Q(3,3) = 1; % For Linear velocity
 Q(4,4) = 1; % For turning velocity
 
 
-R = 1000*[1 0;0 1];
+R = 100*[1 0;0 1];
 
 PRM.K = lqr(A,PRM.B_mot_torq,Q,R);
 
