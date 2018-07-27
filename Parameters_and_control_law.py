@@ -139,3 +139,5 @@ for i, j in enumerate(y_labs):
     
     plt.plot(t_vec, X_vec[:,i])
     plt.ylabel(j, fontsize = 16)
+    plt.yticks(fontsize = 16)
+    plt.xlabel('T [s]', fontsize = 16)
