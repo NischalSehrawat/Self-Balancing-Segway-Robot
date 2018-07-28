@@ -104,6 +104,6 @@ outputs = q_out*PRM.K';
 
 figure
 
-plot(t_out, outputs,'LineWidth',lw);
+plot(t_out, 10*outputs,'LineWidth',lw);
 
-xlabel('T [s]'); ylabel('Torque [Nm]'); 
+xlabel('T [s]'); ylabel('Torque [kg.cm]'); 

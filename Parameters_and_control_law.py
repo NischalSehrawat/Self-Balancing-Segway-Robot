@@ -10,7 +10,7 @@ from scipy.integrate import odeint
 
 plt.close("all")
 
-t_sim = 10; # Total simulation time [s]
+t_sim = 5; # Total simulation time [s]
 
 IC = [-0.1, 0.1, 0, 0] # Initial conditions [alpha_dot, alpha, V, theta] 
 
@@ -105,8 +105,8 @@ B[2,0] = r*(l*l*m_0+l*m_0*r+J_y)/M; B[3,1] = b/(2*r*J5)
 B = np.dot(B, np.array([[1 ,1],[1,-1]])) # Individual motor torques
 
 Q = np.zeros((4,4));
-Q[0,0] = 10; # Penalty For Angular velocity
-Q[1,1] = 10; # Penalty For Angle
+Q[0,0] = 1; # Penalty For Angular velocity
+Q[1,1] = 1; # Penalty For Angle
 Q[2,2] = 1; # Penalty For Linear velocity
 Q[3,3] = 1; # Penalty For turning velocity
 
@@ -131,16 +131,18 @@ def msd(y,t):
 
 X_vec = odeint(msd,IC,t_vec)
 
+X_vec[:,3][X_vec[:,3]<1e-10] = 0; # Remove extremely small values from Omega_Z
+
 #%%
 
-x_delta = X_vec - x_desired
+x_delta = X_vec - x_desired # Desired X after making corrections
 
-outputs = np.dot(x_delta, np.transpose(K))
+outputs = np.dot(x_delta, np.transpose(K)) # Motor outputs after correcting x
 
 plt.plot(t_vec, 10*outputs[:,0], label = "Mot 1")
 plt.plot(t_vec, 10*outputs[:,1], label = "Mot 2")
 
-plt.legend(loc = 'best'); plt.ylabel('Torque Kg.cm', fontsize = 16)
+plt.legend(loc = 'upper right'); plt.ylabel('Torque Kg.cm', fontsize = 16)
 
 y_labs = [r'$\dot\alpha_{y}$ [rad/s]', r'$\alpha_{y}$ [rad]', 'V [m/s]', r'$\Omega_z$ [rad/s]']
 
