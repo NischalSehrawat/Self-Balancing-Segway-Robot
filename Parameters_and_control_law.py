@@ -8,11 +8,13 @@ from scipy.integrate import odeint
 
 #%% parameters 
 
-t_sim = 5; # Total simulation time [s]
+plt.close("all")
 
-IC = [0, 0.1, 0, 0] # Initial conditions [alpha_dot, alpha, V, theta] 
+t_sim = 10; # Total simulation time [s]
 
-x_desired = np.array([0,0,0,5])
+IC = [-0.1, 0.1, 0, 0] # Initial conditions [alpha_dot, alpha, V, theta] 
+
+x_desired = np.array([0,0,0,0])
 
 m_wh = 0.058 + 0.2; # MAss of one wheel + mass of 1 motor [kg]
 
@@ -103,12 +105,12 @@ B[2,0] = r*(l*l*m_0+l*m_0*r+J_y)/M; B[3,1] = b/(2*r*J5)
 B = np.dot(B, np.array([[1 ,1],[1,-1]])) # Individual motor torques
 
 Q = np.zeros((4,4));
-Q[0,0] = 1; # Penalty For Angular velocity
-Q[1,1] = 1; # Penalty For Angle
+Q[0,0] = 10; # Penalty For Angular velocity
+Q[1,1] = 10; # Penalty For Angle
 Q[2,2] = 1; # Penalty For Linear velocity
 Q[3,3] = 1; # Penalty For turning velocity
 
-R = 100*np.array([[1,0],[0,1]])
+R = 10*np.array([[1,0],[0,1]])
 
 K, _, _ = lqr(A,B,Q,R)  
 
@@ -123,7 +125,7 @@ t_vec = np.arange(0,t_sim,dt)
 
 def msd(y,t):
   
-    x_dd = np.dot((A - np.dot(B_mot_torq,K)),y)
+    x_dd = np.dot((A - np.dot(B,K)),y)
             
     return x_dd
 
@@ -131,11 +133,12 @@ X_vec = odeint(msd,IC,t_vec)
 
 #%%
 
-plt.plot(t_vec, 10*X_vec[:,2], label = "Around 0")
-
 x_delta = X_vec - x_desired
 
-plt.plot(t_vec, 10*x_delta[:,2], label = "Not 0")
+outputs = np.dot(x_delta, np.transpose(K))
+
+plt.plot(t_vec, 10*outputs[:,0], label = "Mot 1")
+plt.plot(t_vec, 10*outputs[:,1], label = "Mot 2")
 
 plt.legend(loc = 'best'); plt.ylabel('Torque Kg.cm', fontsize = 16)
 
