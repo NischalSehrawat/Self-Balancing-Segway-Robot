@@ -1,7 +1,7 @@
 
 
-pkg load control
-graphics_toolkit('gnuplot')
+% pkg load control
+% graphics_toolkit('gnuplot')
 
 clear all; close all;
 
