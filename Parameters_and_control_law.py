@@ -14,7 +14,7 @@ t_sim = 5; # Total simulation time [s]
 
 IC = [-0.1, 0.1, 0, 0] # Initial conditions [alpha_dot, alpha, V, theta] 
 
-x_desired = np.array([0,0,0,0])
+x_desired = np.array([0,0,0.1,0])
 
 m_wh = 0.058 + 0.2; # MAss of one wheel + mass of 1 motor [kg]
 
