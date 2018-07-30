@@ -155,6 +155,8 @@ class my_accel:
         
     def get_Theta_X(self): # Get tilt angle  
         
+        #   distancecurrent = distanceprevious + velocityprevious * (timecurrent - timeprevious)
+        
         omega_x = self.my_mpu.get_gyro_data()['x'] + self.calib[2]  # Gyro data
         
         t_now = datetime.now() # Find what time is it now
