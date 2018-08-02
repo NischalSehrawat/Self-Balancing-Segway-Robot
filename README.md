@@ -1,2 +1,6 @@
 # Balancing-Bot-Python
-This is a project for balancing an inverted pendulum using a Raspberry Pi. Later on I shall try to add more functionalities to it. Since the Pi already has a lot of very nice libraries, it makes the code much more simple and shorter and the focus can be shifted on main problem instead of dealing with hardware problems. The only disadvantage is that the Pi doesn't have analogue read functionality for reading potentiometer data. This is done using Arduino board and the data is transferred to the Pi using Serial communication.
+This is my project for balancing an inverted pendulum using a Raspberry Pi. The main aim of the project is to learn about the following topics
+- Gain an insight into the physics of the problem and understand the equation of motions
+- Learn about classic and modern control theories
+- Learn about concepts like controllability, observability, LQR technique to derive controller gain
+- Learn and code my own Kalman Filter for Sensor Fusion
