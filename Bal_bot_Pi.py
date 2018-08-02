@@ -139,8 +139,8 @@ class my_accel:
 
         for i in range(100):
 
-            xx = [0-self.my_mpu.get_accel_data()['y'], 9.8-self.my_mpu.get_accel_data()['z'],
-                  0-self.my_mpu.get_gyro_data()['x']]
+            xx = [self.my_mpu.get_accel_data()['y'], 9.8-self.my_mpu.get_accel_data()['z'],
+                  self.my_mpu.get_gyro_data()['x']]
             
             calib.append(xx)
 
@@ -148,9 +148,9 @@ class my_accel:
 
         print("MPU  caliberated, corrections Y, Z, Omega_x = ", round(self.calib[0], 2), round(self.calib[1], 2), round(self.calib[2], 2))
 
-        self.Theta_x = arctan((self.my_mpu.get_accel_data()['y'] + self.calib[0]) / (self.my_mpu.get_accel_data()['z'] + self.calib[1]))
+        self.Theta_x = arctan((self.my_mpu.get_accel_data()['y'] - self.calib[0]) / (self.my_mpu.get_accel_data()['z'] + self.calib[1]))
         self.theta_init = self.Theta_x # Used for calculating theta_dot        
-        self.omega_x_prev = self.my_mpu.get_gyro_data()['x'] + self.calib[2] # Initial omega_x
+        self.omega_x_prev = self.my_mpu.get_gyro_data()['x'] - self.calib[2] # Initial omega_x
         
         sleep(2)
         
