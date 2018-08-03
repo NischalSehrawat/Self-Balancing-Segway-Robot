@@ -47,13 +47,13 @@ class My_Kalman:
         
         init_conditions = np.transpose(np.mean(R, axis = 0)) # Get initial conditions in 2*1 form
         
-        print('Calculated initial states for Kalman filter Acc angle, Gyro bias ', init_conditions)    
+        print('Calculated initial states for Kalman filter Acc angle, Gyro bias (constant inaccuracy) ', init_conditions)    
             
-        self.B = np.array([[1], [0]]) # System B matrix used for giving input (n_states * 1)        
-        self.C = np.array([[1,0]]) # MEasurement matrix i.e. what measurements are we getting from the system (n_sensors*n_states) 
+        self.B = np.array([[1], [0]]) # System B (input) matrix used for giving input (n_states * 1)        
+        self.C = np.array([[1,0]]) # Matrix to map state values onto sensor values (n_sensors*n_states) 
         self.theta_prev = init_conditions[0] # Initial theta, used for getting angular velocity [rad]
         
-        print('B and C matrices')
+        print('B and C matrices initialised, A matrix will be calulated while calculating angle')
         
         '''
         Now we need to initialise the following matrices for the Kalman filter to work
@@ -64,7 +64,7 @@ class My_Kalman:
         '''
         
         self.X_0 = init_conditions # These are the initial conditions (n_states * 1)
-        self.P = np.diag([0.01, 0.01]) # Error covariance matrix initialised (n_states * n_states)
+        self.P = np.random.rand(2,2)*np.eye(2) # Error covariance matrix initialised (n_states * n_states)
         self.Q = np.diag([0.01, 0.01]) # Process noise covariance matrix (n_states * n_states) contains variance (std**2 of both states)
         self.R = (np.std(R[:,0]))**2 # Sensor noise covariance matrix for accelerometer
         
