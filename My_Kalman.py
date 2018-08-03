@@ -78,11 +78,13 @@ class My_Kalman:
                         
             dt = (t_now - self.t_prev).total_seconds()# Total time difference in seconds
             
-            # Step 1: Initialise A matrix and predict state 
+            # Step 1: Initialise A matrix and predict state. The system model is X_k = A*X_(k-1) + B*U
             
             self.A = np.array([[1,-dt],[0,1]]) # System A matrix (n_states * n_states) for describing system dynamics
             
-            X_now = np.dot(self.A,self.X_0) + self.B*dt*np.deg2rad(np.self.my_mpu.get_gyro_data()['x'] - self.error[2]) 
+            U = np.deg2rad(np.self.my_mpu.get_gyro_data()['x'] - self.error[2]) # Input angular velocity in [rad/s]
+            
+            X_now = np.dot(self.A,self.X_0) + self.B*dt*U
             
             # Step 2: Project error covariance matrix, The process noise is added here and multiplied by dt as it has got added over time
             # to the plant 
