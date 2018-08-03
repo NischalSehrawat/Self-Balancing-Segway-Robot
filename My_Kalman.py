@@ -4,7 +4,7 @@ from datetime import datetime
 
 class My_Kalman:
     
-    def __init__(self, my_mpu, alpha):
+    def __init__(self, my_mpu):
 
         self.my_mpu = my_mpu # Note that the MPU return data in [m/s**2] for accelerometer and [deg/s] for gyro
         self.t_prev = datetime.now() # Time when object is initialised
