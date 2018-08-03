@@ -4,7 +4,7 @@ This is my project for balancing an inverted pendulum using a Raspberry Pi. The 
 - Learn about classic and modern control theories. [Source](https://www.youtube.com/watch?v=Pi7l8mMjYVE&list=PLMrJAkhIeNNR20Mz-VpzgfQs5zrYi085m)
 - Learn about concepts like controllability, observability, LQR technique to derive controller gain. [Source](https://www.youtube.com/watch?v=Pi7l8mMjYVE&list=PLMrJAkhIeNNR20Mz-VpzgfQs5zrYi085m)
 - Learn and code my own Kalman Filter for Sensor Fusion. I struggled a lot to find sources that explained it from the very basics and finally found some good reads. Sources [1](https://home.wlu.edu/~levys/kalman_tutorial/), [2](http://blog.tkjelectronics.dk/2012/09/a-practical-approach-to-kalman-filter-and-how-to-implement-it/) and [3](https://github.com/balzer82/Kalman/blob/master/Kalman-Filter-CV.ipynb?create=1).
-- Check how do Kalman and Complimentary filters compare with each other
+- Check how do Kalman and Complimentary filters compare with each other.
 - Learn how to implement the learned concepts on actual hardware and understand the problems encountered.
 - Learn how to make RaspberryPi communicate with arduino over Serial port. [Source](http://forum.arduino.cc/index.php?topic=396450)
 - Learn how to use rotory encoders to get RPM of a motor and smoothen the data.
