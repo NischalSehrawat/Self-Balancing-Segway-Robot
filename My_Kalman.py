@@ -47,21 +47,21 @@ class My_Kalman:
         
         init_conditions = np.transpose(np.mean(R, axis = 0)) # Get initial conditions in 2*1 form
         
-        print('Calculated initial states for Kalman filter Acc angle, Gyro bias ', init_conditions)
-
-        '''
-        Now we need to initialise the following matrices for the Kalman filter to work
-        1) Initial conditions X_0
-        2) Error Covariance matrix P
-        3) Process noise covariance matrix Q which tells how noisy our process is
-        4) Sensor noise covariance matrix which tells how noisy our sensors are
-        '''    
+        print('Calculated initial states for Kalman filter Acc angle, Gyro bias ', init_conditions)    
             
         self.B = np.array([[1], [0]]) # System B matrix used for giving input (n_states * 1)        
         self.C = np.array([[1,0]]) # MEasurement matrix i.e. what measurements are we getting from the system (n_sensors*n_states) 
         self.theta_prev = init_conditions[0] # Initial theta, used for getting angular velocity [rad]
         
         print('B and C matrices')
+        
+        '''
+        Now we need to initialise the following matrices for the Kalman filter to work
+        1) Initial conditions X_0
+        2) Error Covariance matrix P
+        3) Process noise covariance matrix Q which tells how noisy our process is
+        4) Sensor noise covariance matrix which tells how noisy our sensors are
+        '''
         
         self.X_0 = init_conditions # These are the initial conditions (n_states * 1)
         self.P = np.diag([0.01, 0.01]) # Error covariance matrix initialised (n_states * n_states)
