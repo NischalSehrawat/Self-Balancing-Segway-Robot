@@ -69,7 +69,7 @@ class My_Kalman:
         
         print('Initialised X_0, Q, P and R matrices, system ready')
         
-        def get_angle(units = 'rad'):
+        def get_angle(self, units = 'rad'):
             
             # Get the time elapsed first
             
