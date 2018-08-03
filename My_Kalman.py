@@ -41,7 +41,7 @@ class My_Kalman:
             f1 = np.arctan((self.my_mpu.get_accel_data()['y'] - self.error[0]) / (self.my_mpu.get_accel_data()['z'] - self.error[1]))
             f2 = np.deg2rad(np.self.my_mpu.get_gyro_data()['x'] - self.error[2]) # Gyro bias [rad] 
             
-            R.append([f1,f2])
+            R.append([f1,f2]) # 100 samples of angles and angular velocity in [rad] and [rad/s] respectively
             
         R = np.array(R); init_conditions = np.transpose(np.mean(R, axis = 0))
         
