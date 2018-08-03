@@ -22,11 +22,11 @@ class My_Kalman:
             
             calib.append(xx)
             
-        calib = np.array(calib)
+        calib = np.array(calib) # Make is a 100*3 matrix
         
         self.error = np.mean(calib, axis = 0)
         
-        print("MPU caliberated, the mean acc [m/s2] and gyro [deg/s] error is ", self.error[0], self.error[1])
+        print("MPU caliberated, the mean accY, accZ [m/s2] and gyro [deg/s] error is ", self.error[0], self.error[1], self.error[2])
         
         sleep(0.5)
         
