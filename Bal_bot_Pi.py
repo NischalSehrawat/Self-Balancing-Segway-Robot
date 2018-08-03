@@ -167,7 +167,7 @@ class My_complimentary:
         
         dt = delta_t.total_seconds() # Total time difference in seconds
         
-        roll = arctan((self.my_mpu.get_accel_data()['y'] + self.calib[0]) / (self.my_mpu.get_accel_data()['z'] + self.calib[1]))
+        roll = arctan((self.my_mpu.get_accel_data()['y'] - self.calib[0]) / (self.my_mpu.get_accel_data()['z'] - self.calib[1]))
         
         self.Theta_x = self.alpha*(self.Theta_x + deg2rad(self.omega_x_prev * dt)) + (1-self.alpha)*roll # Calculate the total angle using a Complimentary filter
               
