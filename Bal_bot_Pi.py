@@ -4,7 +4,7 @@ from time import sleep
 from datetime import datetime
 from mpu6050 import mpu6050
 from gpiozero import Robot, DistanceSensor
-from My_PID import PID
+from My_Classes import My_complimentary, My_Kalman
 from serial import Serial
 import RPi.GPIO as GPIO
 
