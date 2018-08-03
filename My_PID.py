@@ -6,6 +6,8 @@ Created on Wed May 16 20:22:19 2018
 """
 
 from datetime import datetime
+import numpy as np
+
 
 class PID:
     
