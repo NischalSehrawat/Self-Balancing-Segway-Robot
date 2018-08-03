@@ -70,7 +70,7 @@ class My_Kalman:
         
         print('Initialised X_0, Q, P and R matrices')
         
-        def get_angle():
+        def get_angle(units = 'rad'):
             
             # Get the time elapsed first
             
@@ -117,7 +117,12 @@ class My_Kalman:
             
             self.t_prev = t_now # Time now = time prev for next step
             
-            return np.rad2deg([theta, theta_dot])
+            if units == 'deg':
+                dd = np.rad2deg([theta, theta_dot])
+            else:
+                dd = np.array([theta,theta_dot])
+            
+            return dd
 
         
 
