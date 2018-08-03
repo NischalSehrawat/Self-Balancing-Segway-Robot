@@ -51,7 +51,7 @@ class My_Kalman:
             
             R.append([f1,f2])
             
-        R = np.array(R) 
+        R = np.array(R)        
 
         '''
         Now we need to initialise the following matrices for the Kalman filter to work
@@ -61,11 +61,11 @@ class My_Kalman:
         4) Sensor noise covariance matrix which tells how noisy our sensors are
         '''           
             
-        self.A = np.zeros((2, 2)) # System A matrix (n_states * n_states) for describing system dynamics
-        self.B = np.zeros((2,1)) # System B matrix used for giving input (n_states * 1)        
+        self.A = np.array([[1,-1], [0,1]]) # System A matrix (n_states * n_states) for describing system dynamics
+        self.B = np.array([[1], [0]]) # System B matrix used for giving input (n_states * 1)        
         self.C = np.array([[1,0]]) # MEasurement matrix i.e. what measurements are we getting from the system (n_sensors*n_states)       
         
-        self.X_0 = np.mean(R, axis = 0) # These are the initial conditions
+        self.X_0 = np.transpose(np.mean(R, axis = 0)) # These are the initial conditions (n_states * 1)
         self.P = np.diag([0.01, 0.01]) # Error covariance matrix initialised (n_states * n_states)
         self.Q = np.diag([0.01, 0.01]) # Process noise covariance matrix (n_states * n_states) contains variance (std**2 of both states)
         self.R = (np.std(R[:,0]))**2 # Sensor noise covariance matrix for accelerometer
