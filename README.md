@@ -7,4 +7,4 @@ This is my project for balancing an inverted pendulum using a Raspberry Pi. The 
 - Check how do Kalman and Complimentary filters compare with each other
 - Learn how to implement the learned concepts on actual hardware and understand the problems encoutered.
 - Learn how to make RaspberryPi communicate with arduino over Serial port.
-- Learn how to use rotory motor encoder to get RPM of a motor and use exponential data smoothing for noise removal.
+- Learn how to use rotory encoders to get RPM of a motor and use exponential data smoothing for noise removal.
