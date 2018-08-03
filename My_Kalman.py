@@ -43,7 +43,9 @@ class My_Kalman:
             
             R.append([f1,f2]) # 100 samples of angle and angular velocity (bias in gyro) in [rad] and [rad/s] respectively
             
-        R = np.array(R); init_conditions = np.transpose(np.mean(R, axis = 0))
+        R = np.array(R); # Make it an array of 100*2
+        
+        init_conditions = np.transpose(np.mean(R, axis = 0)) # Get initial conditions in 2*1 form
         
         print('Calculated initial states for Kalman filter Acc angle, Gyro reading ', init_conditions)
 
