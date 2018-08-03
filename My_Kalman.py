@@ -117,7 +117,7 @@ class My_Kalman:
             
             self.t_prev = t_now # Time now = time prev for next step
             
-            return np.deg2rad([theta, theta_dot])
+            return np.rad2deg([theta, theta_dot])
 
         
 
