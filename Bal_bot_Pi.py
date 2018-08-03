@@ -76,7 +76,7 @@ class my_motors:
         
         self.RPM_limit = RPM_limit # Below this RPM, send RPM = 0
     
-    def get_RPM(self): # Get motor RPM 
+    def get_RPM(self, units = 'rad/s'): # Get motor RPM 
         
         global tick_L, tick_R
         
@@ -119,72 +119,14 @@ class my_motors:
         
         self.RPM_prev = RPM_now # Make previous RPM equal to present RPM
         
-        return RPM_now
-    
-class My_complimentary:
-    
-    def __init__(self, my_mpu, alpha):
-
-        self.my_mpu = my_mpu
-        self.t_prev = datetime.now() # Time during object initialisation
-        self.alpha = alpha # parameter for controlling Gyro and accelerometer contribution    
-        
-        # We need to caliberate the MPU for errors
-
-        calib = []
-
-        print("Starting MPU caliberation..."); sleep(2)
-
-        for i in range(100):
-
-            xx = [self.my_mpu.get_accel_data()['y'], self.my_mpu.get_accel_data()['z']-9.8,
-                  self.my_mpu.get_gyro_data()['x']]
-            
-            calib.append(xx)
-
-        self.calib = np.mean(np.array(calib), axis = 0)
-
-        print("MPU  caliberated, corrections Y, Z, Omega_x = ", round(self.calib[0], 2), round(self.calib[1], 2), round(self.calib[2], 2))
-
-        self.Theta_x = np.arctan((self.my_mpu.get_accel_data()['y'] - self.calib[0]) / (self.my_mpu.get_accel_data()['z'] - self.calib[1]))
-        self.theta_init = self.Theta_x # Used for calculating theta_dot        
-        self.omega_x_prev = self.my_mpu.get_gyro_data()['x'] - self.calib[2] # Initial omega_x
-        
-        sleep(2)
-        
-        
-    def get_angle(self, units = 'rad'): # Get tilt angle  
-        
-        #   Rotated Angle = previous_velocity * timestep
-        
-        omega_x_now = self.my_mpu.get_gyro_data()['x'] + self.calib[2]  # Gyro data now
-        
-        t_now = datetime.now() # Find what time is it now
-        
-        delta_t = t_now - self.t_prev  # Calculate time difference between consecutive readings 
-        
-        dt = delta_t.total_seconds() # Total time difference in seconds
-        
-        roll = np.arctan((self.my_mpu.get_accel_data()['y'] - self.calib[0]) / (self.my_mpu.get_accel_data()['z'] - self.calib[1]))
-        
-        self.Theta_x = self.alpha*(self.Theta_x + np.deg2rad(self.omega_x_prev * dt)) + (1-self.alpha)*roll # Calculate the total angle using a Complimentary filter
-              
-        theta_dot = (self.Theta_x - self.theta_init) / dt # Time derivative of theta
-        
-        self.theta_init = self.Theta_x # Make previous angle equal to new angle for calculating derivative
-        
-        self.omega_x_prev = omega_x_now # For calculating rotation angle for next time step
-        
-        self.t_prev = t_now # Store the previous time variable for calculating "dt_gyro" 
-        
-        if units == 'deg':
-            
-            dd = np.rad2deg([self.Theta_x, theta_dot])
-            
+        if units == 'rpm':
+            dd = RPM_now # Return RPM in RPM
         else:
-            dd = np.array([self.Theta_x, theta_dot])
+            dd = (RPM_now*2*3.14/60) # Return rpm in [rad/s]        
         
         return dd
+    
+
 
 
 #====================MAIN COMPUTING LOOP ===================
