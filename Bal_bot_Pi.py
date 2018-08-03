@@ -1,4 +1,4 @@
-from numpy import floor, ceil, arctan, deg2rad, rad2deg, arange, array, mean, zeros
+import numpy as np
 import matplotlib.pyplot as plt
 from time import sleep
 from datetime import datetime
@@ -19,8 +19,6 @@ GPIO.setmode(GPIO.BCM) # Initialize the GPIO to use the BCM pin numbering scheme
                        # gpiozero uses BCM and is not configurable
 
 #====SETUP MOTOR CONTROL PINS ========
-
-s = 0.05
 
 l_mot_1 = 6; GPIO.setup(l_mot_1,GPIO.OUT);
 l_mot_2 = 13; GPIO.setup(l_mot_2,GPIO.OUT)
@@ -144,11 +142,11 @@ class My_complimentary:
             
             calib.append(xx)
 
-        self.calib = mean(array(calib), axis = 0)
+        self.calib = np.mean(np.array(calib), axis = 0)
 
         print("MPU  caliberated, corrections Y, Z, Omega_x = ", round(self.calib[0], 2), round(self.calib[1], 2), round(self.calib[2], 2))
 
-        self.Theta_x = arctan((self.my_mpu.get_accel_data()['y'] - self.calib[0]) / (self.my_mpu.get_accel_data()['z'] - self.calib[1]))
+        self.Theta_x = np.arctan((self.my_mpu.get_accel_data()['y'] - self.calib[0]) / (self.my_mpu.get_accel_data()['z'] - self.calib[1]))
         self.theta_init = self.Theta_x # Used for calculating theta_dot        
         self.omega_x_prev = self.my_mpu.get_gyro_data()['x'] - self.calib[2] # Initial omega_x
         
@@ -167,9 +165,9 @@ class My_complimentary:
         
         dt = delta_t.total_seconds() # Total time difference in seconds
         
-        roll = arctan((self.my_mpu.get_accel_data()['y'] - self.calib[0]) / (self.my_mpu.get_accel_data()['z'] - self.calib[1]))
+        roll = np.arctan((self.my_mpu.get_accel_data()['y'] - self.calib[0]) / (self.my_mpu.get_accel_data()['z'] - self.calib[1]))
         
-        self.Theta_x = self.alpha*(self.Theta_x + deg2rad(self.omega_x_prev * dt)) + (1-self.alpha)*roll # Calculate the total angle using a Complimentary filter
+        self.Theta_x = self.alpha*(self.Theta_x + np.deg2rad(self.omega_x_prev * dt)) + (1-self.alpha)*roll # Calculate the total angle using a Complimentary filter
               
         theta_dot = (self.Theta_x - self.theta_init) / dt # Time derivative of theta
         
