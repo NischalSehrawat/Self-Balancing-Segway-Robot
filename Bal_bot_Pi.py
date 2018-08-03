@@ -155,11 +155,11 @@ class My_complimentary:
         sleep(2)
         
         
-    def get_angle(self): # Get tilt angle  
+    def get_angle(self, units = 'rad'): # Get tilt angle  
         
         #   Rotated Angle = previous_velocity * timestep
         
-        omega_x_now = self.my_mpu.get_gyro_data()['x'] - self.calib[2]  # Gyro data now
+        omega_x_now = self.my_mpu.get_gyro_data()['x'] + self.calib[2]  # Gyro data now
         
         t_now = datetime.now() # Find what time is it now
         
@@ -179,7 +179,14 @@ class My_complimentary:
         
         self.t_prev = t_now # Store the previous time variable for calculating "dt_gyro" 
         
-        return rad2deg(self.Theta_x), rad2deg(theta_dot)
+        if units == 'deg':
+            
+            dd = np.rad2deg([self.Theta_x, theta_dot])
+            
+        else:
+            dd = np.array([self.Theta_x, theta_dot])
+        
+        return dd
 
 
 #====================MAIN COMPUTING LOOP ===================
