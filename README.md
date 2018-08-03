@@ -6,3 +6,4 @@ This is my project for balancing an inverted pendulum using a Raspberry Pi. The 
 - Learn and code my own Kalman Filter for Sensor Fusion. Source [here](https://home.wlu.edu/~levys/kalman_tutorial/)
 - Check how do Kalman and Complimentary filters compare with each other
 - Learn how to implement the learned concepts on actual hardware and understand the problems encoutered.
+- Learn how to make RaspberryPi communicate with arduino over Serial port.
