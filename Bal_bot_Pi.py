@@ -202,7 +202,7 @@ left_motor = my_motors(beta, ppr, "L", RPM_limit) # Class / object to get RPM da
 
 right_motor = my_motors(beta, ppr, "R", RPM_limit) # Class / object to get RPM data
 
-My_Mpu = my_accel(my_mpu, alpha) # Object for getting theta and theta_dot
+My_Mpu = My_complimentary(my_mpu, alpha) # Object for getting theta and theta_dot
 
 my_robot = Robot(left=(l_mot_1, l_mot_2), right=(r_mot_1, r_mot_2)) # Initialise robot object and its pin numbers
 
