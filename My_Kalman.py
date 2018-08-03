@@ -78,7 +78,7 @@ class My_Kalman:
                         
             dt = (t_now - self.t_prev).total_seconds()# Total time difference in seconds
             
-            # Step 1: Initialise A matrix and predict state. The system model is X_k = A*X_(k-1) + B*U
+            # Step 1: Initialise A matrix and predict state. The system model is X_k = A*X_(k-1) + B*U(k)
             
             self.A = np.array([[1,-dt],[0,1]]) # System A matrix (n_states * n_states) for describing system dynamics
             
@@ -86,8 +86,8 @@ class My_Kalman:
             
             X_now = np.dot(self.A,self.X_0) + self.B*dt*U
             
-            # Step 2: Project error covariance matrix, The process noise is added here and multiplied by dt as it has got added over time
-            # to the plant 
+            # Step 2: Project error covariance matrix, The process noise is added here and multiplied by dt 
+            #as it has got added over time to the plant 
             
             self.P = np.dot(np.dot(self.A, self.P), self.A.T) + self.Q*dt
             
