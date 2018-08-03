@@ -157,9 +157,9 @@ class My_complimentary:
         
     def get_angle(self): # Get tilt angle  
         
-        #   Rotated Angle = velocityprevious * timestep
+        #   Rotated Angle = previous_velocity * timestep
         
-        omega_x_now = self.my_mpu.get_gyro_data()['x'] + self.calib[2]  # Gyro data now
+        omega_x_now = self.my_mpu.get_gyro_data()['x'] - self.calib[2]  # Gyro data now
         
         t_now = datetime.now() # Find what time is it now
         
