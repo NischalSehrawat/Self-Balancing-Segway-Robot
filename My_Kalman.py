@@ -47,7 +47,7 @@ class My_Kalman:
         
         init_conditions = np.transpose(np.mean(R, axis = 0)) # Get initial conditions in 2*1 form
         
-        print('Calculated initial states for Kalman filter Acc angle, Gyro reading ', init_conditions)
+        print('Calculated initial states for Kalman filter Acc angle, Gyro bias ', init_conditions)
 
         '''
         Now we need to initialise the following matrices for the Kalman filter to work
