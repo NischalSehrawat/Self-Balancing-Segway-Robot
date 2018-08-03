@@ -2,14 +2,6 @@ import numpy as np
 from time import sleep
 from datetime import datetime
 
-#%% =================IMPORTANT NOTE===================
-'''
-gpiozero library uses Broadcom (BCM) pin numbering
-for the GPIO pins, as opposed to physical (BOARD)
-numbering. Unlike in the RPi.GPIO library,
-this is not configurable.
-'''
-    
 class My_Kalman:
     
     def __init__(self, my_mpu, alpha):
