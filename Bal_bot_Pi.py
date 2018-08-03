@@ -155,7 +155,7 @@ class my_accel:
         sleep(2)
         
         
-    def get_Theta_X(self): # Get tilt angle  
+    def get_angle(self): # Get tilt angle  
         
         #   Rotated Angle = velocityprevious * timestep
         
