@@ -32,9 +32,8 @@ class My_Kalman:
         
         print('Calculating initial conditions for Kalman filter')
         
-        # Now get the Sensor noise covariance matrix "R"
-        
-        R = []
+   
+        R = [] # For initial values and sensor covariance matrix
         
         for i in range(100):
             
@@ -57,18 +56,18 @@ class My_Kalman:
         
         '''
         Now we need to initialise the following matrices for the Kalman filter to work
-        1) Initial conditions X_0
-        2) Error Covariance matrix P
-        3) Process noise covariance matrix Q which tells how noisy our process is
-        4) Sensor noise covariance matrix which tells how noisy our sensors are
+        1) Initial conditions X_0 (n_states*1)
+        2) Error Covariance matrix P (n_states*n_states)
+        3) Process noise covariance matrix Q which tells how noisy our process is (n_states*n_states)
+        4) Sensor noise covariance matrix R which tells how noisy our sensors are (n_sensors*n_sensors)
         '''
-        
+        print('Initialising X_0, Q, P and R matrices')
         self.X_0 = init_conditions # These are the initial conditions (n_states * 1)
         self.P = np.random.rand(2,2)*np.eye(2) # Error covariance matrix initialised (n_states * n_states)
         self.Q = np.diag([0.01, 0.01]) # Process noise covariance matrix (n_states * n_states) contains variance (std**2 of both states)
         self.R = (np.std(R[:,0]))**2 # Sensor noise covariance matrix for accelerometer
         
-        print('Initialised X_0, Q, P and R matrices')
+        print('Initialised X_0, Q, P and R matrices, system ready')
         
         def get_angle(units = 'rad'):
             
