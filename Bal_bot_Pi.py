@@ -123,7 +123,7 @@ class my_motors:
         
         return RPM_now
     
-class my_accel:
+class My_complimentary:
     
     def __init__(self, my_mpu, alpha):
 
