@@ -139,10 +139,10 @@ x_delta = X_vec - x_desired # Desired X after making corrections
 
 outputs = np.dot(x_delta, np.transpose(K)) # Motor outputs after correcting x
 
-plt.plot(t_vec, 10*outputs[:,0], label = "Mot 1")
-plt.plot(t_vec, 10*outputs[:,1], label = "Mot 2")
+plt.plot(t_vec, (30/0.7)*outputs[:,0], label = "Mot 1")
+plt.plot(t_vec, (30/0.7)*outputs[:,1], label = "Mot 2")
 
-plt.legend(loc = 'upper right'); plt.ylabel('Torque Kg.cm', fontsize = 16)
+plt.legend(loc = 'upper right'); plt.ylabel('Torque [Nm]', fontsize = 16)
 
 y_labs = [r'$\dot\alpha_{y}$ [rad/s]', r'$\alpha_{y}$ [rad]', 'V [m/s]', r'$\Omega_z$ [rad/s]']
 
