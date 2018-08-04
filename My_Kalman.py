@@ -64,7 +64,7 @@ class My_Kalman:
         print('Initialising X_0, Q, P and R matrices')
         self.X_0 = init_conditions # These are the initial conditions (n_states * 1)
         self.P = np.random.rand(2,2)*np.eye(2) # Error covariance matrix initialised (n_states * n_states)
-        self.Q = np.diag([0.01, 0.01]) # Process noise covariance matrix (n_states * n_states) contains variance (std**2 of both states)
+        self.Q = np.diag([0.001, 0.003]) # Process noise covariance matrix (n_states * n_states) contains variance (std**2 of both states)
         self.R = (np.std(R[:,0]))**2 # Sensor noise covariance matrix for accelerometer
         
         print('Initialised X_0, Q, P and R matrices, system ready')
