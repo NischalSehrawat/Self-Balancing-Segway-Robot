@@ -166,7 +166,7 @@ my_robot = Robot(left=(l_mot_1, l_mot_2), right=(r_mot_1, r_mot_2)) # Initialise
 
 my_robot.stop()
 
-# Matrices for getting / adjusting control gain matrix
+#%% Matrices for getting / adjusting control gain matrix
 
 A = np.array([[0,75.03,0,0],[1,0,0,0],[0,-2.15,0,0],[0,0,0,0]])
 

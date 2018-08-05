@@ -106,7 +106,7 @@ B[2,0] = r*(l*l*m_0+l*m_0*r+J_y)/M; B[3,1] = b/(2*r*J5)
 B = np.dot(B, np.array([[1 ,1],[1,-1]])) # Individual motor torques
 
 Q = np.zeros((4,4));
-Q[0,0] = 100; # Penalty For Angular velocity
+Q[0,0] = 1; # Penalty For Angular velocity
 Q[1,1] = 1; # Penalty For Angle
 Q[2,2] = 1; # Penalty For Linear velocity
 Q[3,3] = 1; # Penalty For turning velocity
