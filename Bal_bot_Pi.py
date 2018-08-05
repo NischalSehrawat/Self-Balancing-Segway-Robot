@@ -186,5 +186,9 @@ K_t = 0.007 # Motor torque constant [Nm/A]
 
 R_mot = 20 # Motor resistance [Ohm]
 
+G = 90 # motor gear reduction ratio
+
+Gkt = K_t*G # Multiply the so we don't have to do it in the loop
+
 print("Starting the system..!!!")
 
