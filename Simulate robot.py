@@ -9,7 +9,7 @@ from scipy.integrate import odeint
 
 plt.close("all")
 
-t_sim = 50; # Total simulation time [s]
+t_sim = 10; # Total simulation time [s]
 
 angle = -np.deg2rad(5)
 
