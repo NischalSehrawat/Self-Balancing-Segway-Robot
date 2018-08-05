@@ -190,5 +190,20 @@ G = 90 # motor gear reduction ratio
 
 Gkt = K_t*G # Multiply the so we don't have to do it in the loop
 
+V_desired = 0; # Desired translational velocity [m/s]
+
+Omega_Z = 0; # Desired translational velocity [rad/s]
+
+x_delta = np.array([0,0,V_desired, Omega_Z]) # X_delta to be subtracted from the calculated output
+
+# X = np.array([theta_dot, theta, 0, 0])
+
+# x_corrected = X - x_delta
+
+# Output = np.dot(K,x_corrected)[0] 
+
+# Required Scaled motor voltage = (Output * R_mot / Gkt + Gkt* Omega_wheel)/12
+
+
 print("Starting the system..!!!")
 
