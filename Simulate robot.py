@@ -9,9 +9,11 @@ from scipy.integrate import odeint
 
 plt.close("all")
 
-t_sim = 5; # Total simulation time [s]
+t_sim = 50; # Total simulation time [s]
 
-IC = [0, -0.35, 0, 0] # Initial conditions [alpha_dot, alpha, V, theta] 
+angle = -np.deg2rad(5)
+
+IC = [0, angle, 0, 0] # Initial conditions [alpha_dot, alpha, V, theta] 
 
 x_desired = np.array([0,0,0,0])
 
@@ -104,7 +106,7 @@ B[2,0] = r*(l*l*m_0+l*m_0*r+J_y)/M; B[3,1] = b/(2*r*J5)
 B = np.dot(B, np.array([[1 ,1],[1,-1]])) # Individual motor torques
 
 Q = np.zeros((4,4));
-Q[0,0] = 1; # Penalty For Angular velocity
+Q[0,0] = 100; # Penalty For Angular velocity
 Q[1,1] = 1; # Penalty For Angle
 Q[2,2] = 1; # Penalty For Linear velocity
 Q[3,3] = 1; # Penalty For turning velocity
@@ -138,10 +140,10 @@ x_delta = X_vec - x_desired # Desired X after making corrections
 
 outputs = np.dot(x_delta, np.transpose(K)) # Motor outputs after correcting x
 
-plt.plot(t_vec, outputs[:,0], label = "Mot 1")
-plt.plot(t_vec, outputs[:,1], label = "Mot 2")
+plt.plot(t_vec, outputs[:,0]*20/0.63, label = "Mot 1")
+plt.plot(t_vec, outputs[:,1]*20/0.63, label = "Mot 2")
 
-plt.legend(loc = 'upper right'); plt.ylabel('Torque [Nm]', fontsize = 16)
+plt.legend(loc = 'upper right'); plt.ylabel('Motor Voltage [Volts]', fontsize = 16)
 
 y_labs = [r'$\dot\alpha_{y}$ [rad/s]', r'$\alpha_{y}$ [rad]', 'V [m/s]', r'$\Omega_z$ [rad/s]']
 
