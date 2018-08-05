@@ -202,7 +202,7 @@ x_delta = np.array([0,0,V_desired, Omega_Z]) # X_delta to be subtracted from the
 
 # Output = np.dot(K,x_corrected)[0] 
 
-# Required Scaled motor voltage = (Output * R_mot / Gkt + Gkt* Omega_wheel)/12
+# Required Scaled motor voltage = np.abs(Output * R_mot / Gkt + Gkt* Omega_wheel)/12
 
 
 print("Starting the system..!!!")
