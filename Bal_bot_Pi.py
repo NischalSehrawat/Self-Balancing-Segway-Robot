@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from time import sleep
 from datetime import datetime
 from mpu6050 import mpu6050
+import scipy.linalg
 from gpiozero import Robot, DistanceSensor
 from My_Classes import My_complimentary, My_Kalman
 from serial import Serial
@@ -126,7 +127,24 @@ class my_motors:
         
         return dd
     
-
+def lqr(A,B,Q,R):
+    """Solve the continuous time lqr controller.
+     
+    dx/dt = A x + B u
+     
+    cost = integral x.T*Q*x + u.T*R*u
+    """
+    #ref Bertsekas, p.151
+ 
+    #first, try to solve the ricatti equation
+    X = np.matrix(scipy.linalg.solve_continuous_are(A, B, Q, R))
+     
+    #compute the LQR gain
+    K = np.matrix(scipy.linalg.inv(R)*(B.T*X))
+     
+    eigVals, eigVecs = scipy.linalg.eig(A-B*K)
+     
+    return np.array(K), np.array(X), np.array(eigVals)
 
 
 #====================MAIN COMPUTING LOOP ===================
@@ -148,11 +166,25 @@ my_robot = Robot(left=(l_mot_1, l_mot_2), right=(r_mot_1, r_mot_2)) # Initialise
 
 my_robot.stop()
 
-t_init = datetime.now()
+# Matrices for getting / adjusting control gain matrix
 
-t_sample = 10 # Loop time in miliseconds
+A = np.array([[0,75.03,0,0],[1,0,0,0],[0,-2.15,0,0],[0,0,0,0]])
 
-sleep(2)
+B = np.array([[-423.114, -423.114],[0,0],[34.43,34.43],[186.6, -168.6]])
+
+Q = np.zeros((4,4));
+Q[0,0] = 1; # Penalty For Angular velocity
+Q[1,1] = 1; # Penalty For Angle
+Q[2,2] = 1; # Penalty For Linear velocity
+Q[3,3] = 1; # Penalty For turning velocity
+
+R = 10*np.array([[1,0],[0,1]])
+
+K, _, _ = lqr(A,B,Q,R)
+
+K_t = 0.007 # Motor torque constant [Nm/A]
+
+R_mot = 20 # Motor resistance [Ohm]
 
 print("Starting the system..!!!")
 
