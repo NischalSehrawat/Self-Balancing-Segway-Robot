@@ -12,9 +12,9 @@ plt.close("all")
 
 t_sim = 5; # Total simulation time [s]
 
-IC = [-0.1, 0.1, 0, 0] # Initial conditions [alpha_dot, alpha, V, theta] 
+IC = [0, -0.35, 0, 0] # Initial conditions [alpha_dot, alpha, V, theta] 
 
-x_desired = np.array([0,0,0.1,0])
+x_desired = np.array([0,0,0,0])
 
 m_wh = 0.058 + 0.2; # MAss of one wheel + mass of 1 motor [kg]
 
@@ -139,8 +139,8 @@ x_delta = X_vec - x_desired # Desired X after making corrections
 
 outputs = np.dot(x_delta, np.transpose(K)) # Motor outputs after correcting x
 
-plt.plot(t_vec, (30/0.7)*outputs[:,0], label = "Mot 1")
-plt.plot(t_vec, (30/0.7)*outputs[:,1], label = "Mot 2")
+plt.plot(t_vec, outputs[:,0], label = "Mot 1")
+plt.plot(t_vec, outputs[:,1], label = "Mot 2")
 
 plt.legend(loc = 'upper right'); plt.ylabel('Torque [Nm]', fontsize = 16)
 
