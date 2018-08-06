@@ -153,5 +153,12 @@ for i, j in enumerate(y_labs):
     
     plt.subplot(int(str(22)+str(i+1)))
     
-    plt.plot(t_vec, X_vec[:,i])
+    if i == 0 or i ==1:       
+    
+        plt.plot(t_vec, np.rad2deg(X_vec[:,i]))
+        
+    else:
+        
+        plt.plot(t_vec, X_vec[:,i])
+        
     plt.ylabel(j, fontsize = 20)
