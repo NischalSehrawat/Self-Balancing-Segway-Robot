@@ -184,7 +184,7 @@ K, _, _ = lqr(A,B,Q,R)
 
 K_t = 0.007 # Motor torque constant [Nm/A]
 
-R_mot = 20 # Motor resistance [Ohm]
+R_mot = 7 # Motor resistance [Ohm]
 
 G = 90 # motor gear reduction ratio
 
