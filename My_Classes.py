@@ -146,7 +146,7 @@ class My_Kalman:
         for i in range(100):
             
             f1 = np.arctan((self.my_mpu.get_accel_data()['y'] - self.error[0]) / (self.my_mpu.get_accel_data()['z'] - self.error[1]))
-            f2 = np.deg2rad(np.self.my_mpu.get_gyro_data()['x'] - self.error[2]) # Gyro bias [rad] 
+            f2 = np.deg2rad(self.my_mpu.get_gyro_data()['x'] - self.error[2]) # Gyro bias [rad] 
             
             R.append([f1,f2]) # 100 samples of angle and angular velocity (bias in gyro) in [rad] and [rad/s] respectively
             
