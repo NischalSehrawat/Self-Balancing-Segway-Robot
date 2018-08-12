@@ -189,7 +189,7 @@ class My_Kalman:
         
         self.A = np.array([[1,-dt],[0,1]]) # System A matrix (n_states * n_states) for describing system dynamics
         
-        U = np.deg2rad(np.self.my_mpu.get_gyro_data()['x'] - self.error[2]) # Input angular velocity in [rad/s]
+        U = np.deg2rad(self.my_mpu.get_gyro_data()['x'] - self.error[2]) # Input angular velocity in [rad/s]
         
         X_now = np.dot(self.A,self.X_0) + self.B*dt*U
         
