@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed May 16 20:22:19 2018
+
+@author: Nischal
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 from time import sleep
@@ -160,7 +167,9 @@ left_motor = my_motors(beta, ppr, "L", RPM_limit) # Class / object to get RPM da
 
 right_motor = my_motors(beta, ppr, "R", RPM_limit) # Class / object to get RPM data
 
-My_Mpu = My_complimentary(my_mpu, alpha) # Object for getting theta and theta_dot
+#My_Mpu = My_complimentary(my_mpu, alpha) # Object for getting theta and theta_dot
+
+My_Mpu = My_Kalman(my_mpu) # Object for getting theta and theta_dot
 
 my_robot = Robot(left=(l_mot_1, l_mot_2), right=(r_mot_1, r_mot_2)) # Initialise robot object and its pin numbers
 
@@ -205,5 +214,25 @@ x_delta = np.array([0,0,V_desired, Omega_Z]) # X_delta to be subtracted from the
 # Required Scaled motor voltage = np.abs(Output * R_mot / Gkt + Gkt* Omega_wheel)/12
 
 
+t_init = datetime.now() # Time now
+
+sleep(0.5)
+
 print("Starting the system..!!!")
+
+while 1:
+
+    t_now = datetime.now()
+
+    dt = (t_now - t_init).total_seconds()*1000 #Time in millis
+
+    if dt> 0:
+
+        aa, bb = My_Mpu.get_angle(units = 'deg')
+
+        print("Theta [deg] = ", int(aa)," Theta_dot [deg/s] = ", int(bb), " loop time[ms] = ", np.round(dt, 2))
+
+    t_init = t_now
+
+    
 
