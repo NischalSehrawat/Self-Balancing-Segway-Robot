@@ -10,6 +10,11 @@ from time import sleep
 from datetime import datetime
 
 
+import numpy as np
+from time import sleep
+from datetime import datetime
+
+
 class PID:
     
     def __init__(self, Kp, Kd, Ki, SetPoint, SampleTime, OutMin, OutMax, mode):
@@ -151,14 +156,13 @@ class My_Kalman:
             R.append([f1,f2]) # 100 samples of angle and angular velocity (bias in gyro) in [rad] and [rad/s] respectively
             
         R = np.array(R); # Make it an array of 100*2
-        
-        init_conditions = np.transpose(np.mean(R, axis = 0)) # Get initial conditions in 2*1 form
-        
+       
+        init_conditions = np.mean(R, axis = 0).reshape(2,1) # Get initial conditions in 2*1 form
+       
         print('Calculated initial states for Kalman filter Acc angle, Gyro bias (constant inaccuracy) ', init_conditions)    
             
         self.B = np.array([[1], [0]]) # System B (input) matrix used for giving input (n_states * 1)        
         self.C = np.array([[1,0]]) # Matrix to map state values onto sensor values (n_sensors*n_states) 
-        self.theta_prev = init_conditions[0] # Initial theta, used for getting angular velocity [rad]
         
         print('B and C matrices initialised, A matrix will be calulated while calculating angle')
         
@@ -192,7 +196,7 @@ class My_Kalman:
         U = np.deg2rad(self.my_mpu.get_gyro_data()['x'] - self.error[2]) # Input angular velocity in [rad/s]
         
         X_now = np.dot(self.A,self.X_0) + self.B*dt*U
-        
+      
         # Step 2: Project error covariance matrix, The process noise is added here and multiplied by dt 
         #as it has got added over time to the plant 
         
@@ -214,22 +218,22 @@ class My_Kalman:
         
         self.P = np.dot((np.eye(2,2)-np.dot(self.Kf, self.C)), self.P)
         
-        theta = X_now[0]; theta_dot = (theta - self.theta_prev)/dt
-        
+        theta = X_now[0,0]; 
+
+        theta_dot = np.deg2rad(self.my_mpu.get_gyro_data()['x'] - self.error[2]) - X_now[1,0]
+       
         # Save variables for next step
         
         self.X_0 = X_now # State prev = state now for next step calculation
-        
-        self.theta_prev = X_now[0] # make present angle equal to prev angle for next step calculation
-        
+                
         self.t_prev = t_now # Time now = time prev for next step
         
         if units == 'deg':
-            dd = np.rad2deg([theta, theta_dot])
+            aa, bb = np.rad2deg(theta), np.rad2deg(theta_dot)
         else:
-            dd = np.array([theta,theta_dot])
+            aa,bb = theta,theta_dot
         
-        return dd
+        return aa,bb
 
 
 class My_complimentary:
@@ -290,9 +294,9 @@ class My_complimentary:
         
         if units == 'deg':
             
-            dd = np.rad2deg([self.Theta_x, theta_dot])
+            aa, bb = np.rad2deg(self.Theta_x), np.rad2deg(theta_dot)
             
         else:
-            dd = np.array([self.Theta_x, theta_dot])
+            aa,bb = self.Theta_x, theta_dot
         
-        return dd
+        return aa,bb
