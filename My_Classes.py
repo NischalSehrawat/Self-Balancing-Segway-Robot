@@ -9,7 +9,7 @@ import numpy as np
 from time import sleep
 from datetime import datetime
 
-class PID:
+class PID_fixed_loop:
     
     def __init__(self, Kp, Kd, Ki, SetPoint, SampleTime, OutMin, OutMax, mode):
         
@@ -196,32 +196,36 @@ class PID_variable_loop:
 		
 class My_Kalman:
     
-    def __init__(self, my_mpu):
+    def __init__(self, my_mpu, caliberate = True):
 
         self.my_mpu = my_mpu # Note that the MPU return data in [m/s**2] for accelerometer and [deg/s] for gyro
         self.t_prev = datetime.now() # Time when object is initialised
         
-        # We need to caliberate the MPU for errors
+        if caliberate == True:# We need to caliberate the MPU for errors        
 
-        calib = []
-
-        print("Starting MPU caliberation..."); sleep(1)
-
-        for i in range(100):
-
-            xx = [self.my_mpu.get_accel_data()['y'], self.my_mpu.get_accel_data()['z'] - 9.8,
-                  self.my_mpu.get_gyro_data()['x']]
+            calib = []
+    
+            print("Starting MPU caliberation..."); sleep(1)
+    
+            for i in range(100):
+    
+                xx = [self.my_mpu.get_accel_data()['y'], self.my_mpu.get_accel_data()['z'] - 9.8,
+                      self.my_mpu.get_gyro_data()['x']]
+                
+                calib.append(xx)
+                
+            calib = np.array(calib) # Make is a 100*3 matrix
             
-            calib.append(xx)
+            self.error = np.mean(calib, axis = 0)
             
-        calib = np.array(calib) # Make is a 100*3 matrix
+            print("MPU  caliberated, corrections Y, Z, Omega_x = ", round(self.error[0], 2), round(self.error[1], 2), round(self.error[2], 2))
+            
+            sleep(0.5)
         
-        self.error = np.mean(calib, axis = 0)
+        else:
+            
+            self.error = np.array([0.4,-0.48,-1.41])
         
-		print("MPU  caliberated, corrections Y, Z, Omega_x = ", round(self.error[0], 2), round(self.error[1], 2), round(self.error[2], 2))
-
-        
-        sleep(0.5)
         
         print('Calculating initial conditions for Kalman filter')
         
@@ -318,29 +322,33 @@ class My_Kalman:
 
 class My_complimentary:
     
-    def __init__(self, my_mpu, alpha):
+    def __init__(self, my_mpu, alpha, caliberate = True):
 
         self.my_mpu = my_mpu
         self.t_prev = datetime.now() # Time during object initialisation
         self.alpha = alpha # parameter for controlling Gyro and accelerometer contribution    
         
-        # We need to caliberate the MPU for errors
+        if caliberate == True: # We need to caliberate the MPU for errors
 
-        calib = []
+            calib = []
+    
+            print("Starting MPU caliberation..."); sleep(2)
+    
+            for i in range(100):
+    
+                xx = [self.my_mpu.get_accel_data()['y'], self.my_mpu.get_accel_data()['z']-9.8,
+                      self.my_mpu.get_gyro_data()['x']]
+                
+                calib.append(xx)
+    
+            self.error = np.mean(np.array(calib), axis = 0)
+    
+            print("MPU  caliberated, corrections Y, Z, Omega_x = ", round(self.error[0], 2), round(self.error[1], 2), round(self.error[2], 2))
 
-        print("Starting MPU caliberation..."); sleep(2)
-
-        for i in range(100):
-
-            xx = [self.my_mpu.get_accel_data()['y'], self.my_mpu.get_accel_data()['z']-9.8,
-                  self.my_mpu.get_gyro_data()['x']]
+        else:
             
-            calib.append(xx)
-
-        self.error = np.mean(np.array(calib), axis = 0)
-
-        print("MPU  caliberated, corrections Y, Z, Omega_x = ", round(self.error[0], 2), round(self.error[1], 2), round(self.error[2], 2))
-
+            self.error = np.array([0.4,-0.48,-1.43])
+        
         self.Theta_x = np.arctan((self.my_mpu.get_accel_data()['y'] - self.error[0]) / (self.my_mpu.get_accel_data()['z'] - self.error[1]))
         self.theta_init = self.Theta_x # Used for calculating theta_dot        
         self.omega_x_prev = self.my_mpu.get_gyro_data()['x'] - self.error[2] # Initial omega_x
