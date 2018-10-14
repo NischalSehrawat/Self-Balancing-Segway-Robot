@@ -149,6 +149,8 @@ y_labs = [r'$\dot\alpha_{y}$ [rad/s]', r'$\alpha_{y}$ [rad]', 'V [m/s]', r'$\Ome
 
 plt.figure()
 
+print("Ran successfully")
+
 for i, j in enumerate(y_labs):
     
     plt.subplot(int(str(22)+str(i+1)))
