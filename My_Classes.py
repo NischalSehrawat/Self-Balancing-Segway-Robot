@@ -109,6 +109,91 @@ class PID:
             else:  # Do nothing if elapsed time < sampletime
                 pass
 
+				
+class PID_variable_loop:
+    
+    def __init__(self, Kp, Kd, Ki, SetPoint, OutMin, OutMax):
+        
+        self.Kp = Kp
+        self.Kd = Kd
+        self.Ki = Ki
+        self.setpoint = SetPoint
+        self.Integral_Term = 0 # This term will collect integral term sums
+        self.t_start = datetime.now() # This term checks whether the PID loop must be executed
+        self.lastInput = 0 # Term used for storing last input used for calculating dInput
+        self.OutMin = OutMin # Minimum value of output i.e. output till which the controller doesn't respond (Dead band)
+        self.OutMax = OutMax # Maximum value of output
+        self.error = 0 # To get the error term while PID Tuning
+        self.Output_ratio = (1-self.OutMin / self.OutMax) # Used for Scaling the output from (0 to Outmax) to (Outmin to Outmax) 
+    
+    def set_tunings(self, kp, kd, ki): # Suppose we want to set parameters (using potentiometer) while the alorithm is running
+        
+        self.Kp = kp # Set Kp to new kp
+        self.Kd = kd # Set Kd to new kd
+        self.Ki = ki # Set Ki to new ki
+
+    
+    def get_serial_data(self, my_serial, kp_max, kd_max, ki_max):
+        
+        # The arduino will send data like <,Kp,Kd,Ki,>\r\n
+    
+        dd = my_serial.readline().decode().replace("\r\n","").split(',')
+        
+        if ((dd[0] == "<") and (dd[-1] == ">")): # This has the data that Arduino sent
+            
+            Kp, Kd, Ki = [float(i) for i in dd[1:-1]]
+            
+            return Kp*(kp_max/1024), Kd*(kd_max/1024), Ki*(ki_max/1024)               
+            
+        else:
+            
+            pass     
+        
+    def Compute_PID_Output(self, Input):
+                   
+        t_now = datetime.now()
+    
+        dt = t_now - self.t_start
+    
+        dt_sec = dt.total_seconds()  # time change in seconds
+        
+        self.error = self.setpoint - Input # Error term
+    
+        self.Integral_Term = self.Integral_Term + self.Ki * self.error * dt_sec # This makes it possible to change Ki on while the algorithm is running
+    
+        dInput = (Input - self.lastInput) #  Removes “Derivative Kick” effect.
+    
+        Output = self.Kp * self.error + self.Integral_Term - self.Kd_scaled * dInput / dt_sec
+    
+        '''
+        Clamp Output and Integral term to take care of Reset Windup
+        '''
+    
+        if (Output > self.OutMax):
+            self.Integral_Term = self.Integral_Term - self.Ki_scaled * self.error # Keep Integral term same
+            Output = self.OutMax # Set Output to maximum output limit
+            
+            return abs(Output)
+        
+        elif (Output < -self.OutMax):
+            self.Integral_Term = self.Integral_Term + self.Ki_scaled * self.error # Keep Integral term same
+            Output = -self.OutMax # Set Output to minimum output limit
+            
+            return abs(Output)
+        
+        elif (-self.OutMax <= Output <= self.OutMax):
+            
+            # if the Ouput lies between -Out_max to + Out_max, scale it to +Out_min to +Out_max
+            
+            Output_scaled = float(format(self.Output_ratio * abs(Output) + self.OutMin, '.2f')) # Only take 2 significant figures after decimal
+                                
+            return Output_scaled
+        
+        self.t_start = t_now # Store the previous time variable for calculating "dt" and sampling time
+    
+        self.lastInput = Input # Store last input to calculate dInput
+
+		
 class My_Kalman:
     
     def __init__(self, my_mpu):
