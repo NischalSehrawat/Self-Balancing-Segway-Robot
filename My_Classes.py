@@ -225,6 +225,9 @@ class My_Kalman:
         else:
             
             self.error = np.array([0.4,-0.48,-1.41])
+            
+            print("Using  pre-caliberated corrections Y, Z, Omega_x = ", round(self.error[0], 2), round(self.error[1], 2), round(self.error[2], 2))
+
         
         
         print('Calculating initial conditions for Kalman filter')
@@ -348,6 +351,8 @@ class My_complimentary:
         else:
             
             self.error = np.array([0.4,-0.48,-1.43])
+            print("Using  pre-caliberated corrections Y, Z, Omega_x = ", round(self.error[0], 2), round(self.error[1], 2), round(self.error[2], 2))
+
         
         self.Theta_x = np.arctan((self.my_mpu.get_accel_data()['y'] - self.error[0]) / (self.my_mpu.get_accel_data()['z'] - self.error[1]))
         self.theta_init = self.Theta_x # Used for calculating theta_dot        
