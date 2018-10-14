@@ -163,20 +163,20 @@ class PID_variable_loop:
     
         dInput = (Input - self.lastInput) #  Removes “Derivative Kick” effect.
     
-        Output = self.Kp * self.error + self.Integral_Term - self.Kd_scaled * dInput / dt_sec
+        Output = self.Kp * self.error + self.Integral_Term - self.Kd * dInput / dt_sec
     
         '''
         Clamp Output and Integral term to take care of Reset Windup
         '''
     
         if (Output > self.OutMax):
-            self.Integral_Term = self.Integral_Term - self.Ki_scaled * self.error # Keep Integral term same
+            self.Integral_Term = self.Integral_Term - self.Ki * self.error # Keep Integral term same
             Output = self.OutMax # Set Output to maximum output limit
             
             return abs(Output)
         
         elif (Output < -self.OutMax):
-            self.Integral_Term = self.Integral_Term + self.Ki_scaled * self.error # Keep Integral term same
+            self.Integral_Term = self.Integral_Term + self.Ki * self.error # Keep Integral term same
             Output = -self.OutMax # Set Output to minimum output limit
             
             return abs(Output)
