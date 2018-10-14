@@ -133,7 +133,8 @@ class My_Kalman:
         
         self.error = np.mean(calib, axis = 0)
         
-        print("MPU caliberated, the mean accY, accZ [m/s2] and gyro [deg/s] error is ", self.error[0], self.error[1], self.error[2])
+		print("MPU  caliberated, corrections Y, Z, Omega_x = ", round(self.error[0], 2), round(self.error[1], 2), round(self.error[2], 2))
+
         
         sleep(0.5)
         
@@ -251,13 +252,13 @@ class My_complimentary:
             
             calib.append(xx)
 
-        self.calib = np.mean(np.array(calib), axis = 0)
+        self.error = np.mean(np.array(calib), axis = 0)
 
-        print("MPU  caliberated, corrections Y, Z, Omega_x = ", round(self.calib[0], 2), round(self.calib[1], 2), round(self.calib[2], 2))
+        print("MPU  caliberated, corrections Y, Z, Omega_x = ", round(self.error[0], 2), round(self.error[1], 2), round(self.error[2], 2))
 
-        self.Theta_x = np.arctan((self.my_mpu.get_accel_data()['y'] - self.calib[0]) / (self.my_mpu.get_accel_data()['z'] - self.calib[1]))
+        self.Theta_x = np.arctan((self.my_mpu.get_accel_data()['y'] - self.error[0]) / (self.my_mpu.get_accel_data()['z'] - self.error[1]))
         self.theta_init = self.Theta_x # Used for calculating theta_dot        
-        self.omega_x_prev = self.my_mpu.get_gyro_data()['x'] - self.calib[2] # Initial omega_x
+        self.omega_x_prev = self.my_mpu.get_gyro_data()['x'] - self.error[2] # Initial omega_x
         
         sleep(2)
         
@@ -266,7 +267,7 @@ class My_complimentary:
         
         #   Rotated Angle = previous_velocity * timestep
         
-        omega_x_now = self.my_mpu.get_gyro_data()['x'] - self.calib[2]  # Gyro data now
+        omega_x_now = self.my_mpu.get_gyro_data()['x'] - self.error[2]  # Gyro data now
         
         t_now = datetime.now() # Find what time is it now
         
@@ -274,7 +275,7 @@ class My_complimentary:
         
         dt = delta_t.total_seconds() # Total time difference in seconds
         
-        roll = np.arctan((self.my_mpu.get_accel_data()['y'] - self.calib[0]) / (self.my_mpu.get_accel_data()['z'] - self.calib[1]))
+        roll = np.arctan((self.my_mpu.get_accel_data()['y'] - self.error[0]) / (self.my_mpu.get_accel_data()['z'] - self.error[1]))
         
         self.Theta_x = self.alpha*(self.Theta_x + np.deg2rad(self.omega_x_prev * dt)) + (1-self.alpha)*roll # Calculate the total angle using a Complimentary filter
               
