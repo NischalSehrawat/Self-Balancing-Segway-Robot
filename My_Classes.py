@@ -9,12 +9,6 @@ import numpy as np
 from time import sleep
 from datetime import datetime
 
-
-import numpy as np
-from time import sleep
-from datetime import datetime
-
-
 class PID:
     
     def __init__(self, Kp, Kd, Ki, SetPoint, SampleTime, OutMin, OutMax, mode):
