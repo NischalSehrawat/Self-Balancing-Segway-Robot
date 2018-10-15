@@ -76,6 +76,10 @@ class PID_fixed_loop:
                 dInput = (Input - self.lastInput) #  Removes “Derivative Kick” effect.
             
                 Output = self.Kp * self.error + self.Integral_Term - self.Kd_scaled * dInput
+                
+                self.t_start = t_now # Store the previous time variable for calculating "dt" and sampling time
+            
+                self.lastInput = Input # Store last input to calculate dInput
             
                 '''
                 Clamp Output and Integral term to take care of Reset Windup
@@ -99,12 +103,7 @@ class PID_fixed_loop:
                     
                     Output_scaled = float(format(self.Output_ratio * abs(Output) + self.OutMin, '.2f')) # Only take 2 significant figures after decimal
                                         
-                    return Output_scaled
-                
-                self.t_start = t_now # Store the previous time variable for calculating "dt" and sampling time
-            
-                self.lastInput = Input # Store last input to calculate dInput
-        
+                    return Output_scaled        
             
             else:  # Do nothing if elapsed time < sampletime
                 pass
@@ -164,6 +163,10 @@ class PID_variable_loop:
         dInput = (Input - self.lastInput) #  Removes “Derivative Kick” effect.
     
         Output = self.Kp * self.error + self.Integral_Term - self.Kd * dInput / dt_sec
+        
+        self.t_start = t_now # Store the previous time variable for calculating "dt" and sampling time
+    
+        self.lastInput = Input # Store last input to calculate dInput
     
         '''
         Clamp Output and Integral term to take care of Reset Windup
@@ -188,10 +191,6 @@ class PID_variable_loop:
             Output_scaled = float(format(self.Output_ratio * abs(Output) + self.OutMin, '.2f')) # Only take 2 significant figures after decimal
                                 
             return Output_scaled
-        
-        self.t_start = t_now # Store the previous time variable for calculating "dt" and sampling time
-    
-        self.lastInput = Input # Store last input to calculate dInput
 
 		
 class My_Kalman:
