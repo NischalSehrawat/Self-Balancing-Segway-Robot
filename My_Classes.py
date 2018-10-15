@@ -77,9 +77,7 @@ class PID_fixed_loop:
             
                 Output = self.Kp * self.error + self.Integral_Term - self.Kd_scaled * dInput
                 
-                self.t_start = t_now # Store the previous time variable for calculating "dt" and sampling time
-            
-                self.lastInput = Input # Store last input to calculate dInput
+
             
                 '''
                 Clamp Output and Integral term to take care of Reset Windup
@@ -89,13 +87,13 @@ class PID_fixed_loop:
                     self.Integral_Term = self.Integral_Term - self.Ki_scaled * self.error # Keep Integral term same
                     Output = self.OutMax # Set Output to maximum output limit
                     
-                    return abs(Output)
+                    O_P =  abs(Output)
                 
                 elif (Output < -self.OutMax):
                     self.Integral_Term = self.Integral_Term + self.Ki_scaled * self.error # Keep Integral term same
                     Output = -self.OutMax # Set Output to minimum output limit
                     
-                    return abs(Output)
+                    O_P =  abs(Output)
                 
                 elif (-self.OutMax <= Output <= self.OutMax):
                     
@@ -103,7 +101,13 @@ class PID_fixed_loop:
                     
                     Output_scaled = float(format(self.Output_ratio * abs(Output) + self.OutMin, '.2f')) # Only take 2 significant figures after decimal
                                         
-                    return Output_scaled        
+                    O_P =  Output_scaled  
+                    
+                self.t_start = t_now # Store the previous time variable for calculating "dt" and sampling time
+            
+                self.lastInput = Input # Store last input to calculate dInput
+                
+                return O_P
             
             else:  # Do nothing if elapsed time < sampletime
                 pass
@@ -163,10 +167,6 @@ class PID_variable_loop:
         dInput = (Input - self.lastInput) #  Removes “Derivative Kick” effect.
     
         Output = self.Kp * self.error + self.Integral_Term - self.Kd * dInput / dt_sec
-        
-        self.t_start = t_now # Store the previous time variable for calculating "dt" and sampling time
-    
-        self.lastInput = Input # Store last input to calculate dInput
     
         '''
         Clamp Output and Integral term to take care of Reset Windup
@@ -174,15 +174,13 @@ class PID_variable_loop:
     
         if (Output > self.OutMax):
             self.Integral_Term = self.Integral_Term - self.Ki * self.error # Keep Integral term same
-            Output = self.OutMax # Set Output to maximum output limit
-            
-            return abs(Output)
+            Output = self.OutMax # Set Output to maximum output limit            
+            O_P =  abs(Output)
         
         elif (Output < -self.OutMax):
             self.Integral_Term = self.Integral_Term + self.Ki * self.error # Keep Integral term same
-            Output = -self.OutMax # Set Output to minimum output limit
-            
-            return abs(Output)
+            Output = -self.OutMax # Set Output to minimum output limit            
+            O_P =  abs(Output)
         
         elif (-self.OutMax <= Output <= self.OutMax):
             
@@ -190,7 +188,13 @@ class PID_variable_loop:
             
             Output_scaled = float(format(self.Output_ratio * abs(Output) + self.OutMin, '.2f')) # Only take 2 significant figures after decimal
                                 
-            return Output_scaled
+            O_P =  Output_scaled
+        
+        self.t_start = t_now # Store the previous time variable for calculating "dt" and sampling time
+    
+        self.lastInput = Input # Store last input to calculate dInput
+            
+        return O_P
 
 		
 class My_Kalman:
