@@ -17,8 +17,8 @@ short ppr = 990; // Pulses per revolution for each motor encoder
 
 //=============================
 
-int rmot1 = 7; int rmot2 = 8; // Pins for Right motor FW/BCK
-int rmot3 = 9; // Pin for Right motor PWM
+byte rmot1 = 7; byte rmot2 = 8; // Pins for Right motor FW/BCK
+byte rmot3 = 9; // Pin for Right motor PWM
 
 void setup() {
 
