@@ -70,8 +70,6 @@ void get_rpm(String units){
 
      rpm_now_r = 0.0;
   }
-  
-  }
 
   if (units == "rad/s"){
 
@@ -92,9 +90,10 @@ void get_rpm(String units){
   rpm_prev_r = rpm_now_r;
   
   t_prev_mot = t_now_mot;  
-
-      
+  
   }
+      
+}
   
 
 
