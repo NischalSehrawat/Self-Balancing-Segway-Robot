@@ -95,6 +95,46 @@ bool PID::Compute()
 }
 
 
+bool PID::Compute_With_Actual_LoopTime(float my_kp, float my_ki, float my_kd)
+{
+   if(!inAuto) return false;
+   unsigned long now = millis();
+   unsigned long timeChange = (now - lastTime);
+   if(timeChange!=0)
+   {
+      /*Compute all the working error variables*/
+      double input = *myInput;
+      double error = *mySetpoint - input;
+      double dInput = (input - lastInput);
+      outputSum+= (my_ki * error * timeChange / 1000.0);
+
+      /*Add Proportional on Measurement, if P_ON_M is specified*/
+      if(!pOnE) outputSum-= my_kp * dInput;
+
+      if(outputSum > outMax) outputSum= outMax;
+      else if(outputSum < outMin) outputSum= outMin;
+
+      /*Add Proportional on Error, if P_ON_E is specified*/
+	   double output;
+      if(pOnE) output = my_kp * error;
+      else output = 0;
+
+      /*Compute Rest of PID Output*/
+      output += outputSum - (float)1000.0 * my_kd * dInput / timeChange;
+
+	    if(output > outMax) output = outMax;
+      else if(output < outMin) output = outMin;
+	    *myOutput = output;
+
+      /*Remember some variables for next time*/
+      lastInput = input;
+      lastTime = now;
+	    return true;
+   }
+   else return false;
+}
+
+
 /* Compute_MPU() **********************************************************************
   This function is used for directly using the gyro values instead of deriving d_theta
   values since gyro is already giving us rate of change of angle and is noise free, 
@@ -102,32 +142,32 @@ bool PID::Compute()
 .
  **********************************************************************************/
 
-bool PID::Compute_MPU(float omega_gyro, float t_sample)
+bool PID::Compute_For_MPU(float my_kp, float my_ki, float my_kd, float omega_gyro)
 {
    if(!inAuto) return false;
    unsigned long now = millis();
    unsigned long timeChange = (now - lastTime);
-   if(timeChange>=SampleTime)
+   if(timeChange!=0)
    {
       /*Compute all the working error variables*/
       double input = *myInput;
       double error = *mySetpoint - input;
       double dInput = (input - lastInput);
-      outputSum+= (ki * error);
+      outputSum+= (my_ki * error * timeChange / 1000.0);
 
       /*Add Proportional on Measurement, if P_ON_M is specified*/
-      if(!pOnE) outputSum-= kp * dInput;
+      if(!pOnE) outputSum-= my_kp * dInput;
 
       if(outputSum > outMax) outputSum= outMax;
       else if(outputSum < outMin) outputSum= outMin;
 
       /*Add Proportional on Error, if P_ON_E is specified*/
      double output;
-      if(pOnE) output = kp * error;
+      if(pOnE) output = my_kp * error;
       else output = 0;
 
       /*Compute Rest of PID Output*/
-      output += outputSum - kd * omega_gyro * t_sample / 1000.0;
+      output += outputSum - my_kd * omega_gyro;
 
       if(output > outMax) output = outMax;
       else if(output < outMin) output = outMin;

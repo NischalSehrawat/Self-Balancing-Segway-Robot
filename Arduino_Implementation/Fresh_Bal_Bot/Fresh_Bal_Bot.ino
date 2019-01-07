@@ -63,7 +63,7 @@ double Output_lower = 30.0; // PWM Limit at which the motors actually start to m
 
 PID bal_PID(&Input, &Output, &Setpoint, Kp, Ki, Kd, P_ON_E, DIRECT); // Create a balancing PID instance
 
-short t_loop = 5.0; // Loop time
+//short t_loop = 5.0; // Loop time
 
 ////////////// LED BLINKING PARAMETERS/////////////////////////
 
@@ -98,9 +98,9 @@ void setup() {
   
     ////////////////////////// PID  initialization ////////////////////////////////////////////////////////
     
-    Setpoint = -2.0; // Set point for the angle w.r.t the vertical [degrees]
+    Setpoint = 0.0; // Set point for the angle w.r.t the vertical [degrees]
     
-    bal_PID.SetSampleTime(t_loop); // Set Loop time for PID [milliseconds]
+//    bal_PID.SetSampleTime(t_loop); // Set Loop time for PID [milliseconds]
     
     bal_PID.SetMode(AUTOMATIC); // Set PID mode to Automatic
     
@@ -148,15 +148,17 @@ void loop() {
     
       read_BT(); // Read Kp, Ki, Kd from the serial bluetooth
 
-//      Kp = float((200.0 / 1023.0) *analogRead(A0));Ki = float((200.0 / 1023.0) *analogRead(A2));Kd = float((20 / 1023.0) *analogRead(A1)); 
+      Kp = float((200.0 / 1023.0) *analogRead(A0));Ki = float((200.0 / 1023.0) *analogRead(A2));Kd = float((20 / 1023.0) *analogRead(A1)); 
 
-      Kp = 72.0; Kd = 1.4; Ki = 0.0;
+//      Kp = 72.0; Kd = 1.4; Ki = 0.0;
       
       double my_error = Setpoint - Input; // To decide PID controller direction
       
-      bal_PID.SetTunings(Kp, Ki, Kd); // Adjust the the new parameters 
+//      bal_PID.SetTunings(Kp, Ki, Kd); // Adjust the the new parameters 
       
-      bal_PID.Compute_MPU(omega_x_prev, t_loop); // Compute all the PID actions and generate output
+//      bal_PID.Compute_MPU(omega_x_prev, t_loop); // Compute all the PID actions and generate output
+
+      bal_PID.Compute_For_MPU(Kp, Ki, Kd, omega_x_prev);
       
       Output = map(abs(Output), 0, Out_max, Output_lower, Out_max);
 

@@ -31,8 +31,10 @@ class PID
                                           //   calculation frequency can be set using SetMode
                                           //   SetSampleTime respectively
 
-    bool PID::Compute_MPU(float , float); // Uses gyro value instead of calculated value for d_theta, only used for balancing 
-
+    bool PID::Compute_With_Actual_LoopTime(float , float, float); // Compute PID output using actual loop time
+	
+	bool Compute_For_MPU(float, float, float, float ); // Uses gyro value instead of calculated value for d_theta, only used for balancing
+	
     void SetOutputLimits(double, double); // * clamps the output to a specific range. 0-255 by default, but
 										                      //   it's likely the user will want to change this depending on
 										                      //   the application
