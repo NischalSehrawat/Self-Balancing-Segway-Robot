@@ -34,7 +34,7 @@ int lmot3 = 6; // Pins for Right motor PWM
 
 float rpm_limit = 1.0; // RPM below this is considered 0
 
-float avg_pt = 5.0;  // Number of points used for averaging the RPM signal
+float avg_pt = 20.0;  // Number of points used for averaging the RPM signal
 
 short PPR = 990; // Number of pulses per revolution of the wheel
 
@@ -74,6 +74,10 @@ bool led_state = 0;
 int pin = 13;
 
 int blink_rate = 100; // Blink after every millis
+
+double t_loop_prev, t_loop_now, dt_loop;
+
+double t_loop = 5;
 
 void setup() {
 
@@ -134,11 +138,21 @@ void setup() {
     t_gyro_prev = millis(); // Reading for gyro angle calculations
   
     t1_led = millis();
+
+    t_loop_prev = millis();
+
+    delay(50);
   
 }
 
 
 void loop() {
+
+      t_loop_now = millis();
+
+      dt_loop = t_loop_now - t_loop_prev;
+
+      if (dt_loop>=t_loop){
 
       get_tilt_angle(); // Update the tilt angle readings  
     
@@ -166,19 +180,21 @@ void loop() {
       
       mot_cont(my_error, Output); // Apply the calculated output to control the motor
   
-      Serial.print(Kp);Serial.print(" , ");Serial.print(Ki);Serial.print(" , ");Serial.print(Kd);Serial.print(" , ");
-      Serial.print(Output);Serial.print(" , ");
-      Serial.println(Input);
+//      Serial.print(Kp);Serial.print(" , ");Serial.print(Ki);Serial.print(" , ");Serial.print(Kd);Serial.print(" , ");
+//      Serial.print(Output);Serial.print(" , ");
+//      Serial.println(Input);
 
-      Blink_Led();
+      Blink_Led();      
 
-      
+     rmot.getRPM(ticks_r, "123");
+     
+//     lmot.getRPM(ticks_l, "123");
 
-//       rmot.getRPM(ticks_r, "123");lmot.getRPM(ticks_l, "123");
-//
-//       Serial.print(motor_direction_R()*Final_Rpm_r); Serial.print(" , ");Serial.println(motor_direction_L()*Final_Rpm_l) ; // Motor final averaged out RPM
-
-//delay(5);
+     Serial.println(motor_direction_R()*Final_Rpm_r); 
+     
+//     Serial.println(motor_direction_L()*Final_Rpm_l) ; // Motor final averaged out RPM
+        
+      }     
  
 }
 
