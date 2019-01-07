@@ -154,46 +154,50 @@ void loop() {
 
       if (dt_loop>=t_loop){
 
-      get_tilt_angle(); // Update the tilt angle readings  
-    
-      ////////////////////////////////////////// PID Action //////////////////////////////////////////////////
-      
-      Input = Theta_now; // Setting Theta_now as the input to the PID algorithm 
-    
-      read_BT(); // Read Kp, Ki, Kd from the serial bluetooth
-
-      Kp = float((200.0 / 1023.0) *analogRead(A0));Ki = float((200.0 / 1023.0) *analogRead(A2));Kd = float((20 / 1023.0) *analogRead(A1)); 
-
-//      Kp = 72.0; Kd = 1.4; Ki = 0.0;
-      
-      double my_error = Setpoint - Input; // To decide PID controller direction
-      
-//      bal_PID.SetTunings(Kp, Ki, Kd); // Adjust the the new parameters 
-      
-//      bal_PID.Compute_MPU(omega_x_prev, t_loop); // Compute all the PID actions and generate output
-
-      bal_PID.Compute_For_MPU(Kp, Ki, Kd, omega_x_prev);
-      
-      Output = map(abs(Output), 0, Out_max, Output_lower, Out_max);
-
-//      Output =  map(abs(analogRead(A1) - 517), 0, 517, 30, 200);
-      
-      mot_cont(my_error, Output); // Apply the calculated output to control the motor
-  
-//      Serial.print(Kp);Serial.print(" , ");Serial.print(Ki);Serial.print(" , ");Serial.print(Kd);Serial.print(" , ");
-//      Serial.print(Output);Serial.print(" , ");
-//      Serial.println(Input);
-
-      Blink_Led();      
-
-     rmot.getRPM(ticks_r, "123");
-     
-//     lmot.getRPM(ticks_l, "123");
-
-     Serial.println(motor_direction_R()*Final_Rpm_r); 
-     
-//     Serial.println(motor_direction_L()*Final_Rpm_l) ; // Motor final averaged out RPM
+          get_tilt_angle(); // Update the tilt angle readings  
         
+          ////////////////////////////////////////// PID Action //////////////////////////////////////////////////
+          
+          Input = Theta_now; // Setting Theta_now as the input to the PID algorithm 
+        
+          read_BT(); // Read Kp, Ki, Kd from the serial bluetooth
+    
+          Kp = float((200.0 / 1023.0) *analogRead(A0));Ki = float((200.0 / 1023.0) *analogRead(A2));Kd = float((20 / 1023.0) *analogRead(A1)); 
+    
+//          Kp = 72.0; Kd = 1.4; Ki = 0.0;
+          
+          double my_error = Setpoint - Input; // To decide PID controller direction
+          
+    //      bal_PID.SetTunings(Kp, Ki, Kd); // Adjust the the new parameters 
+          
+    //      bal_PID.Compute_MPU(omega_x_prev, t_loop); // Compute all the PID actions and generate output
+    
+          bal_PID.Compute_For_MPU(Kp, Ki, Kd, omega_x_prev);
+          
+          Output = map(abs(Output), 0, Out_max, Output_lower, Out_max);
+    
+    //      Output =  map(abs(analogRead(A1) - 517), 0, 517, 30, 200);
+          
+          mot_cont(my_error, Output); // Apply the calculated output to control the motor
+      
+    //      Serial.print(Kp);Serial.print(" , ");Serial.print(Ki);Serial.print(" , ");Serial.print(Kd);Serial.print(" , ");
+    //      Serial.print(Output);Serial.print(" , ");
+    //      Serial.println(Input);
+    
+          Blink_Led();      
+    
+         rmot.getRPM(ticks_r, "123");
+         
+    //     lmot.getRPM(ticks_l, "123");
+    
+    //     Serial.println(motor_direction_R()*Final_Rpm_r); 
+    
+            Serial.println(dt_loop);
+         
+    //     Serial.println(motor_direction_L()*Final_Rpm_l) ; // Motor final averaged out RPM
+    
+          t_loop_prev = t_loop_now;
+            
       }     
  
 }
