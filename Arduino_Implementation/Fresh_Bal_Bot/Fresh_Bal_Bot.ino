@@ -178,28 +178,17 @@ void loop() {
           bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_prev);
           
           Output_bal = map(abs(Output_bal), 0, Out_max, Output_lower, Out_max);
-    
-    //      Output =  map(abs(analogRead(A1) - 517), 0, 517, 30, 200);
-          
+              
 //          mot_cont(my_error_bal, Output_bal); // Apply the calculated output to control the motor
       
     //      Serial.print(Kp_bal);Serial.print(" , ");Serial.print(Ki_bal);Serial.print(" , ");Serial.print(Kd_bal);Serial.print(" , ");
     //      Serial.print(Output);Serial.print(" , ");
     //      Serial.println(Input);
     
-          Blink_Led();      
-    
-         lmot.getRPM(myEnc_l.read() / 4.0, "123");rmot.getRPM(myEnc_r.read() / 4.0, "123");
-
-         
-    //     lmot.getRPM(ticks_l, "123");
-    
+          Blink_Led();         
           Serial.println(V_cog);
-
     
-//         Serial.println(dt_loop);
-         
-    //     Serial.println(motor_direction_L()*Final_Rpm_l) ; // Motor final averaged out RPM
+//        Serial.println(dt_loop);
     
           t_loop_prev = t_loop_now;
             
