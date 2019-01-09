@@ -14,7 +14,7 @@ float omega_x_prev, omega_x_now;// they record the converted data into [deg/s]
 
 //float A[6] = {-2043, 108, 1293,  48, -12, 19}; // To compensate for the error_now in MPU  
 
-float A[3] = {0.0,0.0,0.0}; // To compensate for the error_now in MPU  
+float A[3] = {0.0,0.0,0.0}; // Array containing MPU Offset data accY, accZ, giroX  
 
 // Data is printed as: acelX acelY acelZ giroX giroY giroZ
 
@@ -40,17 +40,15 @@ float avg_pt = 10.0;  // Number of points used for averaging the RPM signal
 
 short PPR = 990; // Number of pulses per revolution of the wheel
 
-float Final_Rpm_r, Final_Rpm_l; // Motor final averaged out RPM
-
-//volatile long ticks_r, t1_r, t2_r, ticks_l, t1_l, t2_l; // Tiks and times for calculating motor speeds
+float Final_Rpm_r, Final_Rpm_l; // Motor final averaged out RPM, units can be selected while calling get_RPM function
 
 String units = "123/s"; // units in which RPM to be returned
 
 short enc_pin_r1 = 2;short enc_pin_r2 = 3; // right motor encoder pins
 short enc_pin_l1 = 18;short enc_pin_l2 = 19; // left motor encoder pins 
 
-My_Motors rmot(&Final_Rpm_r, rpm_limit, avg_pt, PPR); // Right motor object
-My_Motors lmot(&Final_Rpm_l, rpm_limit, avg_pt, PPR); // Left motor object
+My_Motors rmot(&Final_Rpm_r, rpm_limit, avg_pt, PPR); // Right motor object for calculating rotational velocities from encoder data
+My_Motors lmot(&Final_Rpm_l, rpm_limit, avg_pt, PPR); // Left motor object for calculating rotational velocities from encoder data
 
 Encoder myEnc_r(enc_pin_r1, enc_pin_r2); // Make encoder objects to calculate motor velocties
 Encoder myEnc_l(enc_pin_l2, enc_pin_l1); // Make encoder objects to calculate motor velocties
@@ -58,17 +56,24 @@ Encoder myEnc_l(enc_pin_l2, enc_pin_l1); // Make encoder objects to calculate mo
 
 ///////////////////////////////// Balancing PID parameters ///////////////////////////////////////////////////
 
-double Input, Output, Setpoint; // Input output and setpoint variables defined
+double Input_bal, Output_bal, Setpoint_bal; // Input output and setpoint variables defined
 
 double Out_min = -255, Out_max = 255; // PID Output limits
 
-double Kp, Ki, Kd; // Initializing the Proportional, integral and derivative gain constants
+double Kp_bal, Ki_bal, Kd_bal; // Initializing the Proportional, integral and derivative gain constants
 
 double Output_lower = 30.0; // PWM Limit at which the motors actually start to move
 
-PID bal_PID(&Input, &Output, &Setpoint, Kp, Ki, Kd, P_ON_E, DIRECT); // Create a balancing PID instance
+PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON_E, DIRECT); // Create a balancing PID instance
 
 //short t_loop = 5.0; // Loop time
+
+///////////////////////////////// ROBOT PHYSICAL PROPERTIES ////////////////////////////////////////////
+
+float r_whl = 0.5 * 0.085; // Wheel radius [m]
+
+float l_cog = 0.01075; // Distance of from the wheel axis [m] 
+
 
 ////////////// LED BLINKING PARAMETERS/////////////////////////
 
@@ -98,14 +103,12 @@ void setup() {
   
   
     ////////////////////////// PID  initialization ////////////////////////////////////////////////////////
-    
-    Setpoint = 0.0; // Set point for the angle w.r.t the vertical [degrees]
-    
+        
 //    bal_PID.SetSampleTime(t_loop); // Set Loop time for PID [milliseconds]
     
     bal_PID.SetMode(AUTOMATIC); // Set PID mode to Automatic
     
-    bal_PID.SetTunings(Kp, Ki, Kd);
+//    bal_PID.SetTunings(Kp, Ki, Kd);
     
     bal_PID.SetOutputLimits(Out_min, Out_max); // Set upper and lower limits for the maximum output limits for PID loop
     
@@ -151,41 +154,48 @@ void loop() {
 
       if (dt_loop>=t_loop){
 
-          get_tilt_angle(); // Update the tilt angle readings  
+          get_tilt_angle(); // Update the tilt angle readings 
+
+          lmot.getRPM(myEnc_l.read() / 4.0, "rad/s"); // Compute left motor rotational velocity in [rad/s] 
+          rmot.getRPM(myEnc_r.read() / 4.0, "rad/s"); // Compute right motor rotational velocity in [rad/s] 
+
+          float V_cog = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl + omega_x_prev * l_cog * 0.0174; // Robot linear translation velocity [m/s]
         
           ////////////////////////////////////////// PID Action //////////////////////////////////////////////////
           
-          Input = Theta_now; // Setting Theta_now as the input to the PID algorithm 
+          Input_bal = Theta_now; // Setting Theta_now as the input to the PID algorithm 
         
-          read_BT(); // Read Kp, Ki, Kd from the serial bluetooth
+//          read_BT(); // Read Kp, Ki, Kd from the serial bluetooth
     
-          Kp = float((200.0 / 1023.0) *analogRead(A0));Ki = float((200.0 / 1023.0) *analogRead(A2));Kd = float((20 / 1023.0) *analogRead(A1)); 
+          Kp_bal = float((200.0 / 1023.0) *analogRead(A0));Ki_bal = float((200.0 / 1023.0) *analogRead(A2));Kd_bal = float((20 / 1023.0) *analogRead(A1)); 
     
-//          Kp = 72.0; Kd = 1.4; Ki = 0.0;
+//          Kp_bal = 72.0; Kd_bal = 1.4; Ki_bal = 0.0;
           
-          double my_error = Setpoint - Input; // To decide PID controller direction
+          double my_error_bal = Setpoint_bal - Input_bal; // To decide PID controller direction
           
     //      bal_PID.SetTunings(Kp, Ki, Kd); // Adjust the the new parameters 
               
-          bal_PID.Compute_For_MPU(Kp, Ki, Kd, omega_x_prev);
+          bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_prev);
           
-          Output = map(abs(Output), 0, Out_max, Output_lower, Out_max);
+          Output_bal = map(abs(Output_bal), 0, Out_max, Output_lower, Out_max);
     
     //      Output =  map(abs(analogRead(A1) - 517), 0, 517, 30, 200);
           
-//          mot_cont(my_error, Output); // Apply the calculated output to control the motor
+//          mot_cont(my_error_bal, Output_bal); // Apply the calculated output to control the motor
       
-    //      Serial.print(Kp);Serial.print(" , ");Serial.print(Ki);Serial.print(" , ");Serial.print(Kd);Serial.print(" , ");
+    //      Serial.print(Kp_bal);Serial.print(" , ");Serial.print(Ki_bal);Serial.print(" , ");Serial.print(Kd_bal);Serial.print(" , ");
     //      Serial.print(Output);Serial.print(" , ");
     //      Serial.println(Input);
     
           Blink_Led();      
     
-         lmot.getRPM(myEnc_l.read() / 4.0, "123");
+         lmot.getRPM(myEnc_l.read() / 4.0, "123");rmot.getRPM(myEnc_r.read() / 4.0, "123");
+
          
     //     lmot.getRPM(ticks_l, "123");
     
-         Serial.println(Final_Rpm_l); 
+          Serial.println(V_cog);
+
     
 //         Serial.println(dt_loop);
          
@@ -327,17 +337,17 @@ void read_BT(){
 
     char c = Serial.read();
 
-    if (c =='1'){Setpoint+=0.5;}
+    if (c =='1'){Kp_bal+=0.5;}
 
-    else if(c=='2'){Setpoint-=0.5;}
+    else if(c=='2'){Kp_bal-=0.5;}
 
-    else if (c =='3'){Kd+=0.01;}
+    else if (c =='3'){Kd_bal+=0.01;}
 
-    else if(c=='4'){Kd-= 0.01;}
+    else if(c=='4'){Kd_bal-= 0.01;}
 
-    else if (c =='5'){Ki+=1;}
+    else if (c =='5'){Ki_bal+=1;}
 
-    else if(c=='6'){Ki-=1;}
+    else if(c=='6'){Ki_bal-=1;}
 
     Serial.println(c);
     
