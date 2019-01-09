@@ -3,6 +3,8 @@
 #include <Wire.h>
 #include <PID_v1.h>
 #include <My_Motors.h>
+#include <Encoder.h>
+
 
 ///////////////////////////////// MPU-6050 parameters //////////////////////////////////////////////
 
@@ -32,15 +34,15 @@ int rmot3 = 9; // Pin for Right motor PWM
 int lmot1 = 4; int lmot2 = 5; // Pins for Left motor FW/BCK
 int lmot3 = 6; // Pins for Right motor PWM
 
-float rpm_limit = 1.0; // RPM below this is considered 0
+float rpm_limit = 0.0; // RPM below this is considered 0
 
-float avg_pt = 20.0;  // Number of points used for averaging the RPM signal
+float avg_pt = 10.0;  // Number of points used for averaging the RPM signal
 
 short PPR = 990; // Number of pulses per revolution of the wheel
 
 float Final_Rpm_r, Final_Rpm_l; // Motor final averaged out RPM
 
-volatile long ticks_r, t1_r, t2_r, ticks_l, t1_l, t2_l; // Tiks and times for calculating motor speeds
+//volatile long ticks_r, t1_r, t2_r, ticks_l, t1_l, t2_l; // Tiks and times for calculating motor speeds
 
 String units = "123/s"; // units in which RPM to be returned
 
@@ -49,6 +51,9 @@ short enc_pin_l1 = 18;short enc_pin_l2 = 19; // left motor encoder pins
 
 My_Motors rmot(&Final_Rpm_r, rpm_limit, avg_pt, PPR); // Right motor object
 My_Motors lmot(&Final_Rpm_l, rpm_limit, avg_pt, PPR); // Left motor object
+
+Encoder myEnc_r(enc_pin_r1, enc_pin_r2); // Make encoder objects to calculate motor velocties
+Encoder myEnc_l(enc_pin_l2, enc_pin_l1); // Make encoder objects to calculate motor velocties
 
 
 ///////////////////////////////// Balancing PID parameters ///////////////////////////////////////////////////
@@ -91,14 +96,6 @@ void setup() {
   
     pinMode(lmot1,OUTPUT);pinMode(lmot2,OUTPUT);pinMode(lmot3,OUTPUT); // Declaring left motor pins as output
   
-    pinMode(enc_pin_r1, INPUT_PULLUP); // Setup interrupt functions
-    attachInterrupt(digitalPinToInterrupt(enc_pin_r1),countTicks_R1, RISING);
-    pinMode(enc_pin_r2, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(enc_pin_r2),countTicks_R2, RISING);
-    pinMode(enc_pin_l1, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(enc_pin_l1),countTicks_L1, RISING);
-    pinMode(enc_pin_l2, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(enc_pin_l2),countTicks_L2, RISING);
   
     ////////////////////////// PID  initialization ////////////////////////////////////////////////////////
     
@@ -178,7 +175,7 @@ void loop() {
     
     //      Output =  map(abs(analogRead(A1) - 517), 0, 517, 30, 200);
           
-          mot_cont(my_error, Output); // Apply the calculated output to control the motor
+//          mot_cont(my_error, Output); // Apply the calculated output to control the motor
       
     //      Serial.print(Kp);Serial.print(" , ");Serial.print(Ki);Serial.print(" , ");Serial.print(Kd);Serial.print(" , ");
     //      Serial.print(Output);Serial.print(" , ");
@@ -186,13 +183,13 @@ void loop() {
     
           Blink_Led();      
     
-         rmot.getRPM(ticks_r, "123");
+         lmot.getRPM(myEnc_l.read() / 4.0, "123");
          
     //     lmot.getRPM(ticks_l, "123");
     
-    //     Serial.println(motor_direction_R()*Final_Rpm_r); 
+         Serial.println(Final_Rpm_l); 
     
-            Serial.println(dt_loop);
+//         Serial.println(dt_loop);
          
     //     Serial.println(motor_direction_L()*Final_Rpm_l) ; // Motor final averaged out RPM
     
@@ -323,38 +320,6 @@ void rotate_bot(int Speed){
   analogWrite(rmot3,Speed); 
   
 }
-
-////////////// Encoder interrupt service routines ////////////////////
-
-void countTicks_R1(){ticks_r++; t1_r = millis();}
-
-void countTicks_R2(){t2_r = millis();}
-
-void countTicks_L1(){ticks_l++; t1_l = millis();}
-
-void countTicks_L2(){t2_l = millis();}
-
-///////////////// Motor direction determination functions /////////////////
-
-int motor_direction_R(){
-
-  bool check = digitalRead(enc_pin_r1) && digitalRead(enc_pin_r2);
-  if (check){
-    if (t1_r < t2_r){return -1;}
-    else if (t1_r > t2_r){return 1;}    
-  }  
-}
-
-int motor_direction_L(){
-
-  bool check = digitalRead(enc_pin_l1) && digitalRead(enc_pin_l2);
-  if (check){
-    if (t1_l < t2_l){return 1;}
-    else if (t1_l > t2_l){return -1;}    
-  }
-  
-}
-
 
 ///////////////////////////////// READ BLUETOOTH ////////////////////////
 

@@ -53,7 +53,7 @@ void My_Motors::getRPM(long ticks, String units){
     
 	rpm_now = beta*rpm_prev + (1 - beta)*inst_rpm; // Do exponential averaging
 
-	if (rpm_now < rpm_limit){rpm_now = 0.0;}
+	if (abs(rpm_now) < rpm_limit ){rpm_now = 0.0;}
 	
 	if (units == "rad/s"){*my_final_rpm = rpm_2_rad * rpm_now;}
 

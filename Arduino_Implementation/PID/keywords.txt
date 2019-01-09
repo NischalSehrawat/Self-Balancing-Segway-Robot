@@ -18,8 +18,6 @@ SetOutputLimits	KEYWORD2
 SetTunings	KEYWORD2
 SetControllerDirection	KEYWORD2
 SetSampleTime	KEYWORD2
-Compute_For_MPU	KEYWORD2
-Compute_With_Actual_LoopTime	KEYWORD2
 GetKp	KEYWORD2
 GetKi	KEYWORD2
 GetKd	KEYWORD2
