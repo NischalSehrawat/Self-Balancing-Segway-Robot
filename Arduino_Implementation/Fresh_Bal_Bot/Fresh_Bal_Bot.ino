@@ -166,9 +166,7 @@ void loop() {
           double my_error = Setpoint - Input; // To decide PID controller direction
           
     //      bal_PID.SetTunings(Kp, Ki, Kd); // Adjust the the new parameters 
-          
-    //      bal_PID.Compute_MPU(omega_x_prev, t_loop); // Compute all the PID actions and generate output
-    
+              
           bal_PID.Compute_For_MPU(Kp, Ki, Kd, omega_x_prev);
           
           Output = map(abs(Output), 0, Out_max, Output_lower, Out_max);
