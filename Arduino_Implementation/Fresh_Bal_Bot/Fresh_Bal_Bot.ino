@@ -5,11 +5,11 @@
 #include <Encoder.h>
 ///////////////////////////////// MPU-6050 parameters //////////////////////////////////////////////
 
-long accelX, accelY, accelZ, gyroX, gyroY, gyroZ; // They record the raw accelerometer / gyro data
-float omega_x;// they record the converted data into [deg/s]
-//float A[6] = {-2043, 108, 1293,  48, -12, 19}; // To compensate for the error_now in MPU  
+long accelX, accelY, accelZ, gyroX, gyroY, gyroZ; // Parameters to record the raw accelerometer / gyro data
+float omega_x;// Parameter to store raw gyro data to converted data into [deg/s]
+//float A[6] = {-2043, 108, 1293,  48, -12, 19}; // Array storing MPU Offset values
 float A[3] = {0.0,0.0,0.0}; // Array containing MPU Offset data accY, accZ, giroX  
-double pitch, Theta_prev, Theta_now ; // For storing Angle data from Accelerometer                   
+double pitch, Theta_prev, Theta_now ; // Parameters for computing angle data from Accelerometer and gyro                  
 double dt_gyro; // Variable to store time difference values for gyro angle calculations 
 uint32_t t_gyro_prev, t_gyro_now; // timer for gyro unit
 float alpha = 0.98; // Complimentary filter control parameter
@@ -17,10 +17,10 @@ float rad2deg = 57.3, deg2rad = 0.01745; // Angle conversion factors
 
 ////////////////////////////// MOTOR CONTROL PARAMATERS ////////////////////////////////////////////
 
-int rmot1 = 7; int rmot2 = 8; // Pins for Right motor FW/BCK
-int rmot3 = 9; // Pin for Right motor PWM
-int lmot1 = 4; int lmot2 = 5; // Pins for Left motor FW/BCK
-int lmot3 = 6; // Pins for Right motor PWM
+short rmot1 = 7; short rmot2 = 8; // Pins for Right motor FW/BCK
+short rmot3 = 9; // Pin for Right motor PWM
+short lmot1 = 4; short lmot2 = 5; // Pins for Left motor FW/BCK
+short lmot3 = 6; // Pins for Right motor PWM
 short enc_pin_r1 = 2;short enc_pin_r2 = 3; // right motor encoder pins
 short enc_pin_l1 = 18;short enc_pin_l2 = 19; // left motor encoder pins 
 
