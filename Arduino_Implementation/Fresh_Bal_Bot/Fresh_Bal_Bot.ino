@@ -25,8 +25,8 @@ short R_enc_pin1 = 2; short R_enc_pin2 = 3; // right motor encoder pins
 short L_enc_pin1 = 18;  short L_enc_pin2 = 19; // left motor encoder pins 
 
 float rpm_limit = 0.0; // RPM below this is considered 0
-float avg_pt = 10.0;  // Number of points used for averaging the RPM signal
-short PPR = 990; // Number of pulses per revolution of the wheel
+float avg_pt = 10.0;  // Number of points used for exponentially averaging the RPM signal
+short PPR = 990; // Number of pulses per revolution of the encoder
 float Final_Rpm_r, Final_Rpm_l; // Motor final averaged out RPM, units can be selected while calling get_RPM function
 My_Motors Rmot(&Final_Rpm_r, rpm_limit, avg_pt, PPR); // Right motor object for calculating rotational velocities from encoder data
 My_Motors Lmot(&Final_Rpm_l, rpm_limit, avg_pt, PPR); // Left motor object for calculating rotational velocities from encoder data
@@ -39,14 +39,14 @@ double Input_bal, Output_bal, Setpoint_bal; // Input output and setpoint variabl
 double Out_min_bal = -255, Out_max_bal = 255; // PID Output limits, this is the output PWM value
 double Kp_bal = 72.0, Ki_bal = 0.0, Kd_bal = 1.4; // Initializing the Proportional, integral and derivative gain constants
 double Output_lower_bal = 30.0; // PWM Limit at which the motors actually start to move
-PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON_E, DIRECT); // Create a balancing PID instance
+PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON_E, DIRECT); // PID Controller for balancing
 
 ///////////////////////////////// TRANSLATION PID parameters ///////////////////////////////////////////////////
 
 double Input_trans, Output_trans, Setpoint_trans; // Input output and setpoint variables defined
 double Out_min_trans = -5, Out_max_trans = 5; // PID Output limits, this output is in degrees
 double Kp_trans, Ki_trans, Kd_trans; // Initializing the Proportional, integral and derivative gain constants
-PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, Kd_trans, P_ON_E, DIRECT); // Create a balancing PID instance
+PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, Kd_trans, P_ON_E, DIRECT); // PID Controller for translating
 
 ///////////////////////////////// ROBOT PHYSICAL PROPERTIES ////////////////////////////////////////////
 
@@ -104,6 +104,7 @@ void loop() {
   t_loop_now = millis();
   dt_loop = t_loop_now - t_loop_prev; // Calculate time change since last loop [millis]
   if (dt_loop>=t_loop){  
+  
 //  read_BT(); // Read data from the serial bluetooth
     get_tilt_angle(); // Update the angle readings to get updated omega_x, Theta_now
     Lmot.getRPM(myEnc_l.read() / 4.0, "rad/s"); // Get current encoder counts & compute left motor rotational velocity in [rad/s] 
