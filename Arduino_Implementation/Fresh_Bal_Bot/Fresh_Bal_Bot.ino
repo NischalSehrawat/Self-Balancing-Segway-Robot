@@ -107,7 +107,7 @@ void loop() {
   if (dt_loop>=t_loop){  
   
 //  read_BT(); // Read data from the serial bluetooth
-    get_tilt_angle(); // Update the angle readings to get updated omega_x, Theta_now
+    Get_Tilt_Angle(); // Update the angle readings to get updated omega_x, Theta_now
     Lmot.getRPM(myEnc_l.read() / 4.0, "rad/s"); // Get current encoder counts & compute left motor rotational velocity in [rad/s] 
     Rmot.getRPM(myEnc_r.read() / 4.0, "rad/s"); // Get current encoder counts & compute right motor rotational velocity in [rad/s]
   
@@ -143,7 +143,7 @@ void loop() {
 
 ///////////////////////// Function for initializing / getting MPU Data ////////////////////////////////////////////////////////
 
-void get_tilt_angle(){
+void Get_Tilt_Angle(){
   
   t_gyro_now = millis(); // Log time now [millis]
   get_MPU_data(); // Update / Get Raw data acelX acelY acelZ giroX giroY giroZ  
