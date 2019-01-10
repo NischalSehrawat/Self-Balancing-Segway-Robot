@@ -117,7 +117,7 @@ void loop() {
 
     // Calculate Robot linear translation velocity [m/s]  
     Input_trans = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl + omega_x * l_cog * deg2rad; 
-	  Setpoint_trans = frac * full_speed; // Set the linear translation velocity as fraction of the full speed 
+	 Setpoint_trans = frac * full_speed; // Set the linear translation velocity as fraction of the full speed 
     Kp_trans = float((1.0 / 1023.0) *analogRead(A0));
     Ki_trans = float((1.0 / 1023.0) *analogRead(A2));
     Kd_trans = float((1.0 / 1023.0) *analogRead(A1));  
