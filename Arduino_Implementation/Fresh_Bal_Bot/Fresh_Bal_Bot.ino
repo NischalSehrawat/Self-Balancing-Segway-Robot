@@ -41,7 +41,7 @@ double Kp_bal = 72.0, Ki_bal = 0.0, Kd_bal = 1.4; // Initializing the Proportion
 double Output_lower_bal = 30.0; // PWM Limit at which the motors actually start to move
 PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON_E, DIRECT); // Create a balancing PID instance
 
-///////////////////////////////// Translating PID parameters ///////////////////////////////////////////////////
+///////////////////////////////// TRANSLATION PID parameters ///////////////////////////////////////////////////
 
 double Input_trans, Output_trans, Setpoint_trans; // Input output and setpoint variables defined
 double Out_min_trans = -5, Out_max_trans = 5; // PID Output limits, this output is in degrees
@@ -81,7 +81,7 @@ void setup() {
 //    bal_PID.SetTunings(Kp, Ki, Kd);    
     bal_PID.SetOutputLimits(Out_min_bal, Out_max_bal); // Set upper and lower limits for the maximum output limits for PID loop    
 	
-	////////////////////////// TRANSLATING PID  initialization ////////////////////////////////////////////////////////        
+	////////////////////////// TRANSLATION PID  initialization ////////////////////////////////////////////////////////        
     
     trans_PID.SetMode(AUTOMATIC); // Set PID mode to Automatic        
     trans_PID.SetOutputLimits(Out_min_trans, Out_max_trans); // Set upper and lower limits for the maximum output limits for PID loop
