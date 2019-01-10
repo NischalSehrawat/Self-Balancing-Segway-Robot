@@ -73,8 +73,8 @@ void setup() {
     /////////////////////////////// Motor initialization ///////////////////////////////////////////
   
     pinMode(Rmot1,OUTPUT);pinMode(Rmot2,OUTPUT);pinMode(Rmot3,OUTPUT); // Declaring right motor pins as output  
-    pinMode(Lmot1,OUTPUT);pinMode(Lmot2,OUTPUT);pinMode(Lmot3,OUTPUT); // Declaring left motor pins as output  
-  
+    pinMode(Lmot1,OUTPUT);pinMode(Lmot2,OUTPUT);pinMode(Lmot3,OUTPUT); // Declaring left motor pins as output
+    
     ////////////////////////// BALANCING PID  initialization ////////////////////////////////////////////////////////
         
 //  bal_PID.SetSampleTime(t_loop); // Set Loop time for PID [milliseconds]    
