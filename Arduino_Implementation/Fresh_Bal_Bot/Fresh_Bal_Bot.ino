@@ -103,6 +103,7 @@ void loop() {
 
   t_loop_now = millis();
   dt_loop = t_loop_now - t_loop_prev; // Calculate time change since last loop [millis]
+  
   if (dt_loop>=t_loop){  
   
 //  read_BT(); // Read data from the serial bluetooth
