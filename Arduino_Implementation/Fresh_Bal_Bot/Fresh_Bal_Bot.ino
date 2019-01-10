@@ -102,7 +102,7 @@ void setup() {
 void loop() {
 
   t_loop_now = millis();
-  dt_loop = t_loop_now - t_loop_prev;
+  dt_loop = t_loop_now - t_loop_prev; // Calculate time change since last loop [millis]
   if (dt_loop>=t_loop){  
 //  read_BT(); // Read data from the serial bluetooth
     get_tilt_angle(); // Update the angle readings to get updated omega_x, Theta_now
@@ -143,10 +143,10 @@ void loop() {
 
 void get_tilt_angle(){
   
-  t_gyro_now = millis(); // Reading for gyro angle calculations
+  t_gyro_now = millis(); // Log time now [millis]
   get_MPU_data(); // Update / Get Raw data acelX acelY acelZ giroX giroY giroZ  
-  dt_gyro = (t_gyro_now - t_gyro_prev) / 1000.0; // Time difference for gyro angle calculations
-  omega_x = (gyroX - A[3]) / 131.0; // Take Angular velocity reading for next step [deg/s];
+  dt_gyro = (t_gyro_now - t_gyro_prev) / 1000.0; // calculate time difference since last loop for gyro angle calculations [seconds]
+  omega_x = (gyroX - A[3]) / 131.0; // Compute Angular velocity from raw gyroXreading [deg/s];
     
   /*Since we will only need the ratios of accelerometer readings to calculate accelerometer angles, 
   we do not need to convert raw data to actual data */
