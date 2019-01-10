@@ -88,12 +88,11 @@ void setup() {
     ////////////////////////// MPU initialization ///////////////////////////////////////////////////
     
     Wire.begin(); // Start wire library    
-    setupMPU(); // Initializing MPU6050  
+    setupMPU(); // Initializing MPU6050 
+//  delay(5000);       
     get_MPU_data(); // Get initial angles of the MPU  
-    delay(100);    
     pitch = (atan2(accelY - A[1], accelZ + A[2]))*rad2deg; //  Calculate initial pitch angle [deg]    
     Theta_prev = pitch; // set the total starting angle to this pitch 
-//  delay(5000);      
     t_gyro_prev = millis(); // Log time for gyro calculations [ms]  
     t_led_prev = millis(); // Log time for led blinking 
     t_loop_prev = millis(); // Log time for overall control loop [ms]
@@ -144,7 +143,7 @@ void loop() {
 void get_tilt_angle(){
   
   t_gyro_now = millis(); // Reading for gyro angle calculations
-  get_MPU_data(); // Get Raw data acelX acelY acelZ giroX giroY giroZ  
+  get_MPU_data(); // Update / Get Raw data acelX acelY acelZ giroX giroY giroZ  
   dt_gyro = (t_gyro_now - t_gyro_prev) / 1000.0; // Time difference for gyro angle calculations
   omega_x = (gyroX - A[3]) / 131.0; // Take Angular velocity reading for next step [deg/s];
     
