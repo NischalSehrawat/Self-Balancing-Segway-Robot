@@ -6,7 +6,7 @@
 ///////////////////////////////// MPU-6050 parameters //////////////////////////////////////////////
 
 long accelX, accelY, accelZ, gyroX, gyroY, gyroZ; // Parameters to record the raw accelerometer / gyro data
-float omega_x;// Parameter to store raw gyro data to converted data into [deg/s]
+float omega_x_gyro, omega_x_calculated;// Parameter to store raw gyro data to converted data into [deg/s]
 //float A[6] = {-2043, 108, 1293,  48, -12, 19}; // Array storing MPU Offset values
 float A[3] = {0.0,0.0,0.0}; // Array containing MPU Offset data accY, accZ, giroX  
 double pitch, Theta_prev, Theta_now ; // Parameters for computing angle data from Accelerometer and gyro                  
@@ -53,8 +53,8 @@ PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, 
 float r_whl = 0.5 * 0.085; // Wheel radius [m]
 float l_cog = 0.01075; // Distance of the center of gravity of the upper body from the wheel axis [m] 
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
-float full_speed = 107 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 107 RPM @ 12 V] 
-float frac = 0.25; // Factor for calculating fraction of the full linear speed
+float full_speed = 107.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 107 RPM @ 12 V] 
+float frac = 0.5; // Factor for calculating fraction of the full linear speed
 String mode = "stand";
 
 ////////////// LED BLINKING PARAMETERS/////////////////////////
@@ -109,38 +109,41 @@ void loop() {
   
   if (dt_loop>=t_loop){  
   
-    read_BT(); // Read data from the serial bluetooth
-    Get_Tilt_Angle(); // Update the angle readings to get updated omega_x, Theta_now
+//    read_BT(); // Read data from the serial bluetooth
+    Get_Tilt_Angle(); // Update the angle readings to get updated omega_x_gyro, Theta_now
     Lmot.getRPM(myEnc_l.read() / 4.0, "rad/s"); // Get current encoder counts & compute left motor rotational velocity in [rad/s] 
     Rmot.getRPM(myEnc_r.read() / 4.0, "rad/s"); // Get current encoder counts & compute right motor rotational velocity in [rad/s]
   
     ////////////////// COMPUTE TRANSLATION PID OUTPUT///////////////////////////////////////////////////////
 
     // Calculate Robot linear translation velocity [m/s]  
-    Input_trans = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl + omega_x * l_cog * deg2rad;
+    Input_trans = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl + omega_x_gyro * l_cog * deg2rad;
     if (mode == "stand"){Setpoint_trans = 0.0;}
     else {Setpoint_trans = frac * full_speed;} // Set the linear translation velocity as fraction of the full speed
      
-//    Kp_trans = float((1.0 / 1023.0) *analogRead(A0));
-//    Ki_trans = float((1.0 / 1023.0) *analogRead(A2));
-//    Kd_trans = float((1.0 / 1023.0) *analogRead(A1));  
-    trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop		  
+    Kp_bal = float((200.0 / 1023.0) *analogRead(A0));
+    Ki_bal = float((20.0 / 1023.0) *analogRead(A2));
+    Kd_bal = float((20.0 / 1023.0) *analogRead(A1));  
+    trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop	
+
+    Serial.println(omega_x_gyro );
+
     
     ////////////////////////////////////////// COMPUTE BALANCING PID OUTPUT/ //////////////////////////////////////////////////
   
-    Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop      
+    Setpoint_bal = 0.0 ; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop      
     Input_bal = Theta_now; // Set Theta_now as the input / current value to the PID algorithm              
     double error_bal = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction      
 //  bal_PID.SetTunings(Kp, Ki, Kd); // Adjust the the new parameters          
-    bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x);// Compute motor PWM using balancing PID      
+    bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor PWM using balancing PID      
     Output_bal = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal); // Map the computed output from Out_min to Outmax         
     mot_cont(error_bal, Output_bal); // Apply the calculated output to control the motor
   
 //  Serial.print(Kp_bal);Serial.print(" , ");
 //  Serial.print(Ki_bal);Serial.print(" , ");
 //  Serial.print(Kd_bal);Serial.print(" , ");
-//  Serial.print(Output);Serial.print(" , ");
-//  Serial.println(Input);
+//  Serial.print(Output_bal);Serial.print(" , ");
+//  Serial.println(Input_bal);
 
     Blink_Led(); // Blink the LED
     t_loop_prev = t_loop_now; // Set prev loop time equal to current loop time for calculating dt for next loop        
@@ -153,11 +156,12 @@ void Get_Tilt_Angle(){
   t_gyro_now = millis(); // Log time now [millis]
   get_MPU_data(); // Update / Get Raw data acelX acelY acelZ giroX giroY giroZ  
   dt_gyro = (t_gyro_now - t_gyro_prev) / 1000.0; // calculate time difference since last loop for gyro angle calculations [seconds]
-  omega_x = (gyroX - A[3]) / 131.0; // Compute Angular velocity from raw gyroXreading [deg/s];    
+  omega_x_gyro = (gyroX - A[3]) / 131.0; // Compute Angular velocity from raw gyroXreading [deg/s];    
   /*Since we will only need the ratios of accelerometer readings to calculate accelerometer angles, 
   we do not need to convert raw data to actual data */  
   pitch = (atan2(accelY - A[1], accelZ + A[2]))*rad2deg; // Angle calculated by accelerometer readings about X axis in [deg]  
-  Theta_now = alpha * (Theta_prev + (omega_x * dt_gyro)) + (1-alpha) * pitch; // Calculate the total angle using a Complimentary filter
+  Theta_now = alpha * (Theta_prev + (omega_x_gyro * dt_gyro)) + (1-alpha) * pitch; // Calculate the total angle using a Complimentary filter
+  omega_x_calculated = (Theta_now - Theta_prev) / dt_gyro; // Calculated omega_x from complimentary filter
   Theta_prev = Theta_now;
   t_gyro_prev = t_gyro_now;  
 }
@@ -248,13 +252,13 @@ void rotate_bot(int Speed){
 void read_BT(){
   if (Serial.available()>0){
     char c = Serial.read();
-    if (c =='1'){mode = "go";}
-    else if(c=='2'){mode = "stand";}
+    if (c =='1'){mode = "go";Serial.print(mode);}
+    else if(c=='2'){mode = "stand";Serial.print(mode);}
     else if (c =='3'){Kp_trans+=0.5;Serial.print(Kp_trans);}
     else if(c=='4'){Kp_trans-= 0.5;Serial.print(Kp_trans);}
     else if (c =='5'){Ki_trans+=0.05;Serial.print(Ki_trans);}
     else if(c=='6'){Ki_trans-=0.05;Serial.print(Ki_trans);}
-    Serial.println(c);    
+//    Serial.println(c);    
     }  
 }
 
