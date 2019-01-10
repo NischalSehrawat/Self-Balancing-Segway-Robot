@@ -106,25 +106,26 @@ void loop() {
   if (dt_loop>=t_loop){  
 //  read_BT(); // Read data from the serial bluetooth
     get_tilt_angle(); // Update the angle readings to get updated omega_x, Theta_now
-    lmot.getRPM(myEnc_l.read() / 4.0, "rad/s"); // Compute left motor rotational velocity in [rad/s] 
-    rmot.getRPM(myEnc_r.read() / 4.0, "rad/s"); // Compute right motor rotational velocity in [rad/s] 
+    lmot.getRPM(myEnc_l.read() / 4.0, "rad/s"); // Get current encoder counts & compute left motor rotational velocity in [rad/s] 
+    rmot.getRPM(myEnc_r.read() / 4.0, "rad/s"); // Get current encoder counts & compute right motor rotational velocity in [rad/s]
   
     ////////////////// COMPUTE TRANSLATION PID OUTPUT///////////////////////////////////////////////////////
-  
-    Input_trans = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl + omega_x * l_cog * deg2rad; // Calculate Robot linear translation velocity [m/s]
+
+    // Calculate Robot linear translation velocity [m/s]  
+    Input_trans = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl + omega_x * l_cog * deg2rad; 
     Kp_trans = float((1.0 / 1023.0) *analogRead(A0));
     Ki_trans = float((1.0 / 1023.0) *analogRead(A2));
     Kd_trans = float((1.0 / 1023.0) *analogRead(A1));  
-    trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute output of the 1st loop		  
+    trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop		  
     
     ////////////////////////////////////////// COMPUTE BALANCING PID OUTPUT/ //////////////////////////////////////////////////
   
     Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop      
-    Input_bal = Theta_now; // Setting Theta_now as the input / current value to the PID algorithm              
+    Input_bal = Theta_now; // Set Theta_now as the input / current value to the PID algorithm              
     double error_bal = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction      
 //  bal_PID.SetTunings(Kp, Ki, Kd); // Adjust the the new parameters          
-    bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x);      
-    Output_bal = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal);          
+    bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x);// Compute motor PWM using balancing PID      
+    Output_bal = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal); // Map the computed output from Out_min to Outmax         
     mot_cont(error_bal, Output_bal); // Apply the calculated output to control the motor
   
 //  Serial.print(Kp_bal);Serial.print(" , ");
