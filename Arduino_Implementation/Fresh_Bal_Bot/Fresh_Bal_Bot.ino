@@ -104,10 +104,8 @@ void loop() {
 
   t_loop_now = millis();
   dt_loop = t_loop_now - t_loop_prev;
-
-  if (dt_loop>=t_loop){
-  
-//	read_BT(); // Read data from the serial bluetooth
+  if (dt_loop>=t_loop){  
+//  read_BT(); // Read data from the serial bluetooth
     get_tilt_angle(); // Update the angle readings to get updated omega_x, Theta_now
     lmot.getRPM(myEnc_l.read() / 4.0, "rad/s"); // Compute left motor rotational velocity in [rad/s] 
     rmot.getRPM(myEnc_r.read() / 4.0, "rad/s"); // Compute right motor rotational velocity in [rad/s] 
