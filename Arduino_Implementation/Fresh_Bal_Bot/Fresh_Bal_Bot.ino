@@ -123,11 +123,17 @@ void loop() {
     Otherwise if the robot is standing, initialise setpoint, output, and intergral terms to 0 otherwise the next time
     the robot begins to move, the integral term will still be there.
     */
-    if (mode == "go"){ // If the robot is not standing, then
+    if (mode == "go fwd"){ // If the robot is going forward, then
       Setpoint_trans = frac * full_speed;
       trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop  
+      Setpoint_bal = Output_trans - 2.0 ; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
       }
-    else if(mode == "stand"){
+    else if (mode == "go bck"){ // If the robot going backward, then
+      Setpoint_trans = -frac * full_speed;
+      trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop  
+      Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop  
+      }
+    else if(mode == "stop"){
       Setpoint_trans = 0.0;
       Output_trans = 0;
       trans_PID.Initialize();} 
@@ -141,7 +147,6 @@ void loop() {
     
     ////////////////////////////////////////// COMPUTE BALANCING PID OUTPUT/ //////////////////////////////////////////////////
   
-    Setpoint_bal = Output_trans - 2.0 ; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop      
     Input_bal = Theta_now; // Set Theta_now as the input / current value to the PID algorithm              
     double error_bal = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction      
 //  bal_PID.SetTunings(Kp, Ki, Kd); // Adjust the the new parameters          
@@ -262,15 +267,16 @@ void rotate_bot(int Speed){
 void read_BT(){
   if (Serial.available()>0){
     char c = Serial.read();
-    if (c =='1'){mode = "go";Serial.print(mode);}
-    else if(c=='2'){mode = "stand";Serial.print(mode);}
-    else if (c =='3'){Kp_trans+=0.05;Serial.print(Kp_trans);}
-    else if(c=='4'){Kp_trans-= 0.05;Serial.print(Kp_trans);}
-    else if (c =='5'){Kd_trans+=0.05;Serial.print(Kd_trans);}
-    else if(c=='6'){Kd_trans-=0.05;Serial.print(Kd_trans);}
-    else if (c =='7'){Ki_trans+=0.05;Serial.print(Ki_trans);}
-    else if(c=='8'){Ki_trans-=0.05;Serial.print(Ki_trans);}
-//    Serial.println(c);    
+    if (c =='1'){mode = "go fwd";Serial.print(mode);}
+    else if(c=='2'){mode = "stop";Serial.print(mode);}
+    else if (c =='3'){Kp_trans+=0.05;Serial.print("Kp_trans = "+String(Kp_trans));}
+    else if(c=='4'){Kp_trans-= 0.05;Serial.print("Kp_trans = "+String(Kp_trans));}
+    else if (c =='5'){Kd_trans+=0.05;Serial.print("Kd_trans = "+String(Kd_trans));}
+    else if(c=='6'){Kd_trans-=0.05;Serial.print("Kd_trans = "+String(Kd_trans));}
+    else if (c =='7'){Ki_trans+=0.05;Serial.print("Ki_trans = "+String(Ki_trans));}
+    else if(c=='8'){Ki_trans-=0.05;Serial.print("Ki_trans = "+String(Ki_trans));}
+    else if(c =='9'){mode = "go bck";Serial.print(mode);}
+   
     }  
 }
 
