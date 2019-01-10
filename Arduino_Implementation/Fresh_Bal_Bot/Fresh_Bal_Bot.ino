@@ -202,7 +202,6 @@ void get_MPU_data(){
 ///////////////////////// Function for motor control ////////////////////////////////////////////////////////
 
 void mot_cont(float e_rr, int Speed){
-
   if (abs(e_rr)>=fall_angle){stop_bot();}  
   else if (e_rr<0){fwd_bot(Speed);}  
   else if (e_rr>0){back_bot(Speed);}
