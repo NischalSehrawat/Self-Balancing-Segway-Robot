@@ -130,7 +130,9 @@ void loop() {
     Output_bal = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal);          
     mot_cont(error_bal, Output_bal); // Apply the calculated output to control the motor
   
-//  Serial.print(Kp_bal);Serial.print(" , ");Serial.print(Ki_bal);Serial.print(" , ");Serial.print(Kd_bal);Serial.print(" , ");
+//  Serial.print(Kp_bal);Serial.print(" , ");
+//  Serial.print(Ki_bal);Serial.print(" , ");
+//  Serial.print(Kd_bal);Serial.print(" , ");
 //  Serial.print(Output);Serial.print(" , ");
 //  Serial.println(Input);
 
