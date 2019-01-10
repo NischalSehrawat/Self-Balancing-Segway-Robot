@@ -80,8 +80,8 @@ void setup() {
 //  bal_PID.SetSampleTime(t_loop); // Set Loop time for PID [milliseconds]    
     bal_PID.SetMode(AUTOMATIC); // Set PID mode to Automatic    
 //  bal_PID.SetTunings(Kp, Ki, Kd);    
-    bal_PID.SetOutputLimits(Out_min_bal, Out_max_bal); // Set upper and lower limits for the maximum output limits for PID loop    
-	
+    bal_PID.SetOutputLimits(Out_min_bal, Out_max_bal); // Set upper and lower limits for the maximum output limits for PID loop
+    	
 	  ////////////////////////// TRANSLATION PID initialization ////////////////////////////////////////////////////////        
     
     trans_PID.SetMode(AUTOMATIC); // Set PID mode to Automatic        
