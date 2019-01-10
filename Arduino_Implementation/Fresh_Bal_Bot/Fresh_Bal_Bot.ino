@@ -17,10 +17,10 @@ float rad2deg = 57.3, deg2rad = 0.01745; // Angle conversion factors
 
 ////////////////////////////// MOTOR CONTROL PARAMATERS ////////////////////////////////////////////
 
-short rmot1 = 7; short rmot2 = 8; // Pins for Right motor FW/BCK
-short rmot3 = 9; // Pin for Right motor PWM
-short lmot1 = 4; short lmot2 = 5; // Pins for Left motor FW/BCK
-short lmot3 = 6; // Pins for Right motor PWM
+short Rmot1 = 7; short Rmot2 = 8; // Pins for Right motor FW/BCK
+short Rmot3 = 9; // Pin for Right motor PWM
+short Lmot1 = 4; short Lmot2 = 5; // Pins for Left motor FW/BCK
+short Lmot3 = 6; // Pins for Right motor PWM
 short R_enc_pin1 = 2; short R_enc_pin2 = 3; // right motor encoder pins
 short L_enc_pin1 = 18;  short L_enc_pin2 = 19; // left motor encoder pins 
 
@@ -28,8 +28,8 @@ float rpm_limit = 0.0; // RPM below this is considered 0
 float avg_pt = 10.0;  // Number of points used for averaging the RPM signal
 short PPR = 990; // Number of pulses per revolution of the wheel
 float Final_Rpm_r, Final_Rpm_l; // Motor final averaged out RPM, units can be selected while calling get_RPM function
-My_Motors rmot(&Final_Rpm_r, rpm_limit, avg_pt, PPR); // Right motor object for calculating rotational velocities from encoder data
-My_Motors lmot(&Final_Rpm_l, rpm_limit, avg_pt, PPR); // Left motor object for calculating rotational velocities from encoder data
+My_Motors Rmot(&Final_Rpm_r, rpm_limit, avg_pt, PPR); // Right motor object for calculating rotational velocities from encoder data
+My_Motors Lmot(&Final_Rpm_l, rpm_limit, avg_pt, PPR); // Left motor object for calculating rotational velocities from encoder data
 Encoder myEnc_r(R_enc_pin1, R_enc_pin2); // Make encoder objects to calculate motor velocties
 Encoder myEnc_l(L_enc_pin2, L_enc_pin1); // Make encoder objects to calculate motor velocties
 
@@ -70,8 +70,8 @@ void setup() {
     
     /////////////////////////////// Motor initialization ///////////////////////////////////////////
   
-    pinMode(rmot1,OUTPUT);pinMode(rmot2,OUTPUT);pinMode(rmot3,OUTPUT); // Declaring right motor pins as output  
-    pinMode(lmot1,OUTPUT);pinMode(lmot2,OUTPUT);pinMode(lmot3,OUTPUT); // Declaring left motor pins as output  
+    pinMode(Rmot1,OUTPUT);pinMode(Rmot2,OUTPUT);pinMode(Rmot3,OUTPUT); // Declaring right motor pins as output  
+    pinMode(Lmot1,OUTPUT);pinMode(Lmot2,OUTPUT);pinMode(Lmot3,OUTPUT); // Declaring left motor pins as output  
   
     ////////////////////////// BALANCING PID  initialization ////////////////////////////////////////////////////////
         
@@ -106,8 +106,8 @@ void loop() {
   if (dt_loop>=t_loop){  
 //  read_BT(); // Read data from the serial bluetooth
     get_tilt_angle(); // Update the angle readings to get updated omega_x, Theta_now
-    lmot.getRPM(myEnc_l.read() / 4.0, "rad/s"); // Get current encoder counts & compute left motor rotational velocity in [rad/s] 
-    rmot.getRPM(myEnc_r.read() / 4.0, "rad/s"); // Get current encoder counts & compute right motor rotational velocity in [rad/s]
+    Lmot.getRPM(myEnc_l.read() / 4.0, "rad/s"); // Get current encoder counts & compute left motor rotational velocity in [rad/s] 
+    Rmot.getRPM(myEnc_r.read() / 4.0, "rad/s"); // Get current encoder counts & compute right motor rotational velocity in [rad/s]
   
     ////////////////// COMPUTE TRANSLATION PID OUTPUT///////////////////////////////////////////////////////
 
@@ -206,37 +206,37 @@ void mot_cont(float e_rr, int Speed){
 }
 
 void back_bot(int Speed){
-  digitalWrite(lmot1, LOW);
-  digitalWrite(lmot2, HIGH);
-  digitalWrite(rmot1, LOW);
-  digitalWrite(rmot2, HIGH);  
-  analogWrite(lmot3,Speed);    
-  analogWrite(rmot3,Speed);    
+  digitalWrite(Lmot1, LOW);
+  digitalWrite(Lmot2, HIGH);
+  digitalWrite(Rmot1, LOW);
+  digitalWrite(Rmot2, HIGH);  
+  analogWrite(Lmot3,Speed);    
+  analogWrite(Rmot3,Speed);    
 }
 
 void fwd_bot(int Speed){
-  digitalWrite(lmot1, HIGH);
-  digitalWrite(lmot2, LOW);
-  digitalWrite(rmot1, HIGH);
-  digitalWrite(rmot2, LOW);  
-  analogWrite(lmot3,Speed); 
-  analogWrite(rmot3,Speed);   
+  digitalWrite(Lmot1, HIGH);
+  digitalWrite(Lmot2, LOW);
+  digitalWrite(Rmot1, HIGH);
+  digitalWrite(Rmot2, LOW);  
+  analogWrite(Lmot3,Speed); 
+  analogWrite(Rmot3,Speed);   
 }
 
 void stop_bot(){
-  digitalWrite(lmot1, LOW);
-  digitalWrite(lmot2, LOW);
-  digitalWrite(rmot1, LOW);
-  digitalWrite(rmot2, LOW);  
+  digitalWrite(Lmot1, LOW);
+  digitalWrite(Lmot2, LOW);
+  digitalWrite(Rmot1, LOW);
+  digitalWrite(Rmot2, LOW);  
 }
 
 void rotate_bot(int Speed){
-  digitalWrite(lmot1, HIGH);
-  digitalWrite(lmot2, LOW);
-  digitalWrite(rmot1, LOW);
-  digitalWrite(rmot2, HIGH);  
-  analogWrite(lmot3,Speed); 
-  analogWrite(rmot3,Speed);   
+  digitalWrite(Lmot1, HIGH);
+  digitalWrite(Lmot2, LOW);
+  digitalWrite(Rmot1, LOW);
+  digitalWrite(Rmot2, HIGH);  
+  analogWrite(Lmot3,Speed); 
+  analogWrite(Rmot3,Speed);   
 }
 
 ///////////////////////////////// READ BLUETOOTH ////////////////////////
