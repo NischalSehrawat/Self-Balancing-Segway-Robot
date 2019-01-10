@@ -1,27 +1,18 @@
 ///////////////////////////////// Include all the required libraries ////////////////////////////////
-
 #include <Wire.h>
 #include <PID_v1.h>
 #include <My_Motors.h>
 #include <Encoder.h>
-
-
 ///////////////////////////////// MPU-6050 parameters //////////////////////////////////////////////
 
 long accelX, accelY, accelZ, gyroX, gyroY, gyroZ; // They record the raw accelerometer / gyro data
 float omega_x;// they record the converted data into [deg/s]
-
 //float A[6] = {-2043, 108, 1293,  48, -12, 19}; // To compensate for the error_now in MPU  
-
 float A[3] = {0.0,0.0,0.0}; // Array containing MPU Offset data accY, accZ, giroX  
-
-// Data is printed as: acelX acelY acelZ giroX giroY giroZ
-
 double pitch, Theta_prev, Theta_now ; // For storing Angle data from Accelerometer                   
 double dt_gyro; // Variable to store time difference values for gyro angle calculations 
 uint32_t t_gyro_prev, t_gyro_now; // timer for gyro unit
 float alpha = 0.98; // Complimentary filter control parameter
-
 float rad2deg = 57.3, deg2rad = 0.01745; // Angle conversion factors
 
 ////////////////////////////// MOTOR CONTROL PARAMATERS ////////////////////////////////////////////
