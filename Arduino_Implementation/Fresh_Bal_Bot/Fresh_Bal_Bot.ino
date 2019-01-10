@@ -135,10 +135,8 @@ void loop() {
 //  Serial.println(Input);
 
     Blink_Led(); // Blink the LED
-    t_loop_prev = t_loop_now; // Set prev loop time equal to current loop time for calculating dt for next loop
-        
+    t_loop_prev = t_loop_now; // Set prev loop time equal to current loop time for calculating dt for next loop        
   }     
- 
 }
 
 ///////////////////////// Function for initializing / getting MPU Data ////////////////////////////////////////////////////////
