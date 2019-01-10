@@ -250,10 +250,10 @@ void read_BT(){
     char c = Serial.read();
     if (c =='1'){mode = "go";}
     else if(c=='2'){mode = "stand";}
-    else if (c =='3'){Kp_trans+=0.5;}
-    else if(c=='4'){Kp_trans-= 0.5;}
-    else if (c =='5'){Ki_trans+=0.05;}
-    else if(c=='6'){Ki_trans-=0.05;}
+    else if (c =='3'){Kp_trans+=0.5;Serial.print(Kp_trans);}
+    else if(c=='4'){Kp_trans-= 0.5;Serial.print(Kp_trans);}
+    else if (c =='5'){Ki_trans+=0.05;Serial.print(Ki_trans);}
+    else if(c=='6'){Ki_trans-=0.05;Serial.print(Ki_trans);}
     Serial.println(c);    
     }  
 }
