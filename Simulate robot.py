@@ -11,11 +11,11 @@ plt.close("all")
 
 t_sim = 10; # Total simulation time [s]
 
-angle = -np.deg2rad(5)
+angle = np.deg2rad(0.5)
 
 IC = [0, angle, 0, 0] # Initial conditions [alpha_dot, alpha, V, theta] 
 
-x_desired = np.array([0,0,0,0])
+x_desired = np.array([0,0,10,0])
 
 m_wh = 0.058 + 0.2; # MAss of one wheel + mass of 1 motor [kg]
 
@@ -106,12 +106,12 @@ B[2,0] = r*(l*l*m_0+l*m_0*r+J_y)/M; B[3,1] = b/(2*r*J5)
 B = np.dot(B, np.array([[1 ,1],[1,-1]])) # Individual motor torques
 
 Q = np.zeros((4,4));
-Q[0,0] = 1; # Penalty For Angular velocity
+Q[0,0] = 100; # Penalty For Angular velocity
 Q[1,1] = 1; # Penalty For Angle
 Q[2,2] = 1; # Penalty For Linear velocity
 Q[3,3] = 1; # Penalty For turning velocity
 
-R = 10*np.array([[1,0],[0,1]])
+R = 300*np.array([[1,0],[0,1]])
 
 K, _, _ = lqr(A,B,Q,R)  
 

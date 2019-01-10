@@ -10,7 +10,7 @@
 
 long accelX, accelY, accelZ, gyroX, gyroY, gyroZ; // They record the raw accelerometer / gyro data
 
-float omega_x_prev, omega_x_now;// they record the converted data into [deg/s]
+float omega_x, omega_x_now;// they record the converted data into [deg/s]
 
 //float A[6] = {-2043, 108, 1293,  48, -12, 19}; // To compensate for the error_now in MPU  
 
@@ -53,20 +53,28 @@ My_Motors lmot(&Final_Rpm_l, rpm_limit, avg_pt, PPR); // Left motor object for c
 Encoder myEnc_r(enc_pin_r1, enc_pin_r2); // Make encoder objects to calculate motor velocties
 Encoder myEnc_l(enc_pin_l2, enc_pin_l1); // Make encoder objects to calculate motor velocties
 
-
 ///////////////////////////////// Balancing PID parameters ///////////////////////////////////////////////////
 
 double Input_bal, Output_bal, Setpoint_bal; // Input output and setpoint variables defined
 
-double Out_min = -255, Out_max = 255; // PID Output limits
+double Out_min_bal = -255, Out_max_bal = 255; // PID Output limits, this is the output PWM value
 
-double Kp_bal, Ki_bal, Kd_bal; // Initializing the Proportional, integral and derivative gain constants
+double Kp_bal = 72.0, Ki_bal = 0.0, Kd_bal = 1.4; // Initializing the Proportional, integral and derivative gain constants
 
-double Output_lower = 30.0; // PWM Limit at which the motors actually start to move
+double Output_lower_bal = 30.0; // PWM Limit at which the motors actually start to move
 
 PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON_E, DIRECT); // Create a balancing PID instance
 
-//short t_loop = 5.0; // Loop time
+///////////////////////////////// Translating PID parameters ///////////////////////////////////////////////////
+
+double Input_trans, Output_trans, Setpoint_trans; // Input output and setpoint variables defined
+
+double Out_min_trans = -5, Out_max_trans = 5; // PID Output limits, this output is in degrees
+
+double Kp_trans, Ki_trans, Kd_trans; // Initializing the Proportional, integral and derivative gain constants
+
+PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, Kd_trans, P_ON_E, DIRECT); // Create a balancing PID instance
+
 
 ///////////////////////////////// ROBOT PHYSICAL PROPERTIES ////////////////////////////////////////////
 
@@ -74,6 +82,7 @@ float r_whl = 0.5 * 0.085; // Wheel radius [m]
 
 float l_cog = 0.01075; // Distance of from the wheel axis [m] 
 
+short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 
 ////////////// LED BLINKING PARAMETERS/////////////////////////
 
@@ -87,7 +96,7 @@ int blink_rate = 100; // Blink after every millis
 
 double t_loop_prev, t_loop_now, dt_loop;
 
-double t_loop = 5;
+double t_loop = 5; // Overall loop time [millis]
 
 void setup() {
 
@@ -102,7 +111,7 @@ void setup() {
     pinMode(lmot1,OUTPUT);pinMode(lmot2,OUTPUT);pinMode(lmot3,OUTPUT); // Declaring left motor pins as output
   
   
-    ////////////////////////// PID  initialization ////////////////////////////////////////////////////////
+    ////////////////////////// BALANCING PID  initialization ////////////////////////////////////////////////////////
         
 //    bal_PID.SetSampleTime(t_loop); // Set Loop time for PID [milliseconds]
     
@@ -110,8 +119,15 @@ void setup() {
     
 //    bal_PID.SetTunings(Kp, Ki, Kd);
     
-    bal_PID.SetOutputLimits(Out_min, Out_max); // Set upper and lower limits for the maximum output limits for PID loop
+    bal_PID.SetOutputLimits(Out_min_bal, Out_max_bal); // Set upper and lower limits for the maximum output limits for PID loop
     
+	
+	  ////////////////////////// TRANSLATING PID  initialization ////////////////////////////////////////////////////////
+        
+    
+    trans_PID.SetMode(AUTOMATIC); // Set PID mode to Automatic
+        
+    trans_PID.SetOutputLimits(Out_min_trans, Out_max_trans); // Set upper and lower limits for the maximum output limits for PID loop
   
     ////////////////////////// MPU initialization ///////////////////////////////////////////////////
     
@@ -133,7 +149,7 @@ void setup() {
 
 //    delay(5000);
       
-    omega_x_prev = (gyroX - A[3]) / 131.0; // initial gyro reading
+    omega_x = (gyroX - A[3]) / 131.0; // initial gyro reading
 
     t_gyro_prev = millis(); // Reading for gyro angle calculations
   
@@ -153,44 +169,49 @@ void loop() {
       dt_loop = t_loop_now - t_loop_prev;
 
       if (dt_loop>=t_loop){
+		  
+//		  read_BT(); // Read data from the serial bluetooth
 
-          get_tilt_angle(); // Update the tilt angle readings 
+          get_tilt_angle(); // Update the tilt angle readings to get updated omega_x, Theta_now
 
           lmot.getRPM(myEnc_l.read() / 4.0, "rad/s"); // Compute left motor rotational velocity in [rad/s] 
           rmot.getRPM(myEnc_r.read() / 4.0, "rad/s"); // Compute right motor rotational velocity in [rad/s] 
 
-          float V_cog = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl + omega_x_prev * l_cog * 0.0174; // Robot linear translation velocity [m/s]
+          float V_cog = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl + omega_x * l_cog * 0.0174; // Calculate Robot linear translation velocity [m/s]
+		  
+		  ////////////////// COMPUTE TRANSLATION PID OUTPUT///////////////////////////////////////////////////////
+		  
+		  Input_trans = V_cog; // Set translation input / current value to V_cog, the set point also needs to be defined
+		  
+		  Kp_trans = float((1.0 / 1023.0) *analogRead(A0));
+		  Ki_trans = float((1.0 / 1023.0) *analogRead(A2));
+		  Kd_trans = float((1.0 / 1023.0) *analogRead(A1));
+		  
+		  trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute output of the 1st loop		  
         
-          ////////////////////////////////////////// PID Action //////////////////////////////////////////////////
+          ////////////////////////////////////////// COMPUTE BALANCING PID OUTPUT/ //////////////////////////////////////////////////
+		  
+		  Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
           
-          Input_bal = Theta_now; // Setting Theta_now as the input to the PID algorithm 
-        
-//          read_BT(); // Read Kp, Ki, Kd from the serial bluetooth
-    
-          Kp_bal = float((200.0 / 1023.0) *analogRead(A0));Ki_bal = float((200.0 / 1023.0) *analogRead(A2));Kd_bal = float((20 / 1023.0) *analogRead(A1)); 
-    
-//          Kp_bal = 72.0; Kd_bal = 1.4; Ki_bal = 0.0;
-          
-          double my_error_bal = Setpoint_bal - Input_bal; // To decide PID controller direction
+          Input_bal = Theta_now; // Setting Theta_now as the input / current value to the PID algorithm         
+                  
+          double error_bal = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction
           
     //      bal_PID.SetTunings(Kp, Ki, Kd); // Adjust the the new parameters 
               
-          bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_prev);
+          bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x);
           
-          Output_bal = map(abs(Output_bal), 0, Out_max, Output_lower, Out_max);
+          Output_bal = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal);
               
-//          mot_cont(my_error_bal, Output_bal); // Apply the calculated output to control the motor
+          mot_cont(error_bal, Output_bal); // Apply the calculated output to control the motor
       
     //      Serial.print(Kp_bal);Serial.print(" , ");Serial.print(Ki_bal);Serial.print(" , ");Serial.print(Kd_bal);Serial.print(" , ");
     //      Serial.print(Output);Serial.print(" , ");
     //      Serial.println(Input);
     
-          Blink_Led();         
-          Serial.println(V_cog);
-    
-//        Serial.println(dt_loop);
-    
-          t_loop_prev = t_loop_now;
+          Blink_Led(); // Blink the LED
+   
+          t_loop_prev = t_loop_now; // Set prev loop time equal to current loop time for calculating dt for next loop
             
       }     
  
@@ -211,9 +232,9 @@ void get_tilt_angle(){
   
   pitch = (atan2(accelY - A[1], accelZ + A[2]))*57.32; // Angle calculated by accelerometer readings about X axis in [deg]
   
-  Theta_now = alpha * (Theta_prev + (omega_x_prev * dt_gyro)) + (1-alpha) * pitch; // Calculate the total angle using a Complimentary filter
+  Theta_now = alpha * (Theta_prev + (omega_x * dt_gyro)) + (1-alpha) * pitch; // Calculate the total angle using a Complimentary filter
 
-  omega_x_prev = (gyroX - A[3]) / 131.0; // Take Angular velocity reading for next step [deg/s];
+  omega_x = (gyroX - A[3]) / 131.0; // Take Angular velocity reading for next step [deg/s];
 
   Theta_prev = Theta_now;
 
@@ -266,7 +287,7 @@ void get_MPU_data(){
 
 void mot_cont(float e_rr, int Speed){
 
-  if (abs(e_rr)>=45){stop_bot();}
+  if (abs(e_rr)>=fall_angle){stop_bot();}
 
   else if (e_rr<0){fwd_bot(Speed);}
   
