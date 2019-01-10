@@ -55,6 +55,7 @@ float l_cog = 0.01075; // Distance of the center of gravity of the upper body fr
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 float full_speed = 107 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 107 RPM @ 12 V] 
 float frac = 0.25; // Factor for calculating fraction of the full linear speed
+String mode = "stand";
 
 ////////////// LED BLINKING PARAMETERS/////////////////////////
 
@@ -108,7 +109,7 @@ void loop() {
   
   if (dt_loop>=t_loop){  
   
-//  read_BT(); // Read data from the serial bluetooth
+    read_BT(); // Read data from the serial bluetooth
     Get_Tilt_Angle(); // Update the angle readings to get updated omega_x, Theta_now
     Lmot.getRPM(myEnc_l.read() / 4.0, "rad/s"); // Get current encoder counts & compute left motor rotational velocity in [rad/s] 
     Rmot.getRPM(myEnc_r.read() / 4.0, "rad/s"); // Get current encoder counts & compute right motor rotational velocity in [rad/s]
@@ -117,10 +118,12 @@ void loop() {
 
     // Calculate Robot linear translation velocity [m/s]  
     Input_trans = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl + omega_x * l_cog * deg2rad;
-    Setpoint_trans = frac * full_speed; // Set the linear translation velocity as fraction of the full speed 
-    Kp_trans = float((1.0 / 1023.0) *analogRead(A0));
-    Ki_trans = float((1.0 / 1023.0) *analogRead(A2));
-    Kd_trans = float((1.0 / 1023.0) *analogRead(A1));  
+    if (mode == "stand"){Setpoint_trans = 0.0;}
+    else {Setpoint_trans = frac * full_speed; // Set the linear translation velocity as fraction of the full speed}
+     
+//    Kp_trans = float((1.0 / 1023.0) *analogRead(A0));
+//    Ki_trans = float((1.0 / 1023.0) *analogRead(A2));
+//    Kd_trans = float((1.0 / 1023.0) *analogRead(A1));  
     trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop		  
     
     ////////////////////////////////////////// COMPUTE BALANCING PID OUTPUT/ //////////////////////////////////////////////////
@@ -245,12 +248,12 @@ void rotate_bot(int Speed){
 void read_BT(){
   if (Serial.available()>0){
     char c = Serial.read();
-    if (c =='1'){Kp_bal+=0.5;}
-    else if(c=='2'){Kp_bal-=0.5;}
-    else if (c =='3'){Kd_bal+=0.01;}
-    else if(c=='4'){Kd_bal-= 0.01;}
-    else if (c =='5'){Ki_bal+=1;}
-    else if(c=='6'){Ki_bal-=1;}
+    if (c =='1'){mode = "go";}
+    else if(c=='2'){mode = "stand";}
+    else if (c =='3'){Kp_trans+=0.5;}
+    else if(c=='4'){Kp_trans-= 0.5;}
+    else if (c =='5'){Ki_trans+=0.05;}
+    else if(c=='6'){Ki_trans-=0.05;}
     Serial.println(c);    
     }  
 }
