@@ -244,9 +244,7 @@ void rotate_bot(int Speed){
 ///////////////////////////////// READ BLUETOOTH ////////////////////////
 
 void read_BT(){
-
   if (Serial.available()>0){
-
     char c = Serial.read();
     if (c =='1'){Kp_bal+=0.5;}
     else if(c=='2'){Kp_bal-=0.5;}
