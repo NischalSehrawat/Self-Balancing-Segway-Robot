@@ -54,7 +54,7 @@ float r_whl = 0.5 * 0.085; // Wheel radius [m]
 float l_cog = 0.01075; // Distance of the center of gravity of the upper body from the wheel axis [m] 
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 float full_speed = 107.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 107 RPM @ 12 V] 
-float frac = 0.5; // Factor for calculating fraction of the full linear speed
+float frac = 1.0; // Factor for calculating fraction of the full linear speed
 String mode = "stand";
 
 ////////////// LED BLINKING PARAMETERS/////////////////////////
@@ -109,29 +109,39 @@ void loop() {
   
   if (dt_loop>=t_loop){  
   
-//    read_BT(); // Read data from the serial bluetooth
-    Get_Tilt_Angle(); // Update the angle readings to get updated omega_x_gyro, Theta_now
+    read_BT(); // Read data from the serial bluetooth
+    Get_Tilt_Angle(); // Update the angle readings to get updated omega_x_calculated, Theta_now
     Lmot.getRPM(myEnc_l.read() / 4.0, "rad/s"); // Get current encoder counts & compute left motor rotational velocity in [rad/s] 
     Rmot.getRPM(myEnc_r.read() / 4.0, "rad/s"); // Get current encoder counts & compute right motor rotational velocity in [rad/s]
   
     ////////////////// COMPUTE TRANSLATION PID OUTPUT///////////////////////////////////////////////////////
 
     // Calculate Robot linear translation velocity [m/s]  
-    Input_trans = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl + omega_x_gyro * l_cog * deg2rad;
-    if (mode == "stand"){Setpoint_trans = 0.0;}
-    else {Setpoint_trans = frac * full_speed;} // Set the linear translation velocity as fraction of the full speed
+    Input_trans = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl + omega_x_calculated * l_cog * deg2rad;
+    /*
+    If the robot is on the go, then Set the Setpoint to frac*fullspeed
+    Otherwise if the robot is standing, initialise setpoint, output, and intergral terms to 0 otherwise the next time
+    the robot begins to move, the integral term will still be there.
+    */
+    if (mode == "go"){ // If the robot is not standing, then
+      Setpoint_trans = frac * full_speed;
+      trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop  
+      }
+    else if(mode == "stand"){
+      Setpoint_trans = 0.0;
+      Output_trans = 0;
+      trans_PID.Initialize();} 
      
-    Kp_bal = float((200.0 / 1023.0) *analogRead(A0));
-    Ki_bal = float((20.0 / 1023.0) *analogRead(A2));
-    Kd_bal = float((20.0 / 1023.0) *analogRead(A1));  
-    trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop	
+//    Kp_bal = float((200.0 / 1023.0) *analogRead(A0));
+//    Ki_bal = float((20.0 / 1023.0) *analogRead(A2));
+//    Kd_bal = float((20.0 / 1023.0) *analogRead(A1));  
 
-    Serial.println(omega_x_gyro );
+//    Serial.println(Input_trans);
 
     
     ////////////////////////////////////////// COMPUTE BALANCING PID OUTPUT/ //////////////////////////////////////////////////
   
-    Setpoint_bal = 0.0 ; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop      
+    Setpoint_bal = Output_trans - 2.0 ; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop      
     Input_bal = Theta_now; // Set Theta_now as the input / current value to the PID algorithm              
     double error_bal = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction      
 //  bal_PID.SetTunings(Kp, Ki, Kd); // Adjust the the new parameters          
@@ -254,8 +264,8 @@ void read_BT(){
     char c = Serial.read();
     if (c =='1'){mode = "go";Serial.print(mode);}
     else if(c=='2'){mode = "stand";Serial.print(mode);}
-    else if (c =='3'){Kp_trans+=0.5;Serial.print(Kp_trans);}
-    else if(c=='4'){Kp_trans-= 0.5;Serial.print(Kp_trans);}
+    else if (c =='3'){Kp_trans+=0.05;Serial.print(Kp_trans);}
+    else if(c=='4'){Kp_trans-= 0.05;Serial.print(Kp_trans);}
     else if (c =='5'){Ki_trans+=0.05;Serial.print(Ki_trans);}
     else if(c=='6'){Ki_trans-=0.05;Serial.print(Ki_trans);}
 //    Serial.println(c);    
