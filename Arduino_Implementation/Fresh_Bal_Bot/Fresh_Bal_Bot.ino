@@ -146,21 +146,17 @@ void loop() {
 
 ///////////////////////// Function for initializing / getting MPU Data ////////////////////////////////////////////////////////
 
-void Get_Tilt_Angle(){
-  
+void Get_Tilt_Angle(){  
   t_gyro_now = millis(); // Log time now [millis]
   get_MPU_data(); // Update / Get Raw data acelX acelY acelZ giroX giroY giroZ  
   dt_gyro = (t_gyro_now - t_gyro_prev) / 1000.0; // calculate time difference since last loop for gyro angle calculations [seconds]
-  omega_x = (gyroX - A[3]) / 131.0; // Compute Angular velocity from raw gyroXreading [deg/s];
-    
+  omega_x = (gyroX - A[3]) / 131.0; // Compute Angular velocity from raw gyroXreading [deg/s];    
   /*Since we will only need the ratios of accelerometer readings to calculate accelerometer angles, 
-  we do not need to convert raw data to actual data */
-  
+  we do not need to convert raw data to actual data */  
   pitch = (atan2(accelY - A[1], accelZ + A[2]))*rad2deg; // Angle calculated by accelerometer readings about X axis in [deg]  
   Theta_now = alpha * (Theta_prev + (omega_x * dt_gyro)) + (1-alpha) * pitch; // Calculate the total angle using a Complimentary filter
   Theta_prev = Theta_now;
-  t_gyro_prev = t_gyro_now;
-  
+  t_gyro_prev = t_gyro_now;  
 }
 
 void setupMPU(){
