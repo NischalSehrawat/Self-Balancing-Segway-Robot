@@ -21,8 +21,8 @@ short rmot1 = 7; short rmot2 = 8; // Pins for Right motor FW/BCK
 short rmot3 = 9; // Pin for Right motor PWM
 short lmot1 = 4; short lmot2 = 5; // Pins for Left motor FW/BCK
 short lmot3 = 6; // Pins for Right motor PWM
-short enc_pin_r1 = 2;short enc_pin_r2 = 3; // right motor encoder pins
-short enc_pin_l1 = 18;short enc_pin_l2 = 19; // left motor encoder pins 
+short enc_pin_r1 = 2; short enc_pin_r2 = 3; // right motor encoder pins
+short enc_pin_l1 = 18;  short enc_pin_l2 = 19; // left motor encoder pins 
 
 float rpm_limit = 0.0; // RPM below this is considered 0
 float avg_pt = 10.0;  // Number of points used for averaging the RPM signal
