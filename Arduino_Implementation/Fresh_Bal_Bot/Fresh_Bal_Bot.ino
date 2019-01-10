@@ -255,7 +255,7 @@ void read_BT(){
     }  
 }
 
-///////////////////////////////////// BLINK LED ///////////////
+///////////////////////////////////// NON BLOCKING FUNCTION TO BLINK LED ///////////////
 
 void Blink_Led(){  
   t_led_now = millis();
