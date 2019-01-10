@@ -266,8 +266,10 @@ void read_BT(){
     else if(c=='2'){mode = "stand";Serial.print(mode);}
     else if (c =='3'){Kp_trans+=0.05;Serial.print(Kp_trans);}
     else if(c=='4'){Kp_trans-= 0.05;Serial.print(Kp_trans);}
-    else if (c =='5'){Ki_trans+=0.05;Serial.print(Ki_trans);}
-    else if(c=='6'){Ki_trans-=0.05;Serial.print(Ki_trans);}
+    else if (c =='5'){Kd_trans+=0.05;Serial.print(Kd_trans);}
+    else if(c=='6'){Kd_trans-=0.05;Serial.print(Kd_trans);}
+    else if (c =='7'){Ki_trans+=0.05;Serial.print(Ki_trans);}
+    else if(c=='8'){Ki_trans-=0.05;Serial.print(Ki_trans);}
 //    Serial.println(c);    
     }  
 }
