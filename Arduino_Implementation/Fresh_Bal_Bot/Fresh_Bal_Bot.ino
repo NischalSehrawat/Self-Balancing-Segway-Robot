@@ -263,7 +263,7 @@ void Blink_Led(){
   dt_led = t_led_now - t_led_prev;
   if (dt_led>blink_rate){
       if (led_state ==0){
-       digitalWrite(pin, 1);   /
+       digitalWrite(pin, 1);  
        led_state = 1;       
       }
       else if(led_state == 1){
