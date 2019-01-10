@@ -14,3 +14,7 @@ This is my project for balancing an inverted pendulum using an Arduino Mega and 
 # Implementation on Arduino: Problems, findings and solutions.
 
 A lot of problems were encountered and solved during the implementation on a microcontroller. Problems / findings are listed below in decreasing order of importance.
+
+- The main control loop must be fast. I found that the robot doesn't work at all if the loop time is more than 40 ms. In my current implementation, I have kept it at 5 ms. The loop time effects a lot of parameters such as the complimentary filter weighting parameter alpha. 
+- Serial baudrate must be higher than 115200. It won't work at all if baudrate is set at 9600;
+- Make sure that the IMU6050 is correctly caliberated and when vertical, the angles donot vary more than +/- 0.5 deg.
