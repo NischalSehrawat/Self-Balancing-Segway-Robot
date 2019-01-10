@@ -75,13 +75,12 @@ void setup() {
   
     ////////////////////////// BALANCING PID  initialization ////////////////////////////////////////////////////////
         
-//    bal_PID.SetSampleTime(t_loop); // Set Loop time for PID [milliseconds]
-    
+//  bal_PID.SetSampleTime(t_loop); // Set Loop time for PID [milliseconds]    
     bal_PID.SetMode(AUTOMATIC); // Set PID mode to Automatic    
-//    bal_PID.SetTunings(Kp, Ki, Kd);    
+//  bal_PID.SetTunings(Kp, Ki, Kd);    
     bal_PID.SetOutputLimits(Out_min_bal, Out_max_bal); // Set upper and lower limits for the maximum output limits for PID loop    
 	
-	////////////////////////// TRANSLATION PID  initialization ////////////////////////////////////////////////////////        
+	  ////////////////////////// TRANSLATION PID initialization ////////////////////////////////////////////////////////        
     
     trans_PID.SetMode(AUTOMATIC); // Set PID mode to Automatic        
     trans_PID.SetOutputLimits(Out_min_trans, Out_max_trans); // Set upper and lower limits for the maximum output limits for PID loop
@@ -93,14 +92,13 @@ void setup() {
     get_MPU_data(); // Get initial angles of the MPU  
     delay(100);    
     pitch = (atan2(accelY - A[1], accelZ + A[2]))*rad2deg; //  Calculate initial pitch angle [deg]    
-    Theta_prev = pitch;     // set the total starting angle to this pitch 
+    Theta_prev = pitch; // set the total starting angle to this pitch 
 //  delay(5000);      
     t_gyro_prev = millis(); // Log time for gyro calculations [ms]  
     t_led_prev = millis(); // Log time for led blinking 
     t_loop_prev = millis(); // Log time for overall control loop [ms]
     delay(50);  
 }
-
 
 void loop() {
 
@@ -114,7 +112,7 @@ void loop() {
     lmot.getRPM(myEnc_l.read() / 4.0, "rad/s"); // Compute left motor rotational velocity in [rad/s] 
     rmot.getRPM(myEnc_r.read() / 4.0, "rad/s"); // Compute right motor rotational velocity in [rad/s] 
   
-  ////////////////// COMPUTE TRANSLATION PID OUTPUT///////////////////////////////////////////////////////
+    ////////////////// COMPUTE TRANSLATION PID OUTPUT///////////////////////////////////////////////////////
   
     Input_trans = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl + omega_x * l_cog * deg2rad; // Calculate Robot linear translation velocity [m/s]
     Kp_trans = float((1.0 / 1023.0) *analogRead(A0));
@@ -211,48 +209,37 @@ void mot_cont(float e_rr, int Speed){
 }
 
 void back_bot(int Speed){
-
   digitalWrite(lmot1, LOW);
   digitalWrite(lmot2, HIGH);
   digitalWrite(rmot1, LOW);
-  digitalWrite(rmot2, HIGH);
-  
+  digitalWrite(rmot2, HIGH);  
   analogWrite(lmot3,Speed);    
-  analogWrite(rmot3,Speed);  
-  
+  analogWrite(rmot3,Speed);    
 }
 
 void fwd_bot(int Speed){
-
   digitalWrite(lmot1, HIGH);
   digitalWrite(lmot2, LOW);
   digitalWrite(rmot1, HIGH);
-  digitalWrite(rmot2, LOW);
-  
+  digitalWrite(rmot2, LOW);  
   analogWrite(lmot3,Speed); 
-  analogWrite(rmot3,Speed); 
-  
+  analogWrite(rmot3,Speed);   
 }
 
 void stop_bot(){
-
   digitalWrite(lmot1, LOW);
   digitalWrite(lmot2, LOW);
   digitalWrite(rmot1, LOW);
-  digitalWrite(rmot2, LOW);
-  
+  digitalWrite(rmot2, LOW);  
 }
 
 void rotate_bot(int Speed){
-
   digitalWrite(lmot1, HIGH);
   digitalWrite(lmot2, LOW);
   digitalWrite(rmot1, LOW);
-  digitalWrite(rmot2, HIGH);
-  
+  digitalWrite(rmot2, HIGH);  
   analogWrite(lmot3,Speed); 
-  analogWrite(rmot3,Speed); 
-  
+  analogWrite(rmot3,Speed);   
 }
 
 ///////////////////////////////// READ BLUETOOTH ////////////////////////
@@ -274,13 +261,10 @@ void read_BT(){
 
 ///////////////////////////////////// BLINK LED ///////////////
 
-void Blink_Led(){
-  
+void Blink_Led(){  
   t_led_now = millis();
   dt_led = t_led_now - t_led_prev;
-
   if (dt_led>blink_rate){
-
       if (led_state ==0){
        digitalWrite(pin, 1);   // turn the LED on (HIGH is the voltage level) 
        led_state = 1;       
@@ -289,6 +273,6 @@ void Blink_Led(){
        digitalWrite(pin, 0);   // turn the LED on (HIGH is the voltage level) 
        led_state = 0;        
       }
-      t_led_prev = t_led_now;    
+      t_led_prev = t_led_now;   
   }  
 }
