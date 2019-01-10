@@ -53,6 +53,8 @@ PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, 
 float r_whl = 0.5 * 0.085; // Wheel radius [m]
 float l_cog = 0.01075; // Distance of from the wheel axis [m] 
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
+float full_speed = 107 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 107 RPM @ 12 V] 
+float frac = 0.25; // Factor for calculating fraction of the full linear speed
 
 ////////////// LED BLINKING PARAMETERS/////////////////////////
 
@@ -115,6 +117,7 @@ void loop() {
 
     // Calculate Robot linear translation velocity [m/s]  
     Input_trans = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl + omega_x * l_cog * deg2rad; 
+	Setpoint_trans = frac * full_speed; // Set the linear translation velocity as fraction of the full speed 
     Kp_trans = float((1.0 / 1023.0) *analogRead(A0));
     Ki_trans = float((1.0 / 1023.0) *analogRead(A2));
     Kd_trans = float((1.0 / 1023.0) *analogRead(A1));  
