@@ -19,21 +19,17 @@ float rad2deg = 57.3, deg2rad = 0.01745; // Angle conversion factors
 
 int rmot1 = 7; int rmot2 = 8; // Pins for Right motor FW/BCK
 int rmot3 = 9; // Pin for Right motor PWM
-
 int lmot1 = 4; int lmot2 = 5; // Pins for Left motor FW/BCK
 int lmot3 = 6; // Pins for Right motor PWM
+short enc_pin_r1 = 2;short enc_pin_r2 = 3; // right motor encoder pins
+short enc_pin_l1 = 18;short enc_pin_l2 = 19; // left motor encoder pins 
 
 float rpm_limit = 0.0; // RPM below this is considered 0
 float avg_pt = 10.0;  // Number of points used for averaging the RPM signal
 short PPR = 990; // Number of pulses per revolution of the wheel
 float Final_Rpm_r, Final_Rpm_l; // Motor final averaged out RPM, units can be selected while calling get_RPM function
-
-short enc_pin_r1 = 2;short enc_pin_r2 = 3; // right motor encoder pins
-short enc_pin_l1 = 18;short enc_pin_l2 = 19; // left motor encoder pins 
-
 My_Motors rmot(&Final_Rpm_r, rpm_limit, avg_pt, PPR); // Right motor object for calculating rotational velocities from encoder data
 My_Motors lmot(&Final_Rpm_l, rpm_limit, avg_pt, PPR); // Left motor object for calculating rotational velocities from encoder data
-
 Encoder myEnc_r(enc_pin_r1, enc_pin_r2); // Make encoder objects to calculate motor velocties
 Encoder myEnc_l(enc_pin_l2, enc_pin_l1); // Make encoder objects to calculate motor velocties
 
