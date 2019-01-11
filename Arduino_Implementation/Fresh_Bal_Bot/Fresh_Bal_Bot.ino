@@ -117,8 +117,8 @@ void loop() {
     ////////////////// COMPUTE TRANSLATION PID OUTPUT/////////////////////////////////////////////////////// 
     	
     if (mode != "stop"){ // If the robot not in stop mode, then		
-	    if (mode == "go fwd"){Setpoint_trans = frac * full_speed;}	/*Set the Setpoint to frac*fullspeed*/	
-	    else if (mode == "go bck"){Setpoint_trans = -frac * full_speed;} /*Set the Setpoint to  - frac*fullspeed*/
+	    if (mode == "go fwd"){Setpoint_trans = frac * full_speed;}	/* If its in fwd mode, Set the Setpoint to frac*fullspeed*/	
+	    else if (mode == "go bck"){Setpoint_trans = -frac * full_speed;} /*Else if its in back mode, set the Setpoint to  - frac*fullspeed*/
       Input_trans = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl + omega_x_calculated * l_cog * deg2rad;  // Calculate Robot linear translation velocity [m/s]
       trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop  
       Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
