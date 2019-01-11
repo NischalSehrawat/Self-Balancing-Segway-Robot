@@ -126,7 +126,7 @@ void loop() {
 	/*	Otherwise if the robot is standing, initialise setpoint, input,  output, and intergral terms 
 		to 0 otherwise the next time the robot begins to move, the integral term will still be there.*/
 
-       /* Faulty logic, must be corrected*/
+       /* Faulty logic, must be corrected, these parameters must be set to zero ONLY after the robot has actually stopped*/
     else if(mode == "stop"){
       Setpoint_trans = 0.0;
       Output_trans = 0.0;
