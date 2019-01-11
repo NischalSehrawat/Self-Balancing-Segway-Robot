@@ -128,7 +128,7 @@ void loop() {
       trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop
       Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
       }
-    else if(mode == "stop"){
+    else if(mode == "stop"){ // 2 conditions need to be checked, if the robot is still moving or if the robot has already stopped
       Setpoint_trans = 0.0;
       Input_trans = V_trans; // Measured value / Input value
       if (abs(Input_trans)>V_stop){ // If the robot is still moving i.e. its linear velocity is above some threshhold, continue calculating the PID outputs
