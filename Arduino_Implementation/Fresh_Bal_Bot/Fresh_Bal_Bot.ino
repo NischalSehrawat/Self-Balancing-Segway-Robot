@@ -128,7 +128,6 @@ void loop() {
       trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop  
       Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
       }
-
     else if(mode == "stop"){
       Setpoint_trans = 0.0;
 	    Input_trans = V_trans; // Measured value / Input value
