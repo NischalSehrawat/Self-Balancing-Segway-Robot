@@ -56,6 +56,7 @@ short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 float full_speed = 107.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 107 RPM @ 12 V] 
 float frac = 1.0; // Factor for calculating fraction of the full linear speed
 String mode = "stop"; // To set different modes on the robot
+float V_stop = 0.05; // Threshhold velocity to determine if the robot is moving or it is stopped
 
 ////////////// LED BLINKING PARAMETERS/////////////////////////
 
@@ -115,24 +116,33 @@ void loop() {
     Rmot.getRPM(myEnc_r.read() / 4.0, "rad/s"); // Get current encoder counts & compute right motor rotational velocity in [rad/s]
   
     ////////////////// COMPUTE TRANSLATION PID OUTPUT/////////////////////////////////////////////////////// 
+	
+	  float V_whl = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl; // Linear translation velocity due to the 2 wheels spinning [m/s]
+	  float V_cog = omega_x_calculated * l_cog * deg2rad; // Linear translation velocity of the COG due to angular falling speed [m/s]
+	  float V_trans = V_whl + V_cog;// Calculate the total Robot linear translation velocity [m/s]
     	
     if (mode != "stop"){ // If the robot not in stop mode, then		
 	    if (mode == "go fwd"){Setpoint_trans = frac * full_speed;}	/* If its in fwd mode, Set the Setpoint to frac*fullspeed*/	
 	    else if (mode == "go bck"){Setpoint_trans = -frac * full_speed;} /*Else if its in back mode, set the Setpoint to  - frac*fullspeed*/
-      Input_trans = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl + omega_x_calculated * l_cog * deg2rad;  // Calculate Robot linear translation velocity [m/s]
+      Input_trans = V_trans; // Measured value / Input value 
       trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop  
       Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
       }
-	/*	Otherwise if the robot is standing, initialise setpoint, input,  output, and intergral terms 
-		to 0 otherwise the next time the robot begins to move, the integral term will still be there.*/
 
-       /* Faulty logic, must be corrected, these parameters must be set to zero ONLY after the robot has actually stopped*/
     else if(mode == "stop"){
       Setpoint_trans = 0.0;
-      Output_trans = 0.0;
-      Input_trans = 0.0;
-      trans_PID.Initialize();
-      Setpoint_bal = Output_trans -2.0;} // -2 is the offset value of the setpoint
+	    Input_trans = V_trans; // Measured value / Input value
+	    if (abs(Input_trans)>V_stop){ // If the robot is still moving i.e. its linear velocity is above some threshhold, continue calculating the PID outputs
+		    trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop  
+		    Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
+		    }
+		  else { // If the robot has come to a halt
+	    	Output_trans = 0.0; // Set the Output of the loop to 0 in order to reset the intergral sum terms 
+	    	Input_trans = 0.0; // Set the Input of the loop to 0 in order to reset the lastIntegral term that effect the derivative term of the controller term
+		    trans_PID.Initialize(); // Now initialise the controller to make the sumintegral terms and last input terms to "0"
+		    Setpoint_bal = Output_trans -2.0; // Set the balancing point to 0, -2 is the offset value of the setpoint
+		    }
+		 }
      
 //    Kp_bal = float((200.0 / 1023.0) *analogRead(A0));
 //    Ki_bal = float((20.0 / 1023.0) *analogRead(A2));
