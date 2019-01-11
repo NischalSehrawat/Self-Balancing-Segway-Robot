@@ -55,7 +55,7 @@ float l_cog = 0.01075; // Distance of the center of gravity of the upper body fr
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 float full_speed = 107.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 107 RPM @ 12 V] 
 float frac = 1.0; // Factor for calculating fraction of the full linear speed
-String mode = "stand";
+String mode = "Stop";
 
 ////////////// LED BLINKING PARAMETERS/////////////////////////
 
