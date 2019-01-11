@@ -134,14 +134,14 @@ void loop() {
       if (abs(Input_trans)>V_stop){ // If the robot is still moving i.e. its linear velocity is above some threshhold, continue calculating the PID outputs
         trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop
         Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
-		    }
-		  else { // If the robot has come to a halt
-		    Output_trans = 0.0; // Set the Output of the loop to 0 in order to reset the intergral sum terms
-		    Input_trans = 0.0; // Set the Input of the loop to 0 in order to reset the lastIntegral term that effect the derivative term of the controller term
-		    trans_PID.Initialize(); // Now initialise the controller to make the sumintegral terms and last input terms to "0"
-		    Setpoint_bal = Output_trans -2.0; // Set the balancing point to 0, -2 is the offset value of the setpoint
-		    }
-		 }
+        }
+      else { // If the robot has come to a halt
+        Output_trans = 0.0; // Set the Output of the loop to 0 in order to reset the intergral sum terms
+        Input_trans = 0.0; // Set the Input of the loop to 0 in order to reset the lastIntegral term that effect the derivative term of the controller term
+        trans_PID.Initialize(); // Now initialise the controller to make the sumintegral terms and last input terms to "0"
+        Setpoint_bal = Output_trans -2.0; // Set the balancing point to 0, -2 is the offset value of the setpoint
+        }
+     }
      
 //    Kp_bal = float((200.0 / 1023.0) *analogRead(A0));
 //    Ki_bal = float((20.0 / 1023.0) *analogRead(A2));
