@@ -45,7 +45,7 @@ PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON
 
 double Input_trans, Output_trans, Setpoint_trans; // Input output and setpoint variables defined
 double Out_min_trans = -5, Out_max_trans = 5; // PID Output limits, this output is in degrees
-double Kp_trans, Ki_trans, Kd_trans; // Initializing the Proportional, integral and derivative gain constants
+double Kp_trans = 8.0, Ki_trans = 0.0, Kd_trans = 1.0; // Initializing the Proportional, integral and derivative gain constants
 PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, Kd_trans, P_ON_E, DIRECT); // PID Controller for translating
 
 ///////////////////////////////// ROBOT PHYSICAL PROPERTIES ////////////////////////////////////////////
@@ -114,10 +114,8 @@ void loop() {
     Lmot.getRPM(myEnc_l.read() / 4.0, "rad/s"); // Get current encoder counts & compute left motor rotational velocity in [rad/s] 
     Rmot.getRPM(myEnc_r.read() / 4.0, "rad/s"); // Get current encoder counts & compute right motor rotational velocity in [rad/s]
   
-    ////////////////// COMPUTE TRANSLATION PID OUTPUT///////////////////////////////////////////////////////
+    ////////////////// COMPUTE TRANSLATION PID OUTPUT/////////////////////////////////////////////////////// 
 
-    // Calculate Robot linear translation velocity [m/s]  
-    Input_trans = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl + omega_x_calculated * l_cog * deg2rad;
     /*
     If the robot is on the go, then Set the Setpoint to frac*fullspeed
     Otherwise if the robot is standing, initialise setpoint, output, and intergral terms to 0 otherwise the next time
@@ -125,18 +123,21 @@ void loop() {
     */
     if (mode == "go fwd"){ // If the robot is going forward, then
       Setpoint_trans = frac * full_speed;
+      Input_trans = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl + omega_x_calculated * l_cog * deg2rad;  // Calculate Robot linear translation velocity [m/s]
       trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop  
-      Setpoint_bal = Output_trans - 2.0 ; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
+      Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
       }
     else if (mode == "go bck"){ // If the robot going backward, then
       Setpoint_trans = -frac * full_speed;
+      Input_trans = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl + omega_x_calculated * l_cog * deg2rad;  // Calculate Robot linear translation velocity [m/s]
       trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop  
       Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop  
       }
     else if(mode == "stop"){
       Setpoint_trans = 0.0;
       Output_trans = 0;
-      trans_PID.Initialize();} 
+      trans_PID.Initialize();
+      Setpoint_bal = -2.0;} 
      
 //    Kp_bal = float((200.0 / 1023.0) *analogRead(A0));
 //    Ki_bal = float((20.0 / 1023.0) *analogRead(A2));
