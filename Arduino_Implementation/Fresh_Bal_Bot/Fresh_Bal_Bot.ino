@@ -148,7 +148,6 @@ void loop() {
 //    Kd_bal = float((20.0 / 1023.0) *analogRead(A1));  
 
 //    Serial.println(Input_trans);
-
     
     ////////////////////////////////////////// COMPUTE BALANCING PID OUTPUT/ //////////////////////////////////////////////////
   
