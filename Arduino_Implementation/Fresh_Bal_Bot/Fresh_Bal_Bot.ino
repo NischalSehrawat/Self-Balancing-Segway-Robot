@@ -136,6 +136,7 @@ void loop() {
     else if(mode == "stop"){
       Setpoint_trans = 0.0;
       Output_trans = 0;
+      Input_trans = 0.0;
       trans_PID.Initialize();
       Setpoint_bal = -2.0;} 
      
