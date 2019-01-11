@@ -121,7 +121,7 @@ void loop() {
     float V_cog = omega_x_calculated * l_cog * deg2rad; // Linear translation velocity of the COG due to angular falling speed [m/s]
     float V_trans = V_whl + V_cog;// Calculate the total Robot linear translation velocity [m/s]
     	
-    if (mode != "stop"){ // If the robot not in stop mode, then
+    if (mode != "stop"){ // If the robot isnot in stop mode, then
       if (mode == "go fwd"){Setpoint_trans = frac * full_speed;}	/* If its in fwd mode, Set the Setpoint to frac*fullspeed*/
       else if (mode == "go bck"){Setpoint_trans = -frac * full_speed;} /*Else if its in back mode, set the Setpoint to  - frac*fullspeed*/
       Input_trans = V_trans; // Measured value / Input value 
