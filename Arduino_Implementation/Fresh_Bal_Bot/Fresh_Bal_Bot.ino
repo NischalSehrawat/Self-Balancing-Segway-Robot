@@ -137,8 +137,8 @@ void loop() {
         }
       else { // If the robot has come to a halt
         Output_trans = 0.0; // Set the Output of the loop to 0 in order to reset the intergral sum terms
-        Input_trans = 0.0; // Set the Input of the loop to 0 in order to reset the lastIntegral term that effect the derivative term of the controller term
-        trans_PID.Initialize(); // Now initialise the controller to make the sumintegral terms and last input terms to "0"
+        Input_trans = 0.0; // Set the Input of the loop to 0 in order to reset the lastInput term that effects the derivative term of the controller
+        trans_PID.Initialize(); // Now initialise the controller to make the sumintegral terms and lastinput terms to "0"
         Setpoint_bal = Output_trans -2.0; // Set the balancing point to 0, -2 is the offset value of the setpoint
         }
      }
