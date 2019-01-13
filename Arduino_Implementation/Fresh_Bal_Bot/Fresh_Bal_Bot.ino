@@ -25,7 +25,7 @@ short R_enc_pin1 = 2; short R_enc_pin2 = 3; // right motor encoder pins
 short L_enc_pin1 = 18;  short L_enc_pin2 = 19; // left motor encoder pins 
 
 float rpm_limit = 0.0; // RPM below this is considered 0
-float avg_pt = 10.0;  // Number of points used for exponentially averaging the RPM signal
+float avg_pt = 5.0;  // Number of points used for exponentially averaging the RPM signal
 short PPR = 990; // Number of pulses per revolution of the encoder
 float Final_Rpm_r, Final_Rpm_l; // Motor final averaged out RPM, units can be selected while calling get_RPM function
 My_Motors Rmot(&Final_Rpm_r, rpm_limit, avg_pt, PPR); // Right motor object for calculating rotational velocities from encoder data
@@ -37,7 +37,7 @@ Encoder myEnc_l(L_enc_pin2, L_enc_pin1); // Make encoder objects to calculate mo
 
 double Input_bal, Output_bal, Setpoint_bal; // Input output and setpoint variables defined
 double Out_min_bal = -255, Out_max_bal = 255; // PID Output limits, this is the output PWM value
-double Kp_bal = 72.0, Ki_bal = 0.0, Kd_bal = 1.4; // Initializing the Proportional, integral and derivative gain constants
+double Kp_bal = 72.0, Ki_bal = 0.0, Kd_bal = 1.20; // Initializing the Proportional, integral and derivative gain constants
 double Output_lower_bal = 30.0; // PWM Limit at which the motors actually start to move
 PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON_E, DIRECT); // PID Controller for balancing
 
@@ -45,7 +45,7 @@ PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON
 
 double Input_trans, Output_trans, Setpoint_trans; // Input output and setpoint variables defined
 double Out_min_trans = -5, Out_max_trans = 5; // PID Output limits, this output is in degrees
-double Kp_trans = 8.0, Ki_trans = 0.0, Kd_trans = 1.0; // Initializing the Proportional, integral and derivative gain constants
+double Kp_trans = 0.0, Ki_trans = 0.0, Kd_trans = 0.00; // Initializing the Proportional, integral and derivative gain constants
 PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, Kd_trans, P_ON_E, DIRECT); // PID Controller for translating
 
 ///////////////////////////////// ROBOT PHYSICAL PROPERTIES ////////////////////////////////////////////
@@ -56,7 +56,7 @@ short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 float full_speed = 107.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 107 RPM @ 12 V] 
 float frac = 1.0; // Factor for calculating fraction of the full linear speed
 String mode = "stop"; // To set different modes on the robot
-float V_stop = 0.05; // Threshhold velocity to determine if the robot is moving or it is stopped
+float V_stop = 0.01; // Threshhold velocity to determine if the robot is moving or it is stopped
 
 ////////////// LED BLINKING PARAMETERS/////////////////////////
 
@@ -114,13 +114,12 @@ void loop() {
     Get_Tilt_Angle(); // Update the angle readings to get updated omega_x_calculated, Theta_now
     Lmot.getRPM(myEnc_l.read() / 4.0, "rad/s"); // Get current encoder counts & compute left motor rotational velocity in [rad/s] 
     Rmot.getRPM(myEnc_r.read() / 4.0, "rad/s"); // Get current encoder counts & compute right motor rotational velocity in [rad/s]
-  
-    ////////////////// COMPUTE TRANSLATION PID OUTPUT///////////////////////////////////////////////////////
-    
     float V_whl = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl; // Linear translation velocity due to the 2 wheels spinning [m/s]
     float V_cog = omega_x_calculated * l_cog * deg2rad; // Linear translation velocity of the COG due to angular falling speed [m/s]
     float V_trans = V_whl + V_cog;// Calculate the total Robot linear translation velocity [m/s]
-    	
+    
+    ////////////////// COMPUTE TRANSLATION PID OUTPUT///////////////////////////////////////////////////////
+       	
     if (mode != "stop"){ // If the robot isnot in stop mode, then
       if (mode == "go fwd"){Setpoint_trans = frac * full_speed;}	/* If its in fwd mode, Set the Setpoint to frac*fullspeed*/
       else if (mode == "go bck"){Setpoint_trans = -frac * full_speed;} /*Else if its in back mode, set the Setpoint to  - frac*fullspeed*/
@@ -129,8 +128,10 @@ void loop() {
       Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
       }
     else if(mode == "stop"){ // 2 conditions need to be checked, if the robot is still moving or if the robot has already stopped
-      Setpoint_trans = 0.0;
+      Setpoint_trans = -2.0;
       Input_trans = V_trans; // Measured value / Input value
+      trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop
+      Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
       if (abs(V_trans)>V_stop){ // If the robot is still moving i.e. its linear velocity is above some threshhold, continue calculating the PID outputs
         trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop
         Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
@@ -138,31 +139,19 @@ void loop() {
       else { // If the robot has come to a halt
         Output_trans = 0.0; // Set the Output of the loop to 0 in order to reset the intergral sum terms
         Input_trans = 0.0; // Set the Input of the loop to 0 in order to reset the lastInput term that effects the derivative term of the controller
-        trans_PID.Initialize(); // Now initialise the controller to make the sumintegral terms and lastinput terms to "0"
+        trans_PID.Reset(); // Now initialise the controller to make the sumintegral terms and lastinput terms to "0"
         Setpoint_bal = Output_trans -2.0; // Set the balancing point to 0, -2 is the offset value of the setpoint
         }
      }
-     
-//    Kp_bal = float((200.0 / 1023.0) *analogRead(A0));
-//    Ki_bal = float((20.0 / 1023.0) *analogRead(A2));
-//    Kd_bal = float((20.0 / 1023.0) *analogRead(A1));  
-
-//    Serial.println(Input_trans);
-    
+   
     ////////////////////////////////////////// COMPUTE BALANCING PID OUTPUT/ //////////////////////////////////////////////////
-  
     Input_bal = Theta_now; // Set Theta_now as the input / current value to the PID algorithm              
     double error_bal = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction      
 //  bal_PID.SetTunings(Kp, Ki, Kd); // Adjust the the new parameters          
-    bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor PWM using balancing PID      
-    Output_bal = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal); // Map the computed output from Out_min to Outmax         
+    bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor PWM using balancing PID 
+    Serial.print(Theta_now);Serial.print(" , "); Serial.println(Output_bal);   
+    Output_bal = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal); // Map the computed output from Out_min to Outmax Output_lower_bal
     mot_cont(error_bal, Output_bal); // Apply the calculated output to control the motor
-  
-//  Serial.print(Kp_bal);Serial.print(" , ");
-//  Serial.print(Ki_bal);Serial.print(" , ");
-//  Serial.print(Kd_bal);Serial.print(" , ");
-//  Serial.print(Output_bal);Serial.print(" , ");
-//  Serial.println(Input_bal);
 
     Blink_Led(); // Blink the LED
     t_loop_prev = t_loop_now; // Set prev loop time equal to current loop time for calculating dt for next loop        
@@ -275,8 +264,8 @@ void read_BT(){
     char c = Serial.read();
     if (c =='1'){mode = "go fwd";Serial.print(mode);}
     else if(c=='2'){mode = "stop";Serial.print(mode);}
-    else if (c =='3'){Kp_trans+=0.05;Serial.print("Kp_trans = "+String(Kp_trans));}
-    else if(c=='4'){Kp_trans-= 0.05;Serial.print("Kp_trans = "+String(Kp_trans));}
+    else if (c =='3'){Kp_trans+=1.0;Serial.print("Kp_trans = "+String(Kp_trans));}
+    else if(c=='4'){Kp_trans-= 1.0;Serial.print("Kp_trans = "+String(Kp_trans));}
     else if (c =='5'){Kd_trans+=0.05;Serial.print("Kd_trans = "+String(Kd_trans));}
     else if(c=='6'){Kd_trans-=0.05;Serial.print("Kd_trans = "+String(Kd_trans));}
     else if (c =='7'){Ki_trans+=0.05;Serial.print("Ki_trans = "+String(Ki_trans));}

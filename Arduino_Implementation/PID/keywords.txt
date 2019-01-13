@@ -21,6 +21,7 @@ SetSampleTime	KEYWORD2
 Compute_With_Actual_LoopTime	KEYWORD2
 Compute_For_MPU	KEYWORD2
 Initialize	KEYWORD2
+Reset	KEYWORD2
 GetKp	KEYWORD2
 GetKi	KEYWORD2
 GetKd	KEYWORD2

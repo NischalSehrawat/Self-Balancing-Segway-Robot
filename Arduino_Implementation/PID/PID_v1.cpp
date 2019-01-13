@@ -274,11 +274,18 @@ void PID::SetMode(int Mode)
  *  from manual to automatic mode.
  ******************************************************************************/
 void PID::Initialize()
-{
+{   
+
    outputSum = *myOutput;
    lastInput = *myInput;
    if(outputSum > outMax) outputSum = outMax;
    else if(outputSum < outMin) outputSum = outMin;
+}
+
+void PID::Reset()
+{   
+   outputSum = 0.0;
+   lastInput = 0.0;
 }
 
 /* SetControllerDirection(...)*************************************************
