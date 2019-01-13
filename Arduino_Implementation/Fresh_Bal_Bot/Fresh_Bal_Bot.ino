@@ -37,7 +37,7 @@ Encoder myEnc_l(L_enc_pin2, L_enc_pin1); // Make encoder objects to calculate mo
 
 double Input_bal, Output_bal, Setpoint_bal; // Input output and setpoint variables defined
 double Out_min_bal = -255, Out_max_bal = 255; // PID Output limits, this is the output PWM value
-double Kp_bal = 72.0, Ki_bal = 0.0, Kd_bal = 1.20; // Initializing the Proportional, integral and derivative gain constants
+double Kp_bal = 74.0, Ki_bal = 0.0, Kd_bal = 1.20; // Initializing the Proportional, integral and derivative gain constants
 double Output_lower_bal = 30.0; // PWM Limit at which the motors actually start to move
 PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON_E, DIRECT); // PID Controller for balancing
 
@@ -65,7 +65,7 @@ bool led_state = 0; // Parameter to turn LED from ON / OFF
 int pin = 13; // PIN where LED is attached
 int blink_rate = 100; // Blink after every [millis]
 double t_loop_prev, t_loop_now, dt_loop; // Time parameters to log times for main control loop
-double t_loop = 1; // Overall loop time [millis]
+double t_loop = 5; // Overall loop time [millis]
 
 void setup() {
 
@@ -149,15 +149,16 @@ void loop() {
     double error_bal = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction      
 //  bal_PID.SetTunings(Kp, Ki, Kd); // Adjust the the new parameters          
     bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor PWM using balancing PID 
-    Serial.print(Theta_now);Serial.print(" , "); Serial.println(Output_bal);   
     Output_bal = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal); // Map the computed output from Out_min to Outmax Output_lower_bal
+    if (abs(error_bal)>=fall_angle){
+       Output_bal = 0.0; // Stop the robot
+       trans_PID.Reset(); // Now initialise the controller to make the sumintegral terms and lastinput terms to "0"
+     }  
     mot_cont(error_bal, Output_bal); // Apply the calculated output to control the motor
 
     Blink_Led(); // Blink the LED
     t_loop_prev = t_loop_now; // Set prev loop time equal to current loop time for calculating dt for next loop        
-  } 
-
-  
+  }  
 }
 
 ///////////////////////// Function for initializing / getting MPU Data ////////////////////////////////////////////////////////
@@ -218,8 +219,8 @@ void get_MPU_data(){
 ///////////////////////// Function for motor control ////////////////////////////////////////////////////////
 
 void mot_cont(float e_rr, int Speed){
-  if (abs(e_rr)>=fall_angle){stop_bot();}  
-  else if (e_rr<0){fwd_bot(Speed);}  
+ 
+  if (e_rr<=0){fwd_bot(Speed);}  
   else if (e_rr>0){back_bot(Speed);}
 }
 
