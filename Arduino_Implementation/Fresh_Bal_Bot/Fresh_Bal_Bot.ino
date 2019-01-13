@@ -14,6 +14,8 @@ double dt_gyro; // Variable to store time difference values for gyro angle calcu
 uint32_t t_gyro_prev, t_gyro_now; // timer for gyro unit
 float alpha = 0.98; // Complimentary filter control parameter
 float rad2deg = 57.3, deg2rad = 0.01745; // Angle conversion factors
+float theta_offset = 3.0; // This value must be added to calculated theta as theta shows -3.0 when it should be 0.0
+
 
 ////////////////////////////// MOTOR CONTROL PARAMATERS ////////////////////////////////////////////
 
@@ -45,7 +47,7 @@ PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON
 
 double Input_trans, Output_trans, Setpoint_trans; // Input output and setpoint variables defined
 double Out_min_trans = -5, Out_max_trans = 5; // PID Output limits, this output is in degrees
-double Kp_trans = 0.0, Ki_trans = 0.0, Kd_trans = 0.00; // Initializing the Proportional, integral and derivative gain constants
+double Kp_trans = 8.0, Ki_trans = 0.0, Kd_trans = 0.00; // Initializing the Proportional, integral and derivative gain constants
 PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, Kd_trans, P_ON_E, DIRECT); // PID Controller for translating
 
 ///////////////////////////////// ROBOT PHYSICAL PROPERTIES ////////////////////////////////////////////
@@ -54,8 +56,8 @@ float r_whl = 0.5 * 0.085; // Wheel radius [m]
 float l_cog = 0.01075; // Distance of the center of gravity of the upper body from the wheel axis [m] 
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 float full_speed = 107.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 107 RPM @ 12 V] 
-float frac = 1.0; // Factor for calculating fraction of the full linear speed
-String mode = "stop"; // To set different modes on the robot
+float frac = 0.5; // Factor for calculating fraction of the full linear speed
+String mode = "balance"; // To set different modes on the robot
 float V_stop = 0.01; // Threshhold velocity to determine if the robot is moving or it is stopped
 
 ////////////// LED BLINKING PARAMETERS/////////////////////////
@@ -116,36 +118,45 @@ void loop() {
     Rmot.getRPM(myEnc_r.read() / 4.0, "rad/s"); // Get current encoder counts & compute right motor rotational velocity in [rad/s]
     float V_whl = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl; // Linear translation velocity due to the 2 wheels spinning [m/s]
     float V_cog = omega_x_calculated * l_cog * deg2rad; // Linear translation velocity of the COG due to angular falling speed [m/s]
-    float V_trans = V_whl + V_cog;// Calculate the total Robot linear translation velocity [m/s]
+    float V_trans = V_whl+V_cog;// Calculate the total Robot linear translation velocity [m/s]
     
     ////////////////// COMPUTE TRANSLATION PID OUTPUT///////////////////////////////////////////////////////
-//       	
-//    if (mode != "stop"){ // If the robot isnot in stop mode, then
-//      if (mode == "go fwd"){Setpoint_trans = frac * full_speed;}	/* If its in fwd mode, Set the Setpoint to frac*fullspeed*/
-//      else if (mode == "go bck"){Setpoint_trans = -frac * full_speed;} /*Else if its in back mode, set the Setpoint to  - frac*fullspeed*/
-//      Input_trans = V_trans; // Measured value / Input value 
-//      trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop
-//      Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
-//      }
-//    else if(mode == "stop"){ // 2 conditions need to be checked, if the robot is still moving or if the robot has already stopped
-//      Setpoint_trans = 0.0; // Make the translation speed setpoint "0"
-//      Input_trans = V_trans; // Measured value / Input value
-//      trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop
-//      Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
-//      if (abs(V_trans)>V_stop){ // If the robot is still moving i.e. its linear velocity is above some threshhold, continue calculating the PID outputs
-//        trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop
-//        Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
-//        }
-//      else { // If the robot has come to a halt
-//        Input_trans = 0.0; // Measured value / Input value
-//        trans_PID.Reset(); // Now initialise the controller to make the sumintegral terms and lastinput terms to "0"
-//        Setpoint_bal = -2.0; // Set the balancing point to 0, -2 is the offset value of the setpoint
-//        }
-//     }
-   
+       	
+    if (mode != "balance"){ // If the robot isnot in stop mode, then
+      if (mode == "go fwd"){
+        if (Setpoint_trans < frac * full_speed){Setpoint_trans += 0.005;}
+        Input_trans = V_trans; // Measured value / Input value
+        trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop
+        Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop 
+        Serial.print(Setpoint_trans); Serial.print(" , ");Serial.print(Output_trans);Serial.print(" , "); Serial.println(Theta_now+theta_offset);
+        }
+      else if (mode == "stop"){
+        if (Setpoint_trans>0.005){
+        Setpoint_trans -=0.005;
+        Input_trans = V_trans; // Measured value / Input value
+        trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop
+        Setpoint_bal = Output_trans ; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
+        Serial.print(Setpoint_trans); Serial.print(" , ");Serial.println(Output_trans);
+        }
+        else if (abs(Setpoint_trans)<=0.005){
+          Setpoint_trans = 0.0;
+          Setpoint_bal = 0.0;
+          trans_PID.Reset();
+        }          
+      }
+    }
+
+    else if (mode == "balance"){
+      Setpoint_trans = 0.0;
+      Setpoint_bal = 0.0;
+      trans_PID.Reset();
+      Serial.println(Theta_now+theta_offset);
+
+    }
+
     ////////////////////////////////////////// COMPUTE BALANCING PID OUTPUT/ //////////////////////////////////////////////////
-    Setpoint_bal = -1.0;
-    Input_bal = Theta_now; // Set Theta_now as the input / current value to the PID algorithm              
+
+    Input_bal = Theta_now + theta_offset; // Set Theta_now as the input / current value to the PID algorithm (The offset is added to correct for the error in MPU calculated angle)             
     double error_bal = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction      
 //  bal_PID.SetTunings(Kp, Ki, Kd); // Adjust the the new parameters          
     bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor PWM using balancing PID 
@@ -153,9 +164,10 @@ void loop() {
     if (abs(error_bal)>=fall_angle){
        Output_bal = 0.0; // Stop the robot
        trans_PID.Reset(); // Now initialise the controller to make the sumintegral terms and lastinput terms to "0"
-     }  
+       bal_PID.Reset();
+     }
+       
     mot_cont(error_bal, Output_bal); // Apply the calculated output to control the motor
-
     Blink_Led(); // Blink the LED
     t_loop_prev = t_loop_now; // Set prev loop time equal to current loop time for calculating dt for next loop        
   }  
@@ -271,7 +283,7 @@ void read_BT(){
     else if(c=='6'){Kd_trans-=0.05;Serial.print("Kd_trans = "+String(Kd_trans));}
     else if (c =='7'){Ki_trans+=0.05;Serial.print("Ki_trans = "+String(Ki_trans));}
     else if(c=='8'){Ki_trans-=0.05;Serial.print("Ki_trans = "+String(Ki_trans));}
-    else if(c =='9'){mode = "go bck";Serial.print(mode);}
+    else if(c =='9'){mode = "balance";Serial.print(mode);}
    
     }  
 }
