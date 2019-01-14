@@ -124,34 +124,32 @@ void loop() {
        	
     if (mode != "balance"){ // If the robot isnot in stop mode, then
       if (mode == "go fwd"){
-        if (Setpoint_trans < frac * full_speed){Setpoint_trans += 0.005;}
+        Setpoint_trans+= 0.005; // Increase translational velocity in steps of 0.005 [m/s] until reaches frac * full_speed
+        if (Setpoint_trans>=frac * full_speed){
+          Setpoint_trans = frac * full_speed; // If it exceeds frac * full_speed, set it equal to frac * full_speed
+        }
         Input_trans = V_trans; // Measured value / Input value
         trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop
         Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop 
         Serial.print(Setpoint_trans); Serial.print(" , ");Serial.print(Output_trans);Serial.print(" , "); Serial.println(Theta_now+theta_offset);
         }
       else if (mode == "stop"){
-        if (Setpoint_trans>0.005){
         Setpoint_trans -=0.005;
+        if (Setpoint_trans<=0.0){
+          Setpoint_trans = 0.0; // If it exceeds frac * full_speed, set it equal to frac * full_speed
+        }
         Input_trans = V_trans; // Measured value / Input value
         trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop
         Setpoint_bal = Output_trans ; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
         Serial.print(Setpoint_trans); Serial.print(" , ");Serial.println(Output_trans);
-        }
-        else if (abs(Setpoint_trans)<=0.005){
-          Setpoint_trans = 0.0;
-          Setpoint_bal = 0.0;
-          trans_PID.Reset();
-        }          
+        }        
       }
-    }
 
     else if (mode == "balance"){
       Setpoint_trans = 0.0;
       Setpoint_bal = 0.0;
       trans_PID.Reset();
       Serial.println(Theta_now+theta_offset);
-
     }
 
     ////////////////////////////////////////// COMPUTE BALANCING PID OUTPUT/ //////////////////////////////////////////////////
