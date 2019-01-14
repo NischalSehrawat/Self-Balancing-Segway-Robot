@@ -156,9 +156,9 @@ void loop() {
         mode_prev = "go bck"; // Change mode_prev to go bck, this will be used for controlling the stopping behavior
         }
       else if ((mode_now == "stop") && (mode_prev == "go bck")){ // If mode_now = stop and mode_prev = bck that means the robot was going backward and now it needs to be stopped
-        Setpoint_trans -=0.005;
-        if (Setpoint_trans<=0.0){
-          Setpoint_trans = 0.0; // If it is less than 0 , set it equal to 0
+        Setpoint_trans +=0.005; // Increase setpoint from - frac * full_speed to "0"
+        if (Setpoint_trans>=0.0){
+          Setpoint_trans = 0.0; // If it is greater than 0 , set it equal to 0
         }
         Input_trans = V_trans; // Measured value / Input value
         trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop
