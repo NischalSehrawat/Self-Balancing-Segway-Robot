@@ -14,7 +14,7 @@ double dt_gyro; // Variable to store time difference values for gyro angle calcu
 uint32_t t_gyro_prev, t_gyro_now; // timer for gyro unit
 float alpha = 0.98; // Complimentary filter control parameter
 float rad2deg = 57.3, deg2rad = 0.01745; // Angle conversion factors
-float theta_offset = 3.0; // This value must be added to calculated theta as theta shows -3.0 when it should be 0.0
+float theta_offset = 1.0; // This value must be added to calculated theta as theta shows -3.0 when it should be 0.0
 
 
 ////////////////////////////// MOTOR CONTROL PARAMATERS ////////////////////////////////////////////
@@ -27,7 +27,7 @@ short R_enc_pin1 = 2; short R_enc_pin2 = 3; // right motor encoder pins
 short L_enc_pin1 = 18;  short L_enc_pin2 = 19; // left motor encoder pins 
 
 float rpm_limit = 0.0; // RPM below this is considered 0
-float avg_pt = 5.0;  // Number of points used for exponentially averaging the RPM signal
+float avg_pt = 100.0;  // Number of points used for exponentially averaging the RPM signal
 short PPR = 990; // Number of pulses per revolution of the encoder
 float Final_Rpm_r, Final_Rpm_l; // Motor final averaged out RPM, units can be selected while calling get_RPM function
 My_Motors Rmot(&Final_Rpm_r, rpm_limit, avg_pt, PPR); // Right motor object for calculating rotational velocities from encoder data
@@ -39,7 +39,7 @@ Encoder myEnc_l(L_enc_pin2, L_enc_pin1); // Make encoder objects to calculate mo
 
 double Input_bal, Output_bal, Setpoint_bal; // Input output and setpoint variables defined
 double Out_min_bal = -255, Out_max_bal = 255; // PID Output limits, this is the output PWM value
-double Kp_bal = 74.0, Ki_bal = 0.0, Kd_bal = 1.20; // Initializing the Proportional, integral and derivative gain constants
+double Kp_bal = 100.0, Ki_bal = 0.0, Kd_bal = 0.30; // Initializing the Proportional, integral and derivative gain constants
 double Output_lower_bal = 30.0; // PWM Limit at which the motors actually start to move
 PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON_E, DIRECT); // PID Controller for balancing
 
@@ -56,9 +56,8 @@ float r_whl = 0.5 * 0.085; // Wheel radius [m]
 float l_cog = 0.01075; // Distance of the center of gravity of the upper body from the wheel axis [m] 
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 float full_speed = 107.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 107 RPM @ 12 V] 
-float frac = 0.5; // Factor for calculating fraction of the full linear speed
+float frac = 1.0; // Factor for calculating fraction of the full linear speed
 String mode_prev = "balance", mode_now = "balance"; // To set different modes on the robot
-float V_stop = 0.01; // Threshhold velocity to determine if the robot is moving or it is stopped
 
 ////////////// LED BLINKING PARAMETERS/////////////////////////
 
@@ -118,59 +117,58 @@ void loop() {
     Rmot.getRPM(myEnc_r.read() / 4.0, "rad/s"); // Get current encoder counts & compute right motor rotational velocity in [rad/s]
     float V_whl = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl; // Linear translation velocity due to the 2 wheels spinning [m/s]
     float V_cog = omega_x_calculated * l_cog * deg2rad; // Linear translation velocity of the COG due to angular falling speed [m/s]
-    float V_trans = V_whl+V_cog;// Calculate the total Robot linear translation velocity [m/s]
+    float V_trans = V_whl;// Calculate the total Robot linear translation velocity [m/s]
     
     ////////////////// COMPUTE TRANSLATION PID OUTPUT///////////////////////////////////////////////////////
        	
     if (mode_now != "balance"){ // If the robot is not in balancing mode, then it can be either in forward or backward mode
       if (mode_now == "go fwd"){ // If it is in forward mode
-        Setpoint_trans+= 0.005; // Increase translational velocity in steps of 0.005 [m/s] until reaches frac * full_speed
+        Setpoint_trans+= 0.001; // Increase translational velocity in steps of 0.005 [m/s] until reaches frac * full_speed
         if (Setpoint_trans>=frac * full_speed){
           Setpoint_trans = frac * full_speed; // If it exceeds frac * full_speed, set it equal to frac * full_speed
         }
         Input_trans = V_trans; // Measured value / Input value
         trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop
         Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop 
-        Serial.print(Setpoint_trans); Serial.print(" , ");Serial.print(Output_trans);Serial.print(" , "); Serial.println(Theta_now+theta_offset);
+//        Serial.print(Setpoint_trans); Serial.print(" , ");Serial.print(trans_PID.GetPterm()); Serial.print(" , ");Serial.print(trans_PID.GetIterm());Serial.print(" , "); Serial.println(trans_PID.GetDterm());
         mode_prev = "go fwd"; // Change mode_prev to go fwd, this will be used for controlling the stopping behavior
         }
       else if ((mode_now == "stop") && (mode_prev == "go fwd")){ // If mode_now = stop and mode_prev = fwd that means the robot was going forward and now it needs to be stopped
-        Setpoint_trans -=0.005;
+        Setpoint_trans -=0.001;
         if (Setpoint_trans<=0.0){
           Setpoint_trans = 0.0; // If it is less than 0 , set it equal to 0
         }
         Input_trans = V_trans; // Measured value / Input value
         trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop
         Setpoint_bal = Output_trans ; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
-        Serial.print(Setpoint_trans); Serial.print(" , ");Serial.println(Output_trans);
+//        Serial.print(Setpoint_trans); Serial.print(" , ");Serial.print(trans_PID.GetPterm()); Serial.print(" , ");Serial.print(trans_PID.GetIterm());Serial.print(" , "); Serial.println(trans_PID.GetDterm());
         }
       else if (mode_now == "go bck"){ // If it is in back mode
-        Setpoint_trans-= 0.005; // Decrease translational velocity in steps of 0.005 [m/s] until reaches -frac * full_speed
+        Setpoint_trans-= 0.001; // Decrease translational velocity in steps of 0.005 [m/s] until reaches -frac * full_speed
         if (Setpoint_trans<=-frac * full_speed){
           Setpoint_trans = -frac * full_speed; // If it exceeds frac * full_speed, set it equal to -frac * full_speed
           }
         Input_trans = V_trans; // Measured value / Input value
         trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop
         Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop 
-        Serial.print(Setpoint_trans); Serial.print(" , ");Serial.print(Output_trans);Serial.print(" , "); Serial.println(Theta_now+theta_offset);
+//        Serial.print(Setpoint_trans); Serial.print(" , ");Serial.print(trans_PID.GetPterm()); Serial.print(" , ");Serial.print(trans_PID.GetIterm());Serial.print(" , "); Serial.println(trans_PID.GetDterm());
         mode_prev = "go bck"; // Change mode_prev to go bck, this will be used for controlling the stopping behavior
         }
       else if ((mode_now == "stop") && (mode_prev == "go bck")){ // If mode_now = stop and mode_prev = bck that means the robot was going backward and now it needs to be stopped
-        Setpoint_trans +=0.005; // Increase setpoint from - frac * full_speed to "0"
+        Setpoint_trans +=0.001; // Increase setpoint from - frac * full_speed to "0"
         if (Setpoint_trans>=0.0){
           Setpoint_trans = 0.0; // If it is greater than 0 , set it equal to 0
         }
         Input_trans = V_trans; // Measured value / Input value
         trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop
         Setpoint_bal = Output_trans ; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
-        Serial.print(Setpoint_trans); Serial.print(" , ");Serial.println(Output_trans);
+//        Serial.print(Setpoint_trans); Serial.print(" , ");Serial.print(trans_PID.GetPterm()); Serial.print(" , ");Serial.print(trans_PID.GetIterm());Serial.print(" , "); Serial.println(trans_PID.GetDterm());
         }
     }        
     else if (mode_now == "balance"){
       Setpoint_trans = 0.0;
       Setpoint_bal = 0.0;
       trans_PID.Reset();
-      Serial.println(Theta_now+theta_offset);
     }
 
     ////////////////////////////////////////// COMPUTE BALANCING PID OUTPUT/ //////////////////////////////////////////////////
@@ -178,7 +176,7 @@ void loop() {
     Input_bal = Theta_now + theta_offset; // Set Theta_now as the input / current value to the PID algorithm (The offset is added to correct for the error in MPU calculated angle)             
     double error_bal = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction      
 //  bal_PID.SetTunings(Kp, Ki, Kd); // Adjust the the new parameters          
-    bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor PWM using balancing PID 
+    bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor PWM using balancing PID    
     Output_bal = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal); // Map the computed output from Out_min to Outmax Output_lower_bal
     if (abs(error_bal)>=fall_angle){
        Output_bal = 0.0; // Stop the robot
@@ -293,7 +291,8 @@ void rotate_bot(int Speed){
 void read_BT(){
   if (Serial.available()>0){
     char c = Serial.read();
-    if (c =='1'){mode_now = "go fwd";Serial.print(mode_now);}
+    if(c =='0'){mode_now = "go bck";Serial.print(mode_now);}
+    else if (c =='1'){mode_now = "go fwd";Serial.print(mode_now);}
     else if(c=='2'){mode_now = "stop";Serial.print(mode_now);}
     else if (c =='3'){Kp_trans+=1.0;Serial.print("Kp_trans = "+String(Kp_trans));}
     else if(c=='4'){Kp_trans-= 1.0;Serial.print("Kp_trans = "+String(Kp_trans));}

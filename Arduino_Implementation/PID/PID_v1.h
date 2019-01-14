@@ -66,6 +66,10 @@ class PID
 	
 	void Initialize();  			  // Function to either change PID from auto to manual or to reset the integral and derivative terms to "0"
 	void Reset();  			 		 // Reset the integral and derivative terms to "0"
+	
+	double GetPterm();
+	double GetIterm();
+	double GetDterm();
 
 
   private:
@@ -88,6 +92,7 @@ class PID
 			  
 	unsigned long lastTime;
 	double outputSum, lastInput;
+	double Pterm, Iterm, Dterm;
 
 	unsigned long SampleTime;
 	double outMin, outMax;

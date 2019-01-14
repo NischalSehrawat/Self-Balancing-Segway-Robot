@@ -118,9 +118,11 @@ bool PID::Compute_With_Actual_LoopTime(float my_kp, float my_ki, float my_kd)
 	   double output;
       if(pOnE) output = my_kp * error;
       else output = 0;
-
+	  
+	  Pterm = my_kp * error; Iterm = outputSum; Dterm = -(float)1000.0 * my_kd * dInput / timeChange;
+	  
       /*Compute Rest of PID Output*/
-      output += outputSum - (float)1000.0 * my_kd * dInput / timeChange;
+      output += outputSum + Dterm;
 
 	    if(output > outMax) output = outMax;
       else if(output < outMin) output = outMin;
@@ -165,9 +167,12 @@ bool PID::Compute_For_MPU(float my_kp, float my_ki, float my_kd, float omega_gyr
      double output;
       if(pOnE) output = my_kp * error;
       else output = 0;
+	  
+	  Pterm = my_kp * error; Iterm = outputSum; Dterm = -(float)my_kd * omega_gyro;
+
 
       /*Compute Rest of PID Output*/
-      output += outputSum - my_kd * omega_gyro;
+      output += outputSum + Dterm;
 
       if(output > outMax) output = outMax;
       else if(output < outMin) output = outMin;
@@ -315,4 +320,8 @@ double PID::GetKi(){ return  dispKi;}
 double PID::GetKd(){ return  dispKd;}
 int PID::GetMode(){ return  inAuto ? AUTOMATIC : MANUAL;}
 int PID::GetDirection(){ return controllerDirection;}
+double PID::GetPterm(){ return Pterm; }
+double PID::GetIterm(){ return Iterm; }
+double PID::GetDterm(){ return Dterm; }
+
 

@@ -27,6 +27,9 @@ GetKi	KEYWORD2
 GetKd	KEYWORD2
 GetMode	KEYWORD2
 GetDirection	KEYWORD2
+GetPterm	KEYWORD2
+GetIterm	KEYWORD2
+GetDterm	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
