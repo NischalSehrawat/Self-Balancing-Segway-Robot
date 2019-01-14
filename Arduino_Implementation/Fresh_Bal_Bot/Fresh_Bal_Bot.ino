@@ -135,7 +135,7 @@ void loop() {
         mode_prev = "go fwd"; // Change mode_prev to go fwd, this will be used for controlling the stopping behavior
         }
       else if ((mode_now == "stop") && (mode_prev == "go fwd")){ // If mode_now = stop and mode_prev = fwd that means the robot was going forward and now it needs to be stopped
-        Setpoint_trans -=0.005; // Here the setpoint is now frac * full_speed, so start decresing it until it reaches "0"
+        Setpoint_trans -=0.005;
         if (Setpoint_trans<=0.0){
           Setpoint_trans = 0.0; // If it is less than 0 , set it equal to 0
         }
@@ -144,34 +144,34 @@ void loop() {
         Setpoint_bal = Output_trans ; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
         Serial.print(Setpoint_trans); Serial.print(" , ");Serial.println(Output_trans);
         }
-	  else if (mode_now == "go bck"){ // If it is in back mode
-		Setpoint_trans-= 0.005; // Decrease translational velocity in steps of 0.005 [m/s] until reaches -frac * full_speed
-		if (Setpoint_trans<=-frac * full_speed){
-          Setpoint_trans = -frac * full_speed; // If it is less than -frac * full_speed, set it equal to -frac * full_speed
-        }
+      else if (mode_now == "go bck"){ // If it is in back mode
+        Setpoint_trans-= 0.005; // Decrease translational velocity in steps of 0.005 [m/s] until reaches -frac * full_speed
+        if (Setpoint_trans<=-frac * full_speed){
+          Setpoint_trans = -frac * full_speed; // If it exceeds frac * full_speed, set it equal to -frac * full_speed
+          }
         Input_trans = V_trans; // Measured value / Input value
         trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop
         Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop 
         Serial.print(Setpoint_trans); Serial.print(" , ");Serial.print(Output_trans);Serial.print(" , "); Serial.println(Theta_now+theta_offset);
         mode_prev = "go bck"; // Change mode_prev to go bck, this will be used for controlling the stopping behavior
         }
-		else if ((mode_now == "stop") && (mode_prev == "go bck")){ // If mode_now = stop and mode_prev = bck that means the robot was going backward and now it needs to be stopped
-		Setpoint_trans +=0.005; // Here the setpoint is now -frac * full_speed, so start increasing it until it reaches "0"
-		if (Setpoint_trans>=0.0){
-			Setpoint_trans = 0.0; // If it is greater than 0 , set it equal to 0
-		}
-		Input_trans = V_trans; // Measured value / Input value
-		trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop
-		Setpoint_bal = Output_trans ; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
-		Serial.print(Setpoint_trans); Serial.print(" , ");Serial.println(Output_trans);
-		}		
-	}
-        
+      else if ((mode_now == "stop") && (mode_prev == "go bck")){ // If mode_now = stop and mode_prev = bck that means the robot was going backward and now it needs to be stopped
+        Setpoint_trans -=0.005;
+        if (Setpoint_trans<=0.0){
+          Setpoint_trans = 0.0; // If it is less than 0 , set it equal to 0
+        }
+        Input_trans = V_trans; // Measured value / Input value
+        trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans); // Compute Output_trans of the 1st loop
+        Setpoint_bal = Output_trans ; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
+        Serial.print(Setpoint_trans); Serial.print(" , ");Serial.println(Output_trans);
+        }
+    }        
     else if (mode_now == "balance"){
       Setpoint_trans = 0.0;
       Setpoint_bal = 0.0;
       trans_PID.Reset();
       Serial.println(Theta_now+theta_offset);
+    }
 
     ////////////////////////////////////////// COMPUTE BALANCING PID OUTPUT/ //////////////////////////////////////////////////
 
@@ -184,8 +184,7 @@ void loop() {
        Output_bal = 0.0; // Stop the robot
        trans_PID.Reset(); // Now initialise the controller to make the sumintegral terms and lastinput terms to "0"
        bal_PID.Reset();
-     }
-       
+       }       
     mot_cont(error_bal, Output_bal); // Apply the calculated output to control the motor
     Blink_Led(); // Blink the LED
     t_loop_prev = t_loop_now; // Set prev loop time equal to current loop time for calculating dt for next loop        
