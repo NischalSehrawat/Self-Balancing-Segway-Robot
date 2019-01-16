@@ -95,7 +95,7 @@ bool PID::Compute()
 }
 
 
-bool PID::Compute_With_Actual_LoopTime(float my_kp, float my_ki, float my_kd)
+bool PID::Compute_With_Actual_LoopTime(float my_kp, float my_ki, float my_kd, float Imax)
 {
    if(!inAuto) return false;
    unsigned long now = millis();
@@ -121,6 +121,17 @@ bool PID::Compute_With_Actual_LoopTime(float my_kp, float my_ki, float my_kd)
 	  
 	  Pterm = my_kp * error; Iterm = outputSum; Dterm = -(float)1000.0 * my_kd * dInput / timeChange;
 	  
+	  if (Imax<0){		  
+		  if (Iterm<Imax){			  
+			  Iterm = Imax;	  
+		  }		  
+	  }
+	  
+	  else if (Imax>0){		  
+		  if (Iterm>Imax){			  
+			  Iterm = Imax;	  
+		  }		  
+	  }
       /*Compute Rest of PID Output*/
       output += outputSum + Dterm;
 
