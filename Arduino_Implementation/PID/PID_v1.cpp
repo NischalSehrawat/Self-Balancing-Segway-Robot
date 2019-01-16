@@ -121,17 +121,8 @@ bool PID::Compute_With_Actual_LoopTime(float my_kp, float my_ki, float my_kd, fl
 	  
 	  Pterm = my_kp * error; Iterm = outputSum; Dterm = -(float)1000.0 * my_kd * dInput / timeChange;
 	  
-	  if (Imax<0){		  
-		  if (Iterm<Imax){			  
-			  Iterm = Imax;	  
-		  }		  
-	  }
-	  
-	  else if (Imax>0){		  
-		  if (Iterm>Imax){			  
-			  Iterm = Imax;	  
-		  }		  
-	  }
+	  if ((Imax<0) && (Iterm<Imax)){Iterm = Imax;}	  
+	  else if ((Imax>0) && (Iterm>Imax)){Iterm = Imax;}
 	  
 	  /*Compute Rest of PID Output: This code can block the iterm at a particualr limit*/
       output += Iterm + Dterm;
