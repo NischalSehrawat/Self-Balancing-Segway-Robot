@@ -133,7 +133,7 @@ bool PID::Compute_With_Actual_LoopTime(float my_kp, float my_ki, float my_kd, fl
 		  }		  
 	  }
 	  
-	  /*Compute Rest of PID Output*/
+	  /*Compute Rest of PID Output: This code can block the iterm at a particualr limit*/
       output += Iterm + Dterm;
 	  
 	  
