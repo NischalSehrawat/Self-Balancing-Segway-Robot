@@ -141,7 +141,7 @@ void loop() {
           Setpoint_trans = 0.0; // If it is less than 0 , set it equal to 0
         }
         Input_trans = V_trans; // Measured value / Input value
-        trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans, -Imax); // Compute Output_trans of the 1st loop
+        trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans, Imax); // Compute Output_trans of the 1st loop
         Setpoint_bal = Output_trans ; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
 //        Serial.print(Setpoint_trans); Serial.print(" , ");Serial.print(trans_PID.GetPterm()); Serial.print(" , ");Serial.print(trans_PID.GetIterm());Serial.print(" , "); Serial.println(trans_PID.GetDterm());
         }
@@ -151,7 +151,7 @@ void loop() {
           Setpoint_trans = -frac * full_speed; // If it exceeds frac * full_speed, set it equal to -frac * full_speed
           }
         Input_trans = V_trans; // Measured value / Input value
-        trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans, -Imax); // Compute Output_trans of the 1st loop
+        trans_PID.Compute_With_Actual_LoopTime(Kp_trans, Ki_trans, Kd_trans, Imax); // Compute Output_trans of the 1st loop
         Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop 
 //        Serial.print(Setpoint_trans); Serial.print(" , ");Serial.print(trans_PID.GetPterm()); Serial.print(" , ");Serial.print(trans_PID.GetIterm());Serial.print(" , "); Serial.println(trans_PID.GetDterm());
         mode_prev = "go bck"; // Change mode_prev to go bck, this will be used for controlling the stopping behavior
