@@ -132,8 +132,13 @@ bool PID::Compute_With_Actual_LoopTime(float my_kp, float my_ki, float my_kd, fl
 			  Iterm = Imax;	  
 		  }		  
 	  }
-      /*Compute Rest of PID Output*/
-      output += outputSum + Dterm;
+	  
+	  /*Compute Rest of PID Output*/
+      output += Iterm + Dterm;
+	  
+	  
+      /*Compute Rest of PID Output
+      output += outputSum + Dterm;*/
 
 	    if(output > outMax) output = outMax;
       else if(output < outMin) output = outMin;
