@@ -1,4 +1,4 @@
-# [Balancing-Robot-RaspberryPi](https://www.youtube.com/watch?v=KroyGvLp1pE&t=0s&list=PLveRMPt4kAsA41ivMscrzFSWWx54CI52J&index=5)
+# Balancing-Robot-RaspberryPi[Current Status](https://www.youtube.com/watch?v=KroyGvLp1pE&t=0s&list=PLveRMPt4kAsA41ivMscrzFSWWx54CI52J&index=5)
 This is my project for balancing an inverted pendulum using an Arduino Mega and Raspberry Pi. In my [earlier ](https://www.youtube.com/watch?v=-TRXWSr9_dE&list=PLveRMPt4kAsA41ivMscrzFSWWx54CI52J&t=0s&index=2) approach I was successful in making the robot balance but in order to move it like a **Segway**, it needs more thorough analysis. Therefore I decided to go into greater details and study it more thoroughly.  The main aim of the project is to learn about the following topics
 - Gain an insight into the physics of the problem and understand the equation of motions. I have used [this paper](https://content.sciendo.com/view/journals/meceng/61/2/article-p331.xml) and followed [this course](https://www.coursera.org/learn/mobile-robot). 
 - Learn about classic and modern control theories. [Source](https://www.youtube.com/watch?v=Pi7l8mMjYVE&list=PLMrJAkhIeNNR20Mz-VpzgfQs5zrYi085m)
