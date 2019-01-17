@@ -298,11 +298,7 @@ void PID::Initialize()
    else if(outputSum < outMin) outputSum = outMin;
 }
 
-void PID::Reset()
-{   
-   outputSum = 0.0;
-   lastInput = 0.0;
-}
+void PID::Reset_Iterm(){outputSum = 0.0;}
 
 /* SetControllerDirection(...)*************************************************
  * The PID will either be connected to a DIRECT acting process (+Output leads

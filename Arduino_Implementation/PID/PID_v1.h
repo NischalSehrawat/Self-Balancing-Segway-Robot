@@ -65,7 +65,7 @@ class PID
 	int GetDirection();					  //
 	
 	void Initialize();  			  // Function to either change PID from auto to manual or to reset the integral and derivative terms to "0"
-	void Reset();  			 		 // Reset the integral and derivative terms to "0"
+	void Reset_Iterm();  			 		 // Reset the integral term to "0"
 	
 	double GetPterm();
 	double GetIterm();
