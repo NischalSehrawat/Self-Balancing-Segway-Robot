@@ -165,12 +165,10 @@ void loop() {
         Serial.print(Setpoint_trans); Serial.print(" , ");Serial.print(Output_trans); Serial.print(" , ");Serial.print(trans_PID.GetPterm()); Serial.print(" , ");
         Serial.print(trans_PID.GetIterm());Serial.print(" , "); Serial.println(trans_PID.GetDterm());        
         mode_prev = "go bck"; // Change mode_prev to go bck, this will be used for controlling the stopping behavior
-		moving_fwd_bck = true; // This is used for resetting Iterms when giving stop command
+        moving_fwd_bck = true; // This is used for resetting Iterms when giving stop command
         }
       else if ((mode_now == "stop") && (mode_prev == "go bck")){ // If mode_now = stop and mode_prev = bck that means the robot was going backward and now it needs to be stopped
-	  
-	  	if (moving_fwd_bck){trans_PID.Reset_Iterm(); moving_fwd_bck = false;} // Reset the Iterm of the controller and set moving_bck_fwd to false so it doesn't reset the PID Iterm again
-
+        if (moving_fwd_bck){trans_PID.Reset_Iterm(); moving_fwd_bck = false;} // Reset the Iterm of the controller and set moving_bck_fwd to false so it doesn't reset the PID Iterm again
         Setpoint_trans +=0.005; // Increase setpoint from - frac * full_speed to "0"
         if (Setpoint_trans>=0.0){
           Setpoint_trans = 0.0; // If it is greater than 0 , set it equal to 0
