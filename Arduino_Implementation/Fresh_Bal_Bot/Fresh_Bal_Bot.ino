@@ -182,7 +182,7 @@ void loop() {
     }        
     else if (mode_now == "balance"){
       Setpoint_bal = 0.0;
-      trans_PID.Reset();
+      trans_PID.Reset_Iterm();
     }
 
     ////////////////////////////////////////// COMPUTE BALANCING PID OUTPUT/ //////////////////////////////////////////////////
@@ -195,8 +195,8 @@ void loop() {
 //    Serial.println(Input_bal);
     if (abs(error_bal)>=fall_angle){
        Output_bal = 0.0; // Stop the robot
-       trans_PID.Reset(); // Now initialise the controller to make the sumintegral terms and lastinput terms to "0"
-       bal_PID.Reset();
+       trans_PID.Reset_Iterm(); // Now initialise the controller to make the sumintegral terms and lastinput terms to "0"
+       bal_PID.Reset_Iterm();
        }       
     mot_cont(error_bal, Output_bal); // Apply the calculated output to control the motor
     Blink_Led(); // Blink the LED
