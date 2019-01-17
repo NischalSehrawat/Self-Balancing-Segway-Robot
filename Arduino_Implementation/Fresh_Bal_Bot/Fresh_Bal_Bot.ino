@@ -140,11 +140,10 @@ void loop() {
 		moving_fwd_bck = true; // This is used for resetting Iterms when giving stop command
         }
       else if ((mode_now == "stop") && (mode_prev == "go fwd")){ // If mode_now = stop and mode_prev = fwd that means the robot was going forward and now it needs to be stopped
-        
-		/*Now the controller needs to be reset to bring the Iterms to "0" an restart the controller again
-		but this thing needs to be done only once otherwise the Iterm will always be "0"*/		
-		if (moving_fwd_bck){trans_PID.Reset_Iterm(); moving_fwd_bck = false;} // Reset the Iterm of the controller and set moving_bck_fwd to false so it doesn't reset the PID Iterm again
-		Setpoint_trans -=0.005;
+        /*Now the controller needs to be reset to bring the Iterms to "0" an restart the controller again
+        but this thing needs to be done only once otherwise the Iterm will always be "0"*/
+        if (moving_fwd_bck){trans_PID.Reset_Iterm(); moving_fwd_bck = false;} // Reset the Iterm of the controller and set moving_bck_fwd to false so it doesn't reset the PID Iterm again
+        Setpoint_trans -=0.005;
         if (Setpoint_trans<=0.0){
           Setpoint_trans = 0.0; // If it is less than 0 , set it equal to 0
         }
