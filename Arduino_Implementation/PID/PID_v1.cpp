@@ -122,9 +122,9 @@ bool PID::Compute_With_Actual_LoopTime(float my_kp, float my_ki, float my_kd, fl
 	  Pterm = my_kp * error; Iterm = outputSum; Dterm = -(float)1000.0 * my_kd * dInput / timeChange;
 	  
 	  /*Block Iterm from increasing beyond a certain point*/
-	  if ((Imax>0) && (Iterm>Imax)){Iterm = Imax;} // This is for going forward condition
+	  if ((Imax>0) && (Iterm>=Imax)){Iterm = Imax;} // This is for going forward condition
 
-	  else if ((Imax<0) && (Iterm<Imax)){Iterm = Imax;}	 // This is for going backward condition
+	  else if ((Imax<0) && (Iterm<=Imax)){Iterm = Imax;}	 // This is for going backward condition
 	  
 	  /* Condition for limit Iterm while stopping still needs to be written*/
 	  

@@ -14,7 +14,7 @@ double dt_gyro; // Variable to store time difference values for gyro angle calcu
 uint32_t t_gyro_prev, t_gyro_now; // timer for gyro unit
 float alpha = 0.98; // Complimentary filter control parameter
 float rad2deg = 57.3, deg2rad = 0.01745; // Angle conversion factors
-float theta_offset = 1.0; // This value must be added to calculated theta as theta shows -3.0 when it should be 0.0
+float Setpoint_offset = -2.0; // This value is added to the Setpoint_bal as dues to non-symmetrical mounting of the components, the robot tends to bend of one side. This corrects this bending behavior
 
 
 ////////////////////////////// MOTOR CONTROL PARAMATERS ////////////////////////////////////////////
@@ -27,7 +27,7 @@ short R_enc_pin1 = 2; short R_enc_pin2 = 3; // right motor encoder pins
 short L_enc_pin1 = 18;  short L_enc_pin2 = 19; // left motor encoder pins 
 
 float rpm_limit = 0.0; // RPM below this is considered 0
-float avg_pt = 20.0;  // Number of points used for exponentially averaging the RPM signal
+float avg_pt = 10.0;  // Number of points used for exponentially averaging the RPM signal
 short PPR = 990; // Number of pulses per revolution of the encoder
 float Final_Rpm_r, Final_Rpm_l; // Motor final averaged out RPM, units can be selected while calling get_RPM function
 My_Motors Rmot(&Final_Rpm_r, rpm_limit, avg_pt, PPR); // Right motor object for calculating rotational velocities from encoder data
@@ -39,7 +39,7 @@ Encoder myEnc_l(L_enc_pin2, L_enc_pin1); // Make encoder objects to calculate mo
 
 double Input_bal, Output_bal, Setpoint_bal; // Input output and setpoint variables defined
 double Out_min_bal = -255, Out_max_bal = 255; // PID Output limits, this is the output PWM value
-double Kp_bal = 36.0, Ki_bal = 0.0, Kd_bal = 1.0; // Initializing the Proportional, integral and derivative gain constants
+double Kp_bal = 71.0, Ki_bal = 0.0, Kd_bal = 1.2; // Initializing the Proportional, integral and derivative gain constants
 double Output_lower_bal = 30.0; // PWM Limit at which the motors actually start to move
 PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON_E, DIRECT); // PID Controller for balancing
 
@@ -68,7 +68,7 @@ bool led_state = 0; // Parameter to turn LED from ON / OFF
 int pin = 13; // PIN where LED is attached
 int blink_rate = 100; // Blink after every [millis]
 double t_loop_prev, t_loop_now, dt_loop; // Time parameters to log times for main control loop
-double t_loop = 5; // Overall loop time [millis]
+double t_loop = 20.0; // Overall loop time [millis]
 
 double t_samp = 0.0;
 
@@ -121,7 +121,7 @@ void loop() {
     Rmot.getRPM(myEnc_r.read() / 4.0, "rad/s"); // Get current encoder counts & compute right motor rotational velocity in [rad/s]
     float V_whl = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl; // Linear translation velocity due to the 2 wheels spinning [m/s]
     float V_cog = omega_x_calculated * l_cog * deg2rad; // Linear translation velocity of the COG due to angular falling speed [m/s]
-    float V_trans = V_whl + V_cog;// Calculate the total Robot linear translation velocity [m/s]
+    float V_trans = V_whl;// Calculate the total Robot linear translation velocity [m/s]
     
     ////////////////// COMPUTE TRANSLATION PID OUTPUT///////////////////////////////////////////////////////
        	
@@ -137,7 +137,7 @@ void loop() {
         Serial.print(Setpoint_trans); Serial.print(" , ");Serial.print(Output_trans); Serial.print(" , ");Serial.print(trans_PID.GetPterm()); Serial.print(" , ");
         Serial.print(trans_PID.GetIterm());Serial.print(" , "); Serial.println(trans_PID.GetDterm());
         mode_prev = "go fwd"; // Change mode_prev to go fwd, this will be used for controlling the stopping behavior
-		moving_fwd_bck = true; // This is used for resetting Iterms when giving stop command
+        moving_fwd_bck = true; // This is used for resetting Iterms when giving stop command
         }
       else if ((mode_now == "stop") && (mode_prev == "go fwd")){ // If mode_now = stop and mode_prev = fwd that means the robot was going forward and now it needs to be stopped
         /*Now the controller needs to be reset to bring the Iterms to "0" an restart the controller again
@@ -181,22 +181,25 @@ void loop() {
         }
     }        
     else if (mode_now == "balance"){
-      Setpoint_bal = 0.0;
+      Setpoint_bal = 0.0 + Setpoint_offset;
       trans_PID.Reset_Iterm();
     }
 
     ////////////////////////////////////////// COMPUTE BALANCING PID OUTPUT/ //////////////////////////////////////////////////
 
-    Input_bal = Theta_now + theta_offset; // Set Theta_now as the input / current value to the PID algorithm (The offset is added to correct for the error in MPU calculated angle)             
+    Input_bal = Theta_now; // Set Theta_now as the input / current value to the PID algorithm (The offset is added to correct for the error in MPU calculated angle)             
     double error_bal = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction      
 //  bal_PID.SetTunings(Kp, Ki, Kd); // Adjust the the new parameters          
     bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor PWM using balancing PID    
     Output_bal = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal); // Map the computed output from Out_min to Outmax Output_lower_bal
+//    if (abs(error_bal)<0.2 && mode_now == "balance"){Output_bal = 0.0;}
 //    Serial.println(Input_bal);
+//    Serial.println(dt_loop);
     if (abs(error_bal)>=fall_angle){
        Output_bal = 0.0; // Stop the robot
        trans_PID.Reset_Iterm(); // Now initialise the controller to make the sumintegral terms and lastinput terms to "0"
        bal_PID.Reset_Iterm();
+       mode_now == "balance"; // Change mode to balance
        }       
     mot_cont(error_bal, Output_bal); // Apply the calculated output to control the motor
     Blink_Led(); // Blink the LED
