@@ -14,7 +14,7 @@ double dt_gyro; // Variable to store time difference values for gyro angle calcu
 uint32_t t_gyro_prev, t_gyro_now; // timer for gyro unit
 float alpha = 0.98; // Complimentary filter control parameter
 float rad2deg = 57.3, deg2rad = 0.01745; // Angle conversion factors
-float Setpoint_offset = -2.0; // This value is added to the Setpoint_bal as dues to non-symmetrical mounting of the components, the robot tends to bend of one side. This corrects this bending behavior
+float Setpoint_offset = -3.0; // This value is added to the Setpoint_bal as dues to non-symmetrical mounting of the components, the robot tends to bend of one side. This corrects this bending behavior
 
 
 ////////////////////////////// MOTOR CONTROL PARAMATERS ////////////////////////////////////////////
