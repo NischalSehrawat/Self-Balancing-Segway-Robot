@@ -7,15 +7,12 @@
 
 long accelX, accelY, accelZ, gyroX, gyroY, gyroZ; // Parameters to record the raw accelerometer / gyro data
 float omega_x_gyro, omega_x_calculated;// Parameter to store raw gyro data to converted data into [deg/s]
-//float A[6] = {-2043, 108, 1293,  48, -12, 19}; // Array storing MPU Offset values
-float A[3] = {0.0,0.0,0.0}; // Array containing MPU Offset data accY, accZ, giroX  
-double pitch, Theta_prev, Theta_now ; // Parameters for computing angle data from Accelerometer and gyro                  
+float pitch, Theta_prev, Theta_now ; // Parameters for computing angle data from Accelerometer and gyro 
+float Theta_correction = 3.0; // Angle to be added to the Theta_now for correcting the upright robot angle to account for total caliberation [deg]                 
 double dt_gyro; // Variable to store time difference values for gyro angle calculations 
 uint32_t t_gyro_prev, t_gyro_now; // timer for gyro unit
 float alpha = 0.98; // Complimentary filter control parameter
 float rad2deg = 57.3, deg2rad = 0.01745; // Angle conversion factors
-float Setpoint_offset = -3.0; // This value is added to the Setpoint_bal as dues to non-symmetrical mounting of the components, the robot tends to bend of one side. This corrects this bending behavior
-
 
 ////////////////////////////// MOTOR CONTROL PARAMATERS ////////////////////////////////////////////
 
@@ -100,7 +97,7 @@ void setup() {
     setupMPU(); // Initializing MPU6050 
 //  delay(5000);       
     get_MPU_data(); // Get initial angles of the MPU  
-    pitch = (atan2(accelY - A[1], accelZ + A[2]))*rad2deg; //  Calculate initial pitch angle [deg]    
+    pitch = (atan2(accelY, accelZ))*rad2deg; //  Calculate initial pitch angle [deg]    
     Theta_prev = pitch; // set the total starting angle to this pitch 
     t_gyro_prev = millis(); // Log time for gyro calculations [ms]  
     t_led_prev = millis(); // Log time for led blinking 
@@ -181,13 +178,13 @@ void loop() {
         }
     }        
     else if (mode_now == "balance"){
-      Setpoint_bal = 0.0 + Setpoint_offset;
+      Setpoint_bal = 0.0;
       trans_PID.Reset_Iterm();
     }
 
     ////////////////////////////////////////// COMPUTE BALANCING PID OUTPUT/ //////////////////////////////////////////////////
 
-    Input_bal = Theta_now; // Set Theta_now as the input / current value to the PID algorithm (The offset is added to correct for the error in MPU calculated angle)             
+    Input_bal = Theta_now + Theta_correction; // Set Theta_now as the input / current value to the PID algorithm (The correction is added to correct for the error in MPU calculated angle)             
     double error_bal = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction      
 //  bal_PID.SetTunings(Kp, Ki, Kd); // Adjust the the new parameters          
     bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor PWM using balancing PID    
@@ -213,10 +210,10 @@ void Get_Tilt_Angle(){
   t_gyro_now = millis(); // Log time now [millis]
   get_MPU_data(); // Update / Get Raw data acelX acelY acelZ giroX giroY giroZ  
   dt_gyro = (t_gyro_now - t_gyro_prev) / 1000.0; // calculate time difference since last loop for gyro angle calculations [seconds]
-  omega_x_gyro = (gyroX - A[3]) / 131.0; // Compute Angular velocity from raw gyroXreading [deg/s];    
+  omega_x_gyro = gyroX / 131.0; // Compute Angular velocity from raw gyroXreading [deg/s];    
   /*Since we will only need the ratios of accelerometer readings to calculate accelerometer angles, 
   we do not need to convert raw data to actual data */  
-  pitch = (atan2(accelY - A[1], accelZ + A[2]))*rad2deg; // Angle calculated by accelerometer readings about X axis in [deg]  
+  pitch = (atan2(accelY, accelZ))*rad2deg; // Angle calculated by accelerometer readings about X axis in [deg]  
   Theta_now = alpha * (Theta_prev + (omega_x_gyro * dt_gyro)) + (1-alpha) * pitch; // Calculate the total angle using a Complimentary filter
   omega_x_calculated = (Theta_now - Theta_prev) / dt_gyro; // Calculated omega_x from complimentary filter
   Theta_prev = Theta_now;
