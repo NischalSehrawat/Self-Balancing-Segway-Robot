@@ -67,8 +67,6 @@ int blink_rate = 100; // Blink after every [millis]
 double t_loop_prev, t_loop_now, dt_loop; // Time parameters to log times for main control loop
 double t_loop = 20.0; // Overall loop time [millis]
 
-double t_samp = 0.0;
-
 void setup() {
 
     Serial.begin(115200);  
