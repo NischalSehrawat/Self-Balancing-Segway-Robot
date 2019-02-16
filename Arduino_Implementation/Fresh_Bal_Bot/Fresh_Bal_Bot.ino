@@ -8,7 +8,7 @@
 long accelX, accelY, accelZ, gyroX, gyroY, gyroZ; // Parameters to record the raw accelerometer / gyro data
 float omega_x_gyro, omega_x_calculated;// Parameter to store raw gyro data to converted data into [deg/s]
 float pitch, Theta_prev, Theta_now ; // Parameters for computing angle data from Accelerometer and gyro 
-float Theta_correction = 3.0; // Angle to be added to the Theta_now for correcting the upright robot angle to account for total caliberation [deg]                 
+float Theta_correction = 2.5; // Angle to be added to the Theta_now for correcting the upright robot angle to account for total caliberation [deg]                 
 double dt_gyro; // Variable to store time difference values for gyro angle calculations 
 uint32_t t_gyro_prev, t_gyro_now; // timer for gyro unit
 float alpha = 0.98; // Complimentary filter control parameter
