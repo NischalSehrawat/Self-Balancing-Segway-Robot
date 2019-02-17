@@ -8,7 +8,7 @@
 long accelX, accelY, accelZ, gyroX, gyroY, gyroZ; // Parameters to record the raw accelerometer / gyro data
 float omega_x_gyro, omega_x_calculated;// Parameter to store raw gyro data to converted data into [deg/s]
 float pitch, Theta_prev, Theta_now ; // Parameters for computing angle data from Accelerometer and gyro 
-float Theta_correction = 2.5; // Angle to be added to the Theta_now for correcting the upright robot angle to account for total caliberation [deg]                 
+float Theta_correction = 3.0; // Angle to be added to the Theta_now for correcting the upright robot angle to account for total caliberation [deg]                 
 double dt_gyro; // Variable to store time difference values for gyro angle calculations 
 uint32_t t_gyro_prev, t_gyro_now; // timer for gyro unit
 float alpha = 0.98; // Complimentary filter control parameter
@@ -80,8 +80,8 @@ void setup() {
     ////////////////////////// BALANCING PID  initialization ////////////////////////////////////////////////////////
         
 //  bal_PID.SetSampleTime(t_loop); // Set Loop time for PID [milliseconds]    
-    bal_PID.SetMode(AUTOMATIC); // Set PID mode to Automatic    
-//  bal_PID.SetTunings(Kp, Ki, Kd);    
+    bal_PID.SetMode(AUTOMATIC); // Set PID mode to Automatic
+    bal_PID.SetTunings(Kp_bal, Ki_bal, Kd_bal);    
     bal_PID.SetOutputLimits(Out_min_bal, Out_max_bal); // Set upper and lower limits for the maximum output limits for PID loop
     
     ////////////////////////// TRANSLATION PID initialization ////////////////////////////////////////////////////////        
@@ -184,12 +184,10 @@ void loop() {
 
     Input_bal = Theta_now + Theta_correction; // Set Theta_now as the input / current value to the PID algorithm (The correction is added to correct for the error in MPU calculated angle)             
     double error_bal = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction      
-//  bal_PID.SetTunings(Kp, Ki, Kd); // Adjust the the new parameters          
-    bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor PWM using balancing PID    
+    bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor PWM using balancing PID 
+//    bal_PID.Compute();   
     Output_bal = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal); // Map the computed output from Out_min to Outmax Output_lower_bal
 //    if (abs(error_bal)<0.2 && mode_now == "balance"){Output_bal = 0.0;}
-//    Serial.println(Input_bal);
-//    Serial.println(dt_loop);
     if (abs(error_bal)>=fall_angle){
        Output_bal = 0.0; // Stop the robot
        trans_PID.Reset_Iterm(); // Now initialise the controller to make the sumintegral terms and lastinput terms to "0"
