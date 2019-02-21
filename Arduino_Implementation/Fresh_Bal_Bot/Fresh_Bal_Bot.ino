@@ -7,6 +7,7 @@
 
 long accelX, accelY, accelZ, gyroX, gyroY, gyroZ; // Parameters to record the raw accelerometer / gyro data
 float omega_x_gyro, omega_x_calculated;// Parameter to store raw gyro data to converted data into [deg/s]
+float mpu_calib[6] = {-2043, 108, 1293,  48, -12, 19}; // Array storing MPU Offset values [accX, accY,accZ,gyroX,gyroY,gyroZ]
 float pitch, Theta_prev, Theta_now ; // Parameters for computing angle data from Accelerometer and gyro 
 float Theta_correction = 2.5; // Angle to be added to the Theta_now for correcting the upright robot angle to account for total caliberation [deg]                 
 double dt_gyro; // Variable to store time difference values for gyro angle calculations 
@@ -95,7 +96,7 @@ void setup() {
     setupMPU(); // Initializing MPU6050 
 //  delay(5000);       
     get_MPU_data(); // Get initial angles of the MPU  
-    pitch = (atan2(accelY, accelZ))*rad2deg; //  Calculate initial pitch angle [deg]    
+    pitch = (atan2(accelY-mpu_calib[1], accelZ+mpu_calib[2]))*rad2deg; //  Calculate initial pitch angle [deg] and caliberated for error in accY and accZ
     Theta_prev = pitch; // set the total starting angle to this pitch 
     t_gyro_prev = millis(); // Log time for gyro calculations [ms]  
     t_led_prev = millis(); // Log time for led blinking 
@@ -207,10 +208,10 @@ void Get_Tilt_Angle(){
   t_gyro_now = millis(); // Log time now [millis]
   get_MPU_data(); // Update / Get Raw data acelX acelY acelZ giroX giroY giroZ  
   dt_gyro = (t_gyro_now - t_gyro_prev) / 1000.0; // calculate time difference since last loop for gyro angle calculations [seconds]
-  omega_x_gyro = gyroX / 131.0; // Compute Angular velocity from raw gyroXreading [deg/s];    
+  omega_x_gyro = (gyroX-mpu_calib[3]) / 131.0; // Compute Angular velocity from raw gyroXreading [deg/s] and also correct for the error;    
   /*Since we will only need the ratios of accelerometer readings to calculate accelerometer angles, 
   we do not need to convert raw data to actual data */  
-  pitch = (atan2(accelY, accelZ))*rad2deg; // Angle calculated by accelerometer readings about X axis in [deg]  
+  pitch = (atan2(accelY-mpu_calib[1], accelZ+mpu_calib[2]))*rad2deg; // Angle calculated by accelerometer readings about X axis in [deg]  and caliberated for error in accY and accZ
   Theta_now = alpha * (Theta_prev + (omega_x_gyro * dt_gyro)) + (1-alpha) * pitch; // Calculate the total angle using a Complimentary filter
   omega_x_calculated = (Theta_now - Theta_prev) / dt_gyro; // Calculated omega_x from complimentary filter
   Theta_prev = Theta_now;
