@@ -37,7 +37,7 @@ Encoder myEnc_l(L_enc_pin2, L_enc_pin1); // Make encoder objects to calculate mo
 
 double Input_bal, Output_bal, Setpoint_bal; // Input output and setpoint variables defined
 double Out_min_bal = -255, Out_max_bal = 255; // PID Output limits, this is the output PWM value
-double Kp_bal = 71.0, Ki_bal = 0.0, Kd_bal = 1.2; // Initializing the Proportional, integral and derivative gain constants
+double Kp_bal = 55.0, Ki_bal = 0.0, Kd_bal = 0.40; // Initializing the Proportional, integral and derivative gain constants
 double Output_lower_bal = 30.0; // PWM Limit at which the motors actually start to move
 PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON_E, DIRECT); // PID Controller for balancing
 
@@ -261,8 +261,8 @@ void get_MPU_data(){
 
 void mot_cont(float e_rr, int Speed){
  
-  if (e_rr<=0){fwd_bot(Speed);}  
-  else if (e_rr>0){back_bot(Speed);}
+  if (e_rr>=0){fwd_bot(Speed);}  
+  else if (e_rr<0){back_bot(Speed);}
 }
 
 void back_bot(int Speed){
