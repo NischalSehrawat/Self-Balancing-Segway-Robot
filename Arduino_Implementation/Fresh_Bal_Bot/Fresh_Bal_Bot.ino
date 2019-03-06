@@ -188,7 +188,7 @@ void loop() {
     bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor PWM using balancing PID 
 //    bal_PID.Compute();  
     Output_bal = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal); // Map the computed output from Out_min to Outmax Output_lower_bal
-//    if (abs(error_bal)<0.2 && mode_now == "balance"){Output_bal = 0.0;}
+    if (abs(error_bal)<0.2 && mode_now == "balance"){Output_bal = 0.0;}
 
     if (abs(error_bal)>=fall_angle){
        Output_bal = 0.0; // Stop the robot
