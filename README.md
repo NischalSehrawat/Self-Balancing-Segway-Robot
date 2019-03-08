@@ -13,6 +13,9 @@ This is my project for balancing an inverted pendulum using an Arduino Mega and 
 
 # Implementation on Arduino: Problems, findings and solutions.
 
+
+![img_20190308_083932](https://user-images.githubusercontent.com/33701903/54019796-63606780-418c-11e9-997a-db5a4cf3bde8.jpg)
+
 A lot of problems were encountered and solved during the implementation on a microcontroller. Problems / findings are listed below in decreasing order of importance.
 
 - The main control loop must be very fast. However, if it is too fast then the motors might not have sufficient time to react. I experimented with the loop time starting from **3 ms** (I had used my Kp and Kd values determined earlier) and I observed that at very low loop times (<10 ms) the robot was very jittery (This is due to amplification of the differential output as **dt** is in the denominator). Then I started increasing the loop time and I found that between **20 and 30 ms** it became very stable. Therefore the current loop time is set to **20 ms**.  
