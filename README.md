@@ -1,6 +1,6 @@
 # Balancing-Robot-RaspberryPi [(Current Status)](https://www.youtube.com/watch?v=4fVE9cJuiRo&list=PLveRMPt4kAsA41ivMscrzFSWWx54CI52J&index=6&t=0s)
 
-# Theory
+## Theory
 
 This is my project for balancing an inverted pendulum using an Arduino Mega and Raspberry Pi. In my [earlier ](https://www.youtube.com/watch?v=-TRXWSr9_dE&list=PLveRMPt4kAsA41ivMscrzFSWWx54CI52J&t=0s&index=2) approach I was successful in making the robot balance but in order to move it like a **Segway**, it needs more thorough analysis. Therefore I decided to go into greater details and study it more thoroughly.  The main aim of the project is to learn about the following topics
 - Gain an insight into the physics of the problem and understand the equation of motions. I have used [this paper](https://content.sciendo.com/view/journals/meceng/61/2/article-p331.xml) and followed [this course](https://www.coursera.org/learn/mobile-robot). 
@@ -14,7 +14,7 @@ This is my project for balancing an inverted pendulum using an Arduino Mega and 
 - Info about dc motor control (using 2 wires instead of 3 for speed control) can be found [here](https://www.bluetin.io/python/gpio-pwm-raspberry-pi-h-bridge-dc-motor-control/).  However for robot control it is easier to use **Robot** builtin class on gpiozero library on RasPi. Info about using various builtin classes on RaspPi can be found [here](https://projects.raspberrypi.org/en/projects/physical-computing/16). Info about using MPU6050 library on a RaspberryPi can be found [here](https://libraries.io/pypi/mpu6050-raspberrypi).
 - An important observation in this project is that while the Raspberry Pi is significantly faster than an Arduino, but since it runs an OS, it cannot be used for realtime control that requires precise timing. For example,when the potentiometer data was sent over Serial port to the Pi from Arduino, the Pi responded very late and to compensate that, the data was sent to the Pi at 20 mS interval instead of 1-2 ms. This will slow down the control loop considerably. Therefore, the main balancing task is be performed on the Arduino board, while the Pi will be used for higher level tasks such as decision making.
 
-# Implementation on Arduino: Problems, findings and solutions.
+## Implementation on Arduino: Problems, findings and solutions.
 
 
 ![img_20190308_083932](https://user-images.githubusercontent.com/33701903/54019796-63606780-418c-11e9-997a-db5a4cf3bde8.jpg)
