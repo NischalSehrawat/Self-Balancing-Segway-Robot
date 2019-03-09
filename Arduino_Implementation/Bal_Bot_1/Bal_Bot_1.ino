@@ -51,7 +51,7 @@ double Imax = 2.0; // Maximum limit upto which Iterm can rise
 
 ///////////////////////////////// ROBOT PHYSICAL PROPERTIES ////////////////////////////////////////////
 
-float r_whl = 0.5 * 0.085; // Wheel radius [m]
+float r_whl = 0.5 * 0.130; // Wheel radius [m]
 float l_cog = 0.01075; // Distance of the center of gravity of the upper body from the wheel axis [m] 
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 float full_speed = 107.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 107 RPM @ 12 V] 
