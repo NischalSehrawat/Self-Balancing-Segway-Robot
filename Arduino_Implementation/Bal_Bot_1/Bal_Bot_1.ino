@@ -26,7 +26,7 @@ short L_enc_pin1 = 18;  short L_enc_pin2 = 19; // left motor encoder pins
 
 float rpm_limit = 0.0; // RPM below this is considered 0
 float avg_pt = 10.0;  // Number of points used for exponentially averaging the RPM signal
-short PPR = 990; // Number of pulses per revolution of the encoder
+short PPR = 330; // Number of pulses per revolution of the encoder (for a gearbox 1:30, this value is 330)
 float Final_Rpm_r, Final_Rpm_l; // Motor final averaged out RPM, units can be selected while calling get_RPM function
 My_Motors Rmot(&Final_Rpm_r, rpm_limit, avg_pt, PPR); // Right motor object for calculating rotational velocities from encoder data
 My_Motors Lmot(&Final_Rpm_l, rpm_limit, avg_pt, PPR); // Left motor object for calculating rotational velocities from encoder data
