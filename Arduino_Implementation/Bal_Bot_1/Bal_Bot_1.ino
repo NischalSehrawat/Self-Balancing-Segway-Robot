@@ -24,14 +24,14 @@ short Lmot3 = 6; // Pins for Right motor PWM
 short R_enc_pin1 = 2; short R_enc_pin2 = 3; // right motor encoder pins
 short L_enc_pin1 = 18;  short L_enc_pin2 = 19; // left motor encoder pins 
 
-float rpm_limit = 0.0; // RPM below this is considered 0
-float avg_pt = 10.0;  // Number of points used for exponentially averaging the RPM signal
+float rpm_limit = 5.0; // RPM below this is considered 0, this value is in RPM and NOT [rad/s]
+float avg_pt = 5.0;  // Number of points used for exponentially averaging the RPM signal
 short PPR = 330; // Number of pulses per revolution of the encoder (for a gearbox 1:30, this value is 330)
 float Final_Rpm_r, Final_Rpm_l; // Motor final averaged out RPM, units can be selected while calling get_RPM function
 My_Motors Rmot(&Final_Rpm_r, rpm_limit, avg_pt, PPR); // Right motor object for calculating rotational velocities from encoder data
 My_Motors Lmot(&Final_Rpm_l, rpm_limit, avg_pt, PPR); // Left motor object for calculating rotational velocities from encoder data
-Encoder myEnc_r(R_enc_pin1, R_enc_pin2); // Make encoder objects to calculate motor velocties
-Encoder myEnc_l(L_enc_pin2, L_enc_pin1); // Make encoder objects to calculate motor velocties
+Encoder myEnc_r(R_enc_pin2, R_enc_pin1); // Make encoder objects to calculate motor velocties
+Encoder myEnc_l(L_enc_pin1, L_enc_pin2); // Make encoder objects to calculate motor velocties
 
 ///////////////////////////////// Balancing PID parameters ///////////////////////////////////////////////////
 
@@ -188,7 +188,7 @@ void loop() {
     bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor PWM using balancing PID 
 //    bal_PID.Compute();  
     Output_bal = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal); // Map the computed output from Out_min to Outmax Output_lower_bal
-    Serial.println(Input_bal);
+    Serial.println(V_whl);
     if (abs(error_bal)<0.2 && mode_now == "balance"){Output_bal = 0.0;}
 
     if (abs(error_bal)>=fall_angle){
