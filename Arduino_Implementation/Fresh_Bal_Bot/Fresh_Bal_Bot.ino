@@ -188,6 +188,7 @@ void loop() {
     bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor PWM using balancing PID 
 //    bal_PID.Compute();  
     Output_bal = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal); // Map the computed output from Out_min to Outmax Output_lower_bal
+    Serial.println(Input_bal);
     if (abs(error_bal)<0.2 && mode_now == "balance"){Output_bal = 0.0;}
 
     if (abs(error_bal)>=fall_angle){
@@ -241,7 +242,7 @@ void get_MPU_data(){
   Wire.write(0x3B); //Starting register for Accel Readings
   Wire.endTransmission();
   Wire.requestFrom(0b1101000,6); //Request Accel Registers (3B - 40)
-  while(Wire.available() < 6);
+//  while(Wire.available() < 6); // This line is commented out because Wire.requestFrom() is blocking, so there is no point in waiting again
   accelX = Wire.read()<<8|Wire.read(); //Store first two bytes into accelX
   accelY = Wire.read()<<8|Wire.read(); //Store middle two bytes into accelY
   accelZ = Wire.read()<<8|Wire.read(); //Store last two bytes into accelZ
@@ -250,7 +251,7 @@ void get_MPU_data(){
   Wire.write(0x43); //Starting register for Gyro Readings
   Wire.endTransmission();
   Wire.requestFrom(0b1101000,6); //Request Gyro Registers (43 - 48)
-  while(Wire.available() < 6);
+//  while(Wire.available() < 6); // This line is commented out because Wire.requestFrom() is blocking, so there is no point in waiting again
   gyroX = Wire.read()<<8|Wire.read(); //Store first two bytes into accelX
   gyroY = Wire.read()<<8|Wire.read(); //Store middle two bytes into accelY
   gyroZ = Wire.read()<<8|Wire.read(); //Store last two bytes into accelZ
