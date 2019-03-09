@@ -26,7 +26,7 @@ short L_enc_pin1 = 18;  short L_enc_pin2 = 19; // left motor encoder pins
 
 float rpm_limit = 5.0; // RPM below this is considered 0, this value is in RPM and NOT [rad/s]
 float avg_pt = 5.0;  // Number of points used for exponentially averaging the RPM signal
-short PPR = 330; // Number of pulses per revolution of the encoder (for a gearbox 1:30, this value is 330)
+short PPR = 330; // Number of pulses per revolution of the encoder (for a gearbox 1:30, this value is 330 seen from the website)
 float Final_Rpm_r, Final_Rpm_l; // Motor final averaged out RPM, units can be selected while calling get_RPM function
 My_Motors Rmot(&Final_Rpm_r, rpm_limit, avg_pt, PPR); // Right motor object for calculating rotational velocities from encoder data
 My_Motors Lmot(&Final_Rpm_l, rpm_limit, avg_pt, PPR); // Left motor object for calculating rotational velocities from encoder data
@@ -54,7 +54,7 @@ double Imax = 2.0; // Maximum limit upto which Iterm can rise
 float r_whl = 0.5 * 0.130; // Wheel radius [m]
 float l_cog = 0.01075; // Distance of the center of gravity of the upper body from the wheel axis [m] 
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
-float full_speed = 107.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 107 RPM @ 12 V] 
+float full_speed = 350.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 350 RPM @ 12 V] 
 float frac = 0.5; // Factor for calculating fraction of the full linear speed
 String mode_prev = "balance", mode_now = "balance"; // To set different modes on the robot
 bool moving_fwd_bck; // This is used for resetting the PID controllers Iterms and lastIinput terms when a stop command is sent if the robot is moving
