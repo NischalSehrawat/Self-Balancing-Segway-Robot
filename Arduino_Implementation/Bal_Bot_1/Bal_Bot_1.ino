@@ -29,7 +29,7 @@ float avg_pt = 5.0;  // Number of points used for exponentially averaging the RP
 short PPR = 330; // Number of pulses per revolution of the encoder (for a gearbox 1:30, this value is 330 seen from the website)
 /*To correct for the difference between the speeds of the motors, We can use a PID controller here to make corrections, 
 but that would unncessarily complicate things. A simple constant correction factor gives good results*/
-float motor_cor_fac = 0.965; 
+float motor_cor_fac = 0.95; 
 float Final_Rpm_r, Final_Rpm_l; // Motor final averaged out RPM, units can be selected while calling get_RPM function
 My_Motors Rmot(&Final_Rpm_r, rpm_limit, avg_pt, PPR); // Right motor object for calculating rotational velocities from encoder data
 My_Motors Lmot(&Final_Rpm_l, rpm_limit, avg_pt, PPR); // Left motor object for calculating rotational velocities from encoder data
@@ -40,7 +40,7 @@ Encoder myEnc_l(L_enc_pin1, L_enc_pin2); // Make encoder objects to calculate mo
 
 double Input_bal, Output_bal, Setpoint_bal; // Input output and setpoint variables defined
 double Out_min_bal = -255, Out_max_bal = 255; // PID Output limits, this is the output PWM value
-double Kp_bal = 24.0, Ki_bal = 0.0, Kd_bal = 0.60; // Initializing the Proportional, integral and derivative gain constants
+double Kp_bal = 20.0, Ki_bal = 0.0, Kd_bal = 0.60; // Initializing the Proportional, integral and derivative gain constants
 double Output_lower_bal = 30.0; // PWM Limit at which the motors actually start to move
 PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON_E, DIRECT); // PID Controller for balancing
 
@@ -48,7 +48,7 @@ PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON
 
 double Input_trans, Output_trans, Setpoint_trans; // Input output and setpoint variables defined
 double Out_min_trans = -15, Out_max_trans = 15; // PID Output limits, this output is in degrees
-double Kp_trans = 30.0, Ki_trans = 0.0, Kd_trans = 0.00; // Initializing the Proportional, integral and derivative gain constants
+double Kp_trans = 15.0, Ki_trans = 0.0, Kd_trans = 0.00; // Initializing the Proportional, integral and derivative gain constants
 PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, Kd_trans, P_ON_E, DIRECT); // PID Controller for translating
 double Imax = 2.0; // Maximum limit upto which Iterm can rise 
 
@@ -85,11 +85,11 @@ void setup() {
         
 //  bal_PID.SetSampleTime(t_loop); // Set Loop time for PID [milliseconds]    
     bal_PID.SetMode(AUTOMATIC); // Set PID mode to Automatic
-    bal_PID.SetTunings(Kp_bal, Ki_bal, Kd_bal);    
     bal_PID.SetOutputLimits(Out_min_bal, Out_max_bal); // Set upper and lower limits for the maximum output limits for PID loop
     
     ////////////////////////// TRANSLATION PID initialization ////////////////////////////////////////////////////////        
-    
+
+    trans_PID.SetSampleTime(t_loop); // Set Loop time for PID [milliseconds]
     trans_PID.SetMode(AUTOMATIC); // Set PID mode to Automatic        
     trans_PID.SetOutputLimits(Out_min_trans, Out_max_trans); // Set upper and lower limits for the maximum output limits for PID loop
   
@@ -252,8 +252,8 @@ void read_BT(){
     if(c =='0'){mode_now = "go bck";Serial.print(mode_now);}
     else if (c =='1'){mode_now = "go fwd";Serial.print(mode_now);}
     else if(c=='2'){mode_now = "stop";Serial.print(mode_now);}
-    else if (c =='3'){Kp_bal+=1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
-    else if(c=='4'){Kp_bal-= 1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
+    else if (c =='3'){Kp_trans+=1.0;Serial.print("Kp_trans = "+String(Kp_trans));}
+    else if(c=='4'){Kp_trans-= 1.0;Serial.print("Kp_trans = "+String(Kp_trans));}
     else if (c =='5'){Kd_bal+=0.1;Serial.print("Kd_bal = "+String(Kd_bal));}
     else if(c=='6'){Kd_bal-=0.1;Serial.print("Kd_bal = "+String(Kd_bal));}
     else if (c =='7'){Kp_trans+=1.0;Serial.print("Kp_trans = "+String(Kp_trans));}
