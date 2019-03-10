@@ -19,8 +19,7 @@ The main aim of the project is to learn about the following topics
 
 ## Implementation on Arduino: Problems, findings and solutions.
 
-
-![img_20190308_083932](https://user-images.githubusercontent.com/33701903/54019796-63606780-418c-11e9-997a-db5a4cf3bde8.jpg)
+![IMG_20190310_165336_Bokeh](https://user-images.githubusercontent.com/33701903/54087989-3c0ac580-4359-11e9-92f2-298b7dcfcb00.jpg)
 
 A lot of problems were encountered and solved during the implementation on a microcontroller. Problems / findings are listed below in decreasing order of importance.
 
