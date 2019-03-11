@@ -24,7 +24,7 @@ short Lmot3 = 6; // Pins for Right motor PWM
 short R_enc_pin1 = 2; short R_enc_pin2 = 3; // right motor encoder pins
 short L_enc_pin1 = 18;  short L_enc_pin2 = 19; // left motor encoder pins 
 
-float rpm_limit = 5.0; // RPM below this is considered 0, this value is in RPM and NOT [rad/s]
+float rpm_limit = 3.0; // RPM below this is considered 0, this value is in RPM and NOT [rad/s]
 float avg_pt = 5.0;  // Number of points used for exponentially averaging the RPM signal
 short PPR = 330; // Number of pulses per revolution of the encoder (for a gearbox 1:30, this value is 330 seen from the website)
 /*To correct for the difference between the speeds of the motors, We can use a PID controller here to make corrections, 
@@ -40,7 +40,7 @@ Encoder myEnc_l(L_enc_pin1, L_enc_pin2); // Make encoder objects to calculate mo
 
 double Input_bal, Output_bal, Setpoint_bal; // Input output and setpoint variables defined
 double Out_min_bal = -255, Out_max_bal = 255; // PID Output limits, this is the output PWM value
-double Kp_bal = 20.0, Ki_bal = 0.0, Kd_bal = 0.60; // Initializing the Proportional, integral and derivative gain constants
+double Kp_bal = 24.0, Ki_bal = 0.0, Kd_bal = 0.60; // Initializing the Proportional, integral and derivative gain constants
 double Output_lower_bal = 30.0; // PWM Limit at which the motors actually start to move
 PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON_E, DIRECT); // PID Controller for balancing
 
@@ -48,7 +48,7 @@ PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON
 
 double Input_trans, Output_trans, Setpoint_trans; // Input output and setpoint variables defined
 double Out_min_trans = -15, Out_max_trans = 15; // PID Output limits, this output is in degrees
-double Kp_trans = 15.0, Ki_trans = 0.0, Kd_trans = 0.00; // Initializing the Proportional, integral and derivative gain constants
+double Kp_trans = 10.0, Ki_trans = 0.0, Kd_trans = 0.00; // Initializing the Proportional, integral and derivative gain constants
 PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, Kd_trans, P_ON_E, DIRECT); // PID Controller for translating
 double Imax = 2.0; // Maximum limit upto which Iterm can rise 
 
@@ -126,7 +126,7 @@ void loop() {
     if (mode_now == "go fwd"){Setpoint_trans = frac * full_speed;}
     else if (mode_now == "go bck"){Setpoint_trans = -frac * full_speed;}
     else if (mode_now == "balance"){Setpoint_trans = 0.0;}
-	
+  
     Input_trans = V_trans; // Measured value / Input value
     trans_PID.Compute(); // Compute Output_trans of the 1st loop    
 
