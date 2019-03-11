@@ -123,10 +123,9 @@ void loop() {
     float V_trans = V_whl;// Calculate the total Robot linear translation velocity [m/s]
     
     ////////////////////////////////////////// COMPUTE BALANCING PID OUTPUT/ //////////////////////////////////////////////////
-    
-	if (mode_now == "go fwd"){Setpoint_trans = frac * full_speed;}
-	else if (mode_now == "go bck"){Setpoint_trans = -frac * full_speed;}
-	else if (mode_now == "balance"){Setpoint_trans = 0.0;}
+    if (mode_now == "go fwd"){Setpoint_trans = frac * full_speed;}
+    else if (mode_now == "go bck"){Setpoint_trans = -frac * full_speed;}
+    else if (mode_now == "balance"){Setpoint_trans = 0.0;}
 	
     Input_trans = V_trans; // Measured value / Input value
     trans_PID.Compute(); // Compute Output_trans of the 1st loop    
