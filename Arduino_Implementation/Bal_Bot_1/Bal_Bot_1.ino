@@ -123,7 +123,11 @@ void loop() {
     float V_trans = V_whl;// Calculate the total Robot linear translation velocity [m/s]
     
     ////////////////////////////////////////// COMPUTE BALANCING PID OUTPUT/ //////////////////////////////////////////////////
-    Setpoint_trans = 0.0;
+    
+	if (mode_now == "go fwd"){Setpoint_trans = frac * full_speed;}
+	else if (mode_now == "go bck"){Setpoint_trans = -frac * full_speed;}
+	else if (mode_now == "balance"){Setpoint_trans = 0.0;}
+	
     Input_trans = V_trans; // Measured value / Input value
     trans_PID.Compute(); // Compute Output_trans of the 1st loop    
 
@@ -134,8 +138,8 @@ void loop() {
 //    bal_PID.Compute();  
     Output_bal = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal); // Map the computed output from Out_min to Outmax Output_lower_bal
 
-    if (abs(error_bal)<0.2 && mode_now == "balance"){Output_bal = 0.0;}
-    if (abs(error_bal)>=fall_angle){
+    if (abs(error_bal)<0.2 && mode_now == "balance"){Output_bal = 0.0;} // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg
+    if (abs(error_bal)>=fall_angle){ // If error_bal > fall_angle, this means robot has fallen down and we need to stop the motors
        Output_bal = 0.0; // Stop the robot
        trans_PID.Reset_Iterm(); // Now initialise the controller to make the sumintegral terms and lastinput terms to "0"
        bal_PID.Reset_Iterm();
