@@ -11,7 +11,7 @@ plt.close("all")
 
 t_sim = 10; # Total simulation time [s]
 
-angle = np.deg2rad(0)
+angle = np.deg2rad(0.5)
 
 IC = [0, angle, 0, 0] # Initial conditions [alpha_dot, alpha, V, theta] 
 
