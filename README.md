@@ -37,4 +37,9 @@ A lot of problems were encountered and solved during the implementation on a mic
 
 ![HCUEV](https://user-images.githubusercontent.com/33701903/54088220-fa2f4e80-435b-11e9-9dd7-16c272d76783.png)
 
+Algorithm to try: Since the robot needs correction to move in a straight line, the following algorithm will be tried out
+
+![Control](https://user-images.githubusercontent.com/33701903/54217804-9ab47880-44ec-11e9-9ca5-8b65ceeb794e.PNG)
+
+
 - **Connecting Arduino to RaspberryPi**: It is very frustrating to connect the Arduino to the computer with a USB cable each time some piece of code needs to be updated. Therefore, it is very hand to install a RaspberryPi and connect the Arduino to it so that by using **VNC viewer** or **TeamViewer**, we can remotely log into the RaspberryPi and program the Arduino. But is it very important that you donot install the Arduino IDE from the command line using **sudo apt-get install arduino** because this throws a lot of errors and even the simplest codes (like blink) donto get uploaded to the Arduino. Therefore we need to install Arduino IDE using [this link](https://www.raspberrypi.org/magpi/program-arduino-uno-raspberry-pi/). After this it works perfectly fine.
