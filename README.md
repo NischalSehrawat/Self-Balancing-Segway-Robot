@@ -37,7 +37,7 @@ A lot of problems were encountered and solved during the implementation on a mic
 
 ![HCUEV](https://user-images.githubusercontent.com/33701903/54088220-fa2f4e80-435b-11e9-9dd7-16c272d76783.png)
 
-Algorithm to try: Since the robot needs correction to move in a straight line, the following algorithm will be tried out
+- **Straighline Correction**: Since the robot needs correction to move in a straight line, the following algorithm will be tried out
 
 ![Control](https://user-images.githubusercontent.com/33701903/54217804-9ab47880-44ec-11e9-9ca5-8b65ceeb794e.PNG)
 
