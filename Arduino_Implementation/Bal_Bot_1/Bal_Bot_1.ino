@@ -24,8 +24,8 @@ short Lmot3 = 6; // Pins for Right motor PWM
 short R_enc_pin1 = 2; short R_enc_pin2 = 3; // right motor encoder pins
 short L_enc_pin1 = 18;  short L_enc_pin2 = 19; // left motor encoder pins 
 
-float rpm_limit = 3.0; // RPM below this is considered 0, this value is in RPM and NOT [rad/s]
-float avg_pt = 5.0;  // Number of points used for exponentially averaging the RPM signal
+float rpm_limit = 1.0; // RPM below this is considered 0, this value is in RPM and NOT [rad/s]
+float avg_pt = 10.0;  // Number of points used for exponentially averaging the RPM signal
 short PPR = 330; // Number of pulses per revolution of the encoder (for a gearbox 1:30, this value is 330 seen from the website)
 /*To correct for the difference between the speeds of the motors, We can use a PID controller here to make corrections, 
 but that would unncessarily complicate things. A simple constant correction factor gives good results*/
