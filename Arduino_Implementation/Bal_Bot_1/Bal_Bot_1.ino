@@ -24,12 +24,12 @@ short Lmot3 = 6; // Pins for Right motor PWM
 short R_enc_pin1 = 2; short R_enc_pin2 = 3; // right motor encoder pins
 short L_enc_pin1 = 18;  short L_enc_pin2 = 19; // left motor encoder pins 
 
-float rpm_limit = 3.0; // RPM below this is considered 0, this value is in RPM and NOT [rad/s]
-float avg_pt = 5.0;  // Number of points used for exponentially averaging the RPM signal
+float rpm_limit = 1.0; // RPM below this is considered 0, this value is in RPM and NOT [rad/s]
+float avg_pt = 10.0;  // Number of points used for exponentially averaging the RPM signal
 short PPR = 330; // Number of pulses per revolution of the encoder (for a gearbox 1:30, this value is 330 seen from the website)
 /*To correct for the difference between the speeds of the motors, We can use a PID controller here to make corrections, 
 but that would unncessarily complicate things. A simple constant correction factor gives good results*/
-float motor_cor_fac = 0.95; 
+float motor_cor_fac = 0.98; 
 float Final_Rpm_r, Final_Rpm_l; // Motor final averaged out RPM, units can be selected while calling get_RPM function
 My_Motors Rmot(&Final_Rpm_r, rpm_limit, avg_pt, PPR); // Right motor object for calculating rotational velocities from encoder data
 My_Motors Lmot(&Final_Rpm_l, rpm_limit, avg_pt, PPR); // Left motor object for calculating rotational velocities from encoder data
@@ -40,7 +40,7 @@ Encoder myEnc_l(L_enc_pin1, L_enc_pin2); // Make encoder objects to calculate mo
 
 double Input_bal, Output_bal, Setpoint_bal; // Input output and setpoint variables defined
 double Out_min_bal = -255, Out_max_bal = 255; // PID Output limits, this is the output PWM value
-double Kp_bal = 24.0, Ki_bal = 0.0, Kd_bal = 0.60; // Initializing the Proportional, integral and derivative gain constants
+double Kp_bal = 26.0, Ki_bal = 0.0, Kd_bal = 0.60; // Initializing the Proportional, integral and derivative gain constants
 double Output_lower_bal = 30.0; // PWM Limit at which the motors actually start to move
 PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON_E, DIRECT); // PID Controller for balancing
 
@@ -48,7 +48,7 @@ PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON
 
 double Input_trans, Output_trans, Setpoint_trans; // Input output and setpoint variables defined
 double Out_min_trans = -15, Out_max_trans = 15; // PID Output limits, this output is in degrees
-double Kp_trans = 10.0, Ki_trans = 0.0, Kd_trans = 0.00; // Initializing the Proportional, integral and derivative gain constants
+double Kp_trans = 5.0, Ki_trans = 0.0, Kd_trans = 0.00; // Initializing the Proportional, integral and derivative gain constants
 PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, Kd_trans, P_ON_E, DIRECT); // PID Controller for translating
 double Imax = 2.0; // Maximum limit upto which Iterm can rise 
 
@@ -58,7 +58,8 @@ float r_whl = 0.5 * 0.130; // Wheel radius [m]
 float l_cog = 0.01075; // Distance of the center of gravity of the upper body from the wheel axis [m] 
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 float full_speed = 350.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 350 RPM @ 12 V] 
-float frac = 0.5; // Factor for calculating fraction of the full linear speed
+float frac = 0.45; // Factor for calculating fraction of the full linear speed
+float speed_steps = 0.08; // Steps in which speed should be incremented in order to get to the full speed
 String mode_prev = "balance", mode_now = "balance"; // To set different modes on the robot
 bool moving_fwd_bck; // This is used for resetting the PID controllers Iterms and lastIinput terms when a stop command is sent if the robot is moving
 
@@ -123,9 +124,27 @@ void loop() {
     float V_trans = V_whl;// Calculate the total Robot linear translation velocity [m/s]
     
     ////////////////////////////////////////// COMPUTE BALANCING PID OUTPUT/ //////////////////////////////////////////////////
-    if (mode_now == "go fwd"){Setpoint_trans = frac * full_speed;}
-    else if (mode_now == "go bck"){Setpoint_trans = -frac * full_speed;}
-    else if (mode_now == "balance"){Setpoint_trans = 0.0;}
+    if (mode_now == "go fwd"){
+      Setpoint_trans = Setpoint_trans + speed_steps;
+      mode_prev = "go fwd";
+      if (Setpoint_trans > frac * full_speed){Setpoint_trans = frac * full_speed;}
+    }
+    else if (mode_now == "go bck"){
+      mode_prev = "go bck";
+      Setpoint_trans = Setpoint_trans - speed_steps;
+      if (Setpoint_trans < -frac * full_speed){Setpoint_trans = -frac * full_speed;}
+      }
+    else if (mode_now == "balance"){
+      if (mode_prev == "go fwd"){
+        Setpoint_trans = Setpoint_trans - speed_steps;
+        if (Setpoint_trans<0.0){Setpoint_trans = 0.0;}
+        }
+      else if (mode_prev == "go bck"){
+        Setpoint_trans = Setpoint_trans + speed_steps;
+        if (Setpoint_trans>0.0){Setpoint_trans = 0.0;}
+        }
+      else if (mode_prev == "balance"){Setpoint_trans = 0.0;} 
+      }
   
     Input_trans = V_trans; // Measured value / Input value
     trans_PID.Compute(); // Compute Output_trans of the 1st loop    
@@ -142,7 +161,8 @@ void loop() {
        Output_bal = 0.0; // Stop the robot
        trans_PID.Reset_Iterm(); // Now initialise the controller to make the sumintegral terms and lastinput terms to "0"
        bal_PID.Reset_Iterm();
-       mode_now == "balance"; // Change mode to balance
+       mode_now = "balance"; // Change mode to balance
+       mode_now = "balance"; // Change mode to balance
        }       
     mot_cont(error_bal, Output_bal); // Apply the calculated output to control the motor
     Blink_Led(); // Blink the LED
@@ -255,8 +275,8 @@ void read_BT(){
     if(c =='0'){mode_now = "go bck";Serial.print(mode_now);}
     else if (c =='1'){mode_now = "go fwd";Serial.print(mode_now);}
     else if(c=='2'){mode_now = "stop";Serial.print(mode_now);}
-    else if (c =='3'){Kp_trans+=1.0;Serial.print("Kp_trans = "+String(Kp_trans));}
-    else if(c=='4'){Kp_trans-= 1.0;Serial.print("Kp_trans = "+String(Kp_trans));}
+    else if (c =='3'){Kp_bal+=1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
+    else if(c=='4'){Kp_bal-= 1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
     else if (c =='5'){Kd_bal+=0.1;Serial.print("Kd_bal = "+String(Kd_bal));}
     else if(c=='6'){Kd_bal-=0.1;Serial.print("Kd_bal = "+String(Kd_bal));}
     else if (c =='7'){Kp_trans+=1.0;Serial.print("Kp_trans = "+String(Kp_trans));}
