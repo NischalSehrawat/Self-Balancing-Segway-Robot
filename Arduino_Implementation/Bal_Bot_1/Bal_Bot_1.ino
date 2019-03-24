@@ -162,7 +162,7 @@ void loop() {
        trans_PID.Reset_Iterm(); // Now initialise the controller to make the sumintegral terms and lastinput terms to "0"
        bal_PID.Reset_Iterm();
        mode_now = "balance"; // Change mode to balance
-       mode_now = "balance"; // Change mode to balance
+       mode_prev = "balance"; // Change mode to balance
        }       
     mot_cont(error_bal, Output_bal); // Apply the calculated output to control the motor
     Blink_Led(); // Blink the LED
