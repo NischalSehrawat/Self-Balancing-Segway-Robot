@@ -27,9 +27,6 @@ short L_enc_pin1 = 18;  short L_enc_pin2 = 19; // left motor encoder pins
 float rpm_limit = 1.0; // RPM below this is considered 0, this value is in RPM and NOT [rad/s]
 float avg_pt = 10.0;  // Number of points used for exponentially averaging the RPM signal
 short PPR = 330; // Number of pulses per revolution of the encoder (for a gearbox 1:30, this value is 330 seen from the website)
-/*To correct for the difference between the speeds of the motors, We can use a PID controller here to make corrections, 
-but that would unncessarily complicate things. A simple constant correction factor gives good results*/
-float motor_cor_fac = 0.98; 
 float Final_Rpm_r, Final_Rpm_l; // Motor final averaged out RPM, units can be selected while calling get_RPM function
 My_Motors Rmot(&Final_Rpm_r, rpm_limit, avg_pt, PPR); // Right motor object for calculating rotational velocities from encoder data
 My_Motors Lmot(&Final_Rpm_l, rpm_limit, avg_pt, PPR); // Left motor object for calculating rotational velocities from encoder data
@@ -54,12 +51,16 @@ double Imax = 2.0; // Maximum limit upto which Iterm can rise
 
 ///////////////////////////////// ROBOT PHYSICAL PROPERTIES ////////////////////////////////////////////
 
+/*To correct for the difference between the speeds of the motors, We can use a PID controller here to make corrections, 
+but that would unncessarily complicate things. A simple constant correction factor gives good results*/
+float motor_cor_fac = 0.98; 
 float r_whl = 0.5 * 0.130; // Wheel radius [m]
 float l_cog = 0.01075; // Distance of the center of gravity of the upper body from the wheel axis [m] 
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 float full_speed = 350.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 350 RPM @ 12 V] 
 float frac = 0.45; // Factor for calculating fraction of the full linear speed
 float speed_steps = 0.08; // Steps in which speed should be incremented in order to get to the full speed
+float brake_steps = 0.04; // Steps in which speed should be decremented in order to apply brakes, the smaller the value, the longer the duration of brake application
 String mode_prev = "balance", mode_now = "balance"; // To set different modes on the robot
 bool moving_fwd_bck; // This is used for resetting the PID controllers Iterms and lastIinput terms when a stop command is sent if the robot is moving
 
@@ -124,24 +125,25 @@ void loop() {
     float V_trans = V_whl;// Calculate the total Robot linear translation velocity [m/s]
     
     ////////////////////////////////////////// COMPUTE BALANCING PID OUTPUT/ //////////////////////////////////////////////////
-    if (mode_now == "go fwd"){
+    
+    if (mode_now == "go fwd"){ // If we changed mode to forward now, start increasing the setpoint slowly to avoid jerky behaviour
       Setpoint_trans = Setpoint_trans + speed_steps;
       mode_prev = "go fwd";
       if (Setpoint_trans > frac * full_speed){Setpoint_trans = frac * full_speed;}
     }
-    else if (mode_now == "go bck"){
+    else if (mode_now == "go bck"){// If we changed mode to backward now, start decreasing the setpoint slowly to avoid jerky behaviour
       mode_prev = "go bck";
       Setpoint_trans = Setpoint_trans - speed_steps;
       if (Setpoint_trans < -frac * full_speed){Setpoint_trans = -frac * full_speed;}
       }
-    else if (mode_now == "balance"){
+    else if (mode_now == "balance"){ // If we changed mode to balance now, we need to apply brakes
       if (mode_prev == "go fwd"){
-        Setpoint_trans = Setpoint_trans - speed_steps;
-        if (Setpoint_trans<0.0){Setpoint_trans = 0.0;}
+        Setpoint_trans = -abs(Setpoint_trans) + brake_steps; // If going in fwd direction, apply brakes by setting the trans setpoint to opposite value
+        if (Setpoint_trans>0.0){Setpoint_trans = 0.0;}
         }
       else if (mode_prev == "go bck"){
-        Setpoint_trans = Setpoint_trans + speed_steps;
-        if (Setpoint_trans>0.0){Setpoint_trans = 0.0;}
+        Setpoint_trans = abs(Setpoint_trans) - brake_steps; // If going in bck direction, apply brakes by setting the trans setpoint to opposite value
+        if (Setpoint_trans<0.0){Setpoint_trans = 0.0;}
         }
       else if (mode_prev == "balance"){Setpoint_trans = 0.0;} 
       }
