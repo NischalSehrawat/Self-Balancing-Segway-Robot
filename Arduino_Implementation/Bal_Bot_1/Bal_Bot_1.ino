@@ -139,11 +139,11 @@ void loop() {
     else if (mode_now == "balance"){ // If we changed mode to balance now, we need to apply brakes
       if (mode_prev == "go fwd"){
         Setpoint_trans = Setpoint_trans - brake_steps; // If going in fwd direction, apply brakes by setting the trans setpoint to opposite value
-        if (Setpoint_trans<=-frac * full_speed){mode_prev == "balance";} // Set mode_prev to balance so that the robot goes to balancing mode totally
+        if (Setpoint_trans<=-frac * full_speed){mode_prev = "balance";} // Set mode_prev to balance so that the robot goes to balancing mode totally
         }
       else if (mode_prev == "go bck"){
         Setpoint_trans = Setpoint_trans + brake_steps; // If going in bck direction, apply brakes by setting the trans setpoint to opposite value
-        if (Setpoint_trans>=frac * full_speed){mode_prev == "balance";} // Set mode_prev to balance so that the robot goes to balancing mode totally
+        if (Setpoint_trans>=frac * full_speed){mode_prev = "balance";} // Set mode_prev to balance so that the robot goes to balancing mode totally
         }
       else if (mode_prev == "balance"){Setpoint_trans = 0.0;} 
       }
