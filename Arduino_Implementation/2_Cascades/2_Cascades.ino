@@ -140,8 +140,7 @@ void loop() {
     Get_Tilt_Angle(); // Update the angle readings to get updated omega_x_calculated, Theta_now
     Lmot.getRPM(myEnc_l.read() / 4.0, "rad/s"); // Get current encoder counts & compute left motor rotational velocity in [rad/s] 
     Rmot.getRPM(myEnc_r.read() / 4.0, "rad/s"); // Get current encoder counts & compute right motor rotational velocity in [rad/s]
-    float V_whl = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl; // Linear translation velocity due to the 2 wheels spinning [m/s]
-    float V_trans = V_whl;// Calculate the total Robot linear translation velocity [m/s]
+    float V_trans = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl; // Linear translation velocity due to the 2 wheels spinning [m/s]
     
     ////////////////////////////////////////// COMPUTE BALANCING PID OUTPUT/ //////////////////////////////////////////////////
     
