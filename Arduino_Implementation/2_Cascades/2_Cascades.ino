@@ -52,7 +52,7 @@ PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, 
 
 double Input_lmot, Output_lmot, Setpoint_lmot; // Input output and setpoint variables defined
 double Out_min_lmot = 0.0, Out_max_lmot = 255; // PID Output limits, this output is the PWM
-double Kp_lmot = 4.85, Ki_lmot = 2.4, Kd_lmot = 0.55; // Initializing the Proportional, integral and derivative gain constants
+double Kp_lmot = 4.78, Ki_lmot = 2.4, Kd_lmot = 0.55; // Initializing the Proportional, integral and derivative gain constants
 PID Lmot_PID(&Input_lmot, &Output_lmot, &Setpoint_lmot, Kp_lmot, Ki_lmot, Kd_lmot, P_ON_E, DIRECT); // PID Controller for left motor
 
 ///////////////////////////////// RIGHT MOTOR SPEED PID parameters ///////////////////////////////////////////////////
@@ -146,12 +146,14 @@ void loop() {
     
     if (mode_now == "go fwd"){ // If we changed mode to forward now, start increasing the setpoint slowly to avoid jerky behaviour
       Setpoint_trans = Setpoint_trans + speed_steps;
+      trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);
       mode_prev = "go fwd";
       if (Setpoint_trans > frac * full_speed){Setpoint_trans = frac * full_speed;}
     }
     else if (mode_now == "go bck"){// If we changed mode to backward now, start decreasing the setpoint slowly to avoid jerky behaviour
       mode_prev = "go bck";
       Setpoint_trans = Setpoint_trans - speed_steps;
+      trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);
       if (Setpoint_trans < -frac * full_speed){Setpoint_trans = -frac * full_speed;}
       }
     else if (mode_now == "balance"){ // If we changed mode to balance now, we need to apply brakes
@@ -163,7 +165,7 @@ void loop() {
         Setpoint_trans = Setpoint_trans + brake_steps; // If going in bck direction, apply brakes by setting the trans setpoint to opposite value
         if (V_trans>=0.0){mode_prev = "balance";} // Set mode_prev to balance so that the robot goes to balancing mode totally
         }
-      else if (mode_prev == "balance"){Setpoint_trans = 0.0;} 
+      else if (mode_prev == "balance"){Setpoint_trans = 0.0; trans_PID.SetTunings(3.0 * Kp_trans, Ki_trans, Kd_trans);} // Set increased tunings to apply brakes
       }
   
     Input_trans = V_trans; // Measured value / Input value
