@@ -55,14 +55,14 @@ double Imax = 2.0; // Maximum limit upto which Iterm can rise
 double Input_lmot, Output_lmot, Setpoint_lmot; // Input output and setpoint variables defined
 double Out_min_lmot = 0.0, Out_max_lmot = 255; // PID Output limits, this output is the PWM
 double Kp_lmot = 4.8, Ki_lmot = 2.4, Kd_lmot = 0.55; // Initializing the Proportional, integral and derivative gain constants
-PID Lmot_PID(&Input_lmot, &Output_lmot, &Setpoint_lmot, Kp_lmot, Ki_lmot, Kd_lmot, P_ON_E, DIRECT); // PID Controller for translating
+PID Lmot_PID(&Input_lmot, &Output_lmot, &Setpoint_lmot, Kp_lmot, Ki_lmot, Kd_lmot, P_ON_E, DIRECT); // PID Controller for left motor
 
 ///////////////////////////////// RIGHT MOTOR SPEED PID parameters ///////////////////////////////////////////////////
 
 double Input_rmot, Output_rmot, Setpoint_rmot; // Input output and setpoint variables defined
 double Out_min_rmot = 0.0, Out_max_rmot = 255; // PID Output limits, this output is the PWM
 double Kp_rmot = 4.8, Ki_rmot = 2.4, Kd_rmot = 0.55; // Initializing the Proportional, integral and derivative gain constants
-PID Rmot_PID(&Input_rmot, &Output_rmot, &Setpoint_rmot, Kp_rmot, Ki_rmot, Kd_rmot, P_ON_E, DIRECT); // PID Controller for translating
+PID Rmot_PID(&Input_rmot, &Output_rmot, &Setpoint_rmot, Kp_rmot, Ki_rmot, Kd_rmot, P_ON_E, DIRECT); // PID Controller for right motor
 
 ///////////////////////////////// ROBOT PHYSICAL PROPERTIES ////////////////////////////////////////////
 
@@ -133,7 +133,9 @@ void loop() {
 
   t_loop_now = millis();
   dt_loop = t_loop_now - t_loop_prev; // Calculate time change since last loop [millis]
+  
   /*Begin the main computing loop, enter the loop only if the minimum loop time is elapsed*/
+  
   if (dt_loop>=t_loop){  
   
     read_BT(); // Read data from the bluetooth
