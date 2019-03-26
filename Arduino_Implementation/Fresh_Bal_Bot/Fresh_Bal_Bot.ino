@@ -186,7 +186,7 @@ void loop() {
 	Setpoint_lmot = abs(Output_bal);Setpoint_rmot = abs(Output_bal); // Set motor setpoint
 	Input_lmot = abs(Final_Rpm_l);Input_rmot = abs(Final_Rpm_r); // Set motor PID inputs
 	/*If these errors are of opposite signs, then the motor must change rotation direction and the accumulated errors must be reset*/
-	if (error_now * error_prev <0){Lmot_PID.Reset_Iterm();Rmot_PID.Reset_Iterm();} 
+	if (error_now * error_prev <0.0){Lmot_PID.Reset_Iterm();Rmot_PID.Reset_Iterm();} 
 	Lmot_PID.Compute(); Rmot_PID.Compute(); // Compute motor PID output
 	
     if (abs(error_now)>=fall_angle){ // If error_bal > fall_angle, this means robot has fallen down and we need to stop the motors
