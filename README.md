@@ -43,3 +43,4 @@ A lot of problems were encountered and solved during the implementation on a mic
 +Algorithm to try: Since the robot needs correction to move in a straight line, the following algorithm will be tried out
 
 ![Control](https://user-images.githubusercontent.com/33701903/54217804-9ab47880-44ec-11e9-9ca5-8b65ceeb794e.PNG)
+
