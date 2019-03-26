@@ -37,7 +37,7 @@ Encoder myEnc_l(L_enc_pin1, L_enc_pin2); // Make encoder objects to calculate mo
 
 float error_now, error_prev; // To control to direction of motor rotation
 double Input_bal, Output_bal, Setpoint_bal; // Input output and setpoint variables defined
-double Out_min_bal = -350, Out_max_bal = 350; // PID Output limits, this is the output PWM value
+double Out_min_bal = -350, Out_max_bal = 350; // PID Output limits, this is the output motor RPM value
 double Kp_bal = 22.0, Ki_bal = 0.0, Kd_bal = 0.60; // Initializing the Proportional, integral and derivative gain constants
 double Output_lower_bal = 30.0; // PWM Limit at which the motors actually start to move
 PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON_E, DIRECT); // PID Controller for balancing
@@ -53,22 +53,19 @@ double Imax = 2.0; // Maximum limit upto which Iterm can rise
 ///////////////////////////////// LEFT MOTOR SPEED PID parameters ///////////////////////////////////////////////////
 
 double Input_lmot, Output_lmot, Setpoint_lmot; // Input output and setpoint variables defined
-double Out_min_lmot = 0.0, Out_max_lmot = 255; // PID Output limits, this output is in degrees
+double Out_min_lmot = 0.0, Out_max_lmot = 255; // PID Output limits, this output is the PWM
 double Kp_lmot = 4.8, Ki_lmot = 2.4, Kd_lmot = 0.55; // Initializing the Proportional, integral and derivative gain constants
 PID Lmot_PID(&Input_lmot, &Output_lmot, &Setpoint_lmot, Kp_lmot, Ki_lmot, Kd_lmot, P_ON_E, DIRECT); // PID Controller for translating
 
 ///////////////////////////////// RIGHT MOTOR SPEED PID parameters ///////////////////////////////////////////////////
 
 double Input_rmot, Output_rmot, Setpoint_rmot; // Input output and setpoint variables defined
-double Out_min_rmot = 0.0, Out_max_rmot = 255; // PID Output limits, this output is in degrees
+double Out_min_rmot = 0.0, Out_max_rmot = 255; // PID Output limits, this output is the PWM
 double Kp_rmot = 4.8, Ki_rmot = 2.4, Kd_rmot = 0.55; // Initializing the Proportional, integral and derivative gain constants
 PID Rmot_PID(&Input_rmot, &Output_rmot, &Setpoint_rmot, Kp_rmot, Ki_rmot, Kd_rmot, P_ON_E, DIRECT); // PID Controller for translating
 
 ///////////////////////////////// ROBOT PHYSICAL PROPERTIES ////////////////////////////////////////////
 
-/*To correct for the difference between the speeds of the motors, We can use a PID controller here to make corrections, 
-but that would unncessarily complicate things. A simple constant correction factor gives good results*/
-float motor_cor_fac = 0.98; 
 float r_whl = 0.5 * 0.130; // Wheel radius [m]
 float l_cog = 0.01075; // Distance of the center of gravity of the upper body from the wheel axis [m] 
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
@@ -77,7 +74,6 @@ float frac = 0.30; // Factor for calculating fraction of the full linear speed
 float speed_steps = 0.08; // Steps in which speed should be incremented in order to get to the full speed
 float brake_steps = 0.02; // Steps in which speed should be decremented in order to apply brakes, the smaller the value, the longer the duration of brake application
 String mode_prev = "balance", mode_now = "balance"; // To set different modes on the robot
-bool moving_fwd_bck; // This is used for resetting the PID controllers Iterms and lastIinput terms when a stop command is sent if the robot is moving
 
 ////////////// LED BLINKING PARAMETERS/////////////////////////
 
