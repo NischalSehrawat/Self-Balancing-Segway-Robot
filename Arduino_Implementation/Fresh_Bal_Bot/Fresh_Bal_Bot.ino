@@ -182,9 +182,7 @@ void loop() {
     bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor PWM using balancing PID
 	
 	Setpoint_lmot = abs(Output_bal);Setpoint_rmot = abs(Output_bal); // Set motor setpoint
-	
 	Input_lmot = abs(Final_Rpm_l);Input_rmot = abs(Final_Rpm_r);
-	
 	Lmot_PID.Compute(); Rmot_PID.Compute();
 	
     if (abs(error_now)<0.2 && mode_now == "balance"){Output_bal = 0.0;} // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg
