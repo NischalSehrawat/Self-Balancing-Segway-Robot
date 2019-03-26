@@ -105,8 +105,8 @@ void setup() {
     trans_PID.SetSampleTime(t_loop); // Set Loop time for PID [milliseconds]
     trans_PID.SetMode(AUTOMATIC); // Set PID mode to Automatic        
     trans_PID.SetOutputLimits(Out_min_trans, Out_max_trans); // Set upper and lower limits for the maximum output limits for PID loop
-	
-	////////////////////////// MOTOR PID initialization ////////////////////////////////////////////////////////        
+
+    ////////////////////////// MOTOR PID initialization ////////////////////////////////////////////////////////        
 
     Lmot_PID.SetSampleTime(t_loop); // Set Loop time for PID [milliseconds]
     Lmot_PID.SetMode(AUTOMATIC); // Set PID mode to Automatic        
