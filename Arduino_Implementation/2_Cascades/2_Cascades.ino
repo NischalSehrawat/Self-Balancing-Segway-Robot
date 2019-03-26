@@ -52,7 +52,7 @@ PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, 
 
 double Input_lmot, Output_lmot, Setpoint_lmot; // Input output and setpoint variables defined
 double Out_min_lmot = 0.0, Out_max_lmot = 255; // PID Output limits, this output is the PWM
-double Kp_lmot = 5.0, Ki_lmot = 2.4, Kd_lmot = 0.55; // Initializing the Proportional, integral and derivative gain constants
+double Kp_lmot = 4.85, Ki_lmot = 2.4, Kd_lmot = 0.55; // Initializing the Proportional, integral and derivative gain constants
 PID Lmot_PID(&Input_lmot, &Output_lmot, &Setpoint_lmot, Kp_lmot, Ki_lmot, Kd_lmot, P_ON_E, DIRECT); // PID Controller for left motor
 
 ///////////////////////////////// RIGHT MOTOR SPEED PID parameters ///////////////////////////////////////////////////
@@ -157,10 +157,7 @@ void loop() {
     else if (mode_now == "balance"){ // If we changed mode to balance now, we need to apply brakes
       if (mode_prev == "go fwd"){
         Setpoint_trans = Setpoint_trans - brake_steps; // If going in fwd direction, apply brakes by setting the trans setpoint to opposite value
-        if ((V_trans > 0.0) & (V_trans / (frac * full_speed))<=0.20){ // if velcity is still +ve and it has reduced to 5% of the actual speed, reduce the gains for cushioning effect
-          bal_PID.SetTunings(0.2*Kp_bal, Ki_bal, Kd_bal);
-          if (-1.0<=(Theta_now + Theta_correction)<=1.0){bal_PID.SetTunings(Kp_bal, Ki_bal, Kd_bal);mode_prev = "balance";}
-           } 
+        if (V_trans<=0.0){mode_prev = "balance";} // Set mode_prev to balance so that the robot goes to balancing mode totally
         }
       else if (mode_prev == "go bck"){
         Setpoint_trans = Setpoint_trans + brake_steps; // If going in bck direction, apply brakes by setting the trans setpoint to opposite value
