@@ -184,22 +184,27 @@ void loop() {
 	if (abs(error_now)<0.2 && mode_now == "balance"){Output_bal = 0.0;} // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg
 
 	Setpoint_lmot = abs(Output_bal);Setpoint_rmot = abs(Output_bal); // Set motor setpoint
-	Input_lmot = abs(Final_Rpm_l);Input_rmot = abs(Final_Rpm_r);
-	Lmot_PID.Compute(); Rmot_PID.Compute();
+	Input_lmot = abs(Final_Rpm_l);Input_rmot = abs(Final_Rpm_r); // Set motor PID inputs
+	/*If these errors are of opposite signs, then the motor must change rotation direction and the accumulated errors must be reset*/
+	if (error_now * error_prev <0){Lmot_PID.Reset_Iterm();Rmot_PID.Reset_Iterm();} 
+	Lmot_PID.Compute(); Rmot_PID.Compute(); // Compute motor PID output
 	
     if (abs(error_now)>=fall_angle){ // If error_bal > fall_angle, this means robot has fallen down and we need to stop the motors
-       
-	   trans_PID.Reset_Iterm(); // Now initialise the controller to make the sumintegral terms and lastinput terms to "0"
+       /*Reset Iterm for all controllers*/
+	   trans_PID.Reset_Iterm(); 
        bal_PID.Reset_Iterm();
 	   Lmot_PID.Reset_Iterm();
 	   Rmot_PID.Reset_Iterm();
-	   Output_lmot = 0.0; Output_rmot = 0.0; 
-       mode_now = "balance"; // Change mode to balance
+	   /*Stop both the motors*/
+	   Output_lmot = 0.0; 
+	   Output_rmot = 0.0; 
+       /*Change modes to balancing */
+	   mode_now = "balance"; // Change mode to balance
        mode_prev = "balance"; // Change mode to balance
        }       
     mot_cont(); // Apply the calculated output to control the motor
     Blink_Led(); // Blink the LED
-	error_prev = error_now;
+	error_prev = error_now; // Store errors as they are used for deciding motor rotation direction
     t_loop_prev = t_loop_now; // Set prev loop time equal to current loop time for calculating dt for next loop        
   }  
 }
@@ -262,8 +267,7 @@ void get_MPU_data(){
 ///////////////////////// Function for motor control ////////////////////////////////////////////////////////
 
 void mot_cont(){
-/*If these errors are of opposite signs, then the motor must change rotation direction and the accumulated errors must be reset*/
-  if (error_now * error_prev <0){Lmot_PID.Reset_Iterm();Rmot_PID.Reset_Iterm();} 
+
   if (error_now>0){fwd_bot();}  
   else if (error_now<0){back_bot();}
 }
