@@ -38,7 +38,7 @@ Encoder myEnc_l(L_enc_pin1, L_enc_pin2); // Make encoder objects to calculate mo
 float error_now, error_prev; // To control to direction of motor rotation
 double Input_bal, Output_bal, Setpoint_bal; // Input output and setpoint variables defined
 double Out_min_bal = -350, Out_max_bal = 350; // PID Output limits, this is the output motor RPM value
-double Kp_bal = 12.0, Ki_bal = 0.0, Kd_bal = 0.2; // Initializing the Proportional, integral and derivative gain constants
+double Kp_bal = 10.0, Ki_bal = 0.0, Kd_bal = 0.2; // Initializing the Proportional, integral and derivative gain constants
 PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON_E, DIRECT); // PID Controller for balancing
 
 ///////////////////////////////// TRANSLATION PID parameters ///////////////////////////////////////////////////
@@ -68,9 +68,9 @@ float r_whl = 0.5 * 0.130; // Wheel radius [m]
 float l_cog = 0.01075; // Distance of the center of gravity of the upper body from the wheel axis [m] 
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 float full_speed = 350.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 350 RPM @ 12 V] 
-float frac = 0.45; // Factor for calculating fraction of the full linear speed
+float frac = 0.50; // Factor for calculating fraction of the full linear speed
 float speed_steps = 0.08; // Steps in which speed should be incremented in order to get to the full speed
-float brake_steps = 0.03; // Steps in which speed should be decremented in order to apply brakes, the smaller the value, the longer the duration of brake application
+float brake_steps = 0.04; // Steps in which speed should be decremented in order to apply brakes, the smaller the value, the longer the duration of brake application
 String mode_prev = "balance", mode_now = "balance"; // To set different modes on the robot
 
 ////////////// LED BLINKING PARAMETERS/////////////////////////
@@ -190,7 +190,6 @@ void loop() {
     Lmot_PID.Compute(); Rmot_PID.Compute(); // Compute Output_lmot and Output_rmot
     
     }
-
     
     if (abs(error_now)>=fall_angle){ // If error_bal > fall_angle, this means robot has fallen down and we need to stop the motors
       Output_lmot = 0.0; Output_rmot = 0.0; // Stop the robot
