@@ -142,7 +142,6 @@ void loop() {
     Lmot.getRPM(myEnc_l.read() / 4.0, "rad/s"); // Get current encoder counts & compute left motor rotational velocity in [rad/s] 
     Rmot.getRPM(myEnc_r.read() / 4.0, "rad/s"); // Get current encoder counts & compute right motor rotational velocity in [rad/s]
     float V_whl = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl; // Linear translation velocity due to the 2 wheels spinning [m/s]
-    float V_cog = omega_x_calculated * l_cog * deg2rad; // Linear translation velocity of the COG due to angular falling speed [m/s]
     float V_trans = V_whl;// Calculate the total Robot linear translation velocity [m/s]
     
     ////////////////////////////////////////// COMPUTE BALANCING PID OUTPUT/ //////////////////////////////////////////////////
@@ -175,22 +174,28 @@ void loop() {
     Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
     Input_bal = Theta_now + Theta_correction; // Set Theta_now as the input / current value to the PID algorithm (The correction is added to correct for the error in MPU calculated angle)             
     error_now = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction      
-    bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor PWM using balancing PID
+    bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor RPM using balancing PID
     
-    if (abs(error_now)<0.2 && mode_now == "balance"){Output_bal = 0.0;} // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg
-
-    Setpoint_lmot = abs(Output_bal);Setpoint_rmot = abs(Output_bal); // Set motor setpoint
-    Input_lmot = abs(Final_Rpm_l);Input_rmot = abs(Final_Rpm_r);
+    // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg
+    if (abs(error_now)<0.2 && mode_now == "balance"){Output_lmot = 0.0; Output_rmot = 0.0;}    
+    else {
+    Setpoint_lmot = abs(Output_bal);
+    Setpoint_rmot = abs(Output_bal); // Set motor srpm setpoints
+    Input_lmot = abs(Final_Rpm_l); // Set motor rpm inputs
+    Input_rmot = abs(Final_Rpm_r);
     
-    /*If these errors are of opposite signs, then the 
+    /*If error_now and error_prev are of opposite signs, then the 
     motor must change rotation direction and the accumulated errors must be reset*/
     
-    if (error_now * error_prev <0){Lmot_PID.Reset_Iterm();Rmot_PID.Reset_Iterm();} 
+    if (error_now * error_prev <0){Lmot_PID.Reset_Iterm();Rmot_PID.Reset_Iterm();}
+  
+    Lmot_PID.Compute(); Rmot_PID.Compute(); // Compute Output_lmot and Output_rmot
     
-    Lmot_PID.Compute(); Rmot_PID.Compute();
+    }
+
     
     if (abs(error_now)>=fall_angle){ // If error_bal > fall_angle, this means robot has fallen down and we need to stop the motors
-      Output_bal = 0.0; // Stop the robot
+      Output_lmot = 0.0; Output_rmot = 0.0; // Stop the robot
       trans_PID.Reset_Iterm(); // Now initialise the controller to make the sumintegral terms and lastinput terms to "0"
       bal_PID.Reset_Iterm();
       Lmot_PID.Reset_Iterm();Rmot_PID.Reset_Iterm();
