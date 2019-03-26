@@ -115,8 +115,8 @@ void setup() {
     Lmot_PID.SetSampleTime(t_loop); // Set Loop time for PID [milliseconds]
     Lmot_PID.SetMode(AUTOMATIC); // Set PID mode to Automatic        
     Lmot_PID.SetOutputLimits(Out_min_lmot, Out_max_lmot); // Set upper and lower limits for the maximum output limits for PID loop
-	
-	Rmot_PID.SetSampleTime(t_loop); // Set Loop time for PID [milliseconds]
+    
+    Rmot_PID.SetSampleTime(t_loop); // Set Loop time for PID [milliseconds]
     Rmot_PID.SetMode(AUTOMATIC); // Set PID mode to Automatic        
     Rmot_PID.SetOutputLimits(Out_min_rmot, Out_max_rmot); // Set upper and lower limits for the maximum output limits for PID loop
   
@@ -180,31 +180,23 @@ void loop() {
     Input_bal = Theta_now + Theta_correction; // Set Theta_now as the input / current value to the PID algorithm (The correction is added to correct for the error in MPU calculated angle)             
     error_now = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction      
     bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor PWM using balancing PID
-	
-	if (abs(error_now)<0.2 && mode_now == "balance"){Output_bal = 0.0;} // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg
-
-	Setpoint_lmot = abs(Output_bal);Setpoint_rmot = abs(Output_bal); // Set motor setpoint
-	Input_lmot = abs(Final_Rpm_l);Input_rmot = abs(Final_Rpm_r); // Set motor PID inputs
-	/*If these errors are of opposite signs, then the motor must change rotation direction and the accumulated errors must be reset*/
-	if (error_now * error_prev <0.0){Lmot_PID.Reset_Iterm();Rmot_PID.Reset_Iterm();} 
-	Lmot_PID.Compute(); Rmot_PID.Compute(); // Compute motor PID output
-	
+    
+    Setpoint_lmot = abs(Output_bal);Setpoint_rmot = abs(Output_bal); // Set motor setpoint
+    Input_lmot = abs(Final_Rpm_l);Input_rmot = abs(Final_Rpm_r);
+    Lmot_PID.Compute(); Rmot_PID.Compute();
+    
+    if (abs(error_now)<0.2 && mode_now == "balance"){Output_bal = 0.0;} // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg
     if (abs(error_now)>=fall_angle){ // If error_bal > fall_angle, this means robot has fallen down and we need to stop the motors
-       /*Reset Iterm for all controllers*/
-	   trans_PID.Reset_Iterm(); 
-       bal_PID.Reset_Iterm();
-	   Lmot_PID.Reset_Iterm();
-	   Rmot_PID.Reset_Iterm();
-	   /*Stop both the motors*/
-	   Output_lmot = 0.0; 
-	   Output_rmot = 0.0; 
-       /*Change modes to balancing */
-	   mode_now = "balance"; // Change mode to balance
-       mode_prev = "balance"; // Change mode to balance
-       }       
+      Output_bal = 0.0; // Stop the robot
+      trans_PID.Reset_Iterm(); // Now initialise the controller to make the sumintegral terms and lastinput terms to "0"
+      bal_PID.Reset_Iterm();
+      Lmot_PID.Reset_Iterm();Rmot_PID.Reset_Iterm();
+      mode_now = "balance"; // Change mode to balance
+      mode_prev = "balance"; // Change mode to balance
+      }
     mot_cont(); // Apply the calculated output to control the motor
     Blink_Led(); // Blink the LED
-	error_prev = error_now; // Store errors as they are used for deciding motor rotation direction
+    error_prev = error_now;
     t_loop_prev = t_loop_now; // Set prev loop time equal to current loop time for calculating dt for next loop        
   }  
 }
@@ -267,7 +259,8 @@ void get_MPU_data(){
 ///////////////////////// Function for motor control ////////////////////////////////////////////////////////
 
 void mot_cont(){
-
+/*If these errors are of opposite signs, then the motor must change rotation direction and the accumulated errors must be reset*/
+  if (error_now * error_prev <0){Lmot_PID.Reset_Iterm();Rmot_PID.Reset_Iterm();} 
   if (error_now>0){fwd_bot();}  
   else if (error_now<0){back_bot();}
 }
