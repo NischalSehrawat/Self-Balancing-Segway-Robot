@@ -181,11 +181,18 @@ void loop() {
     error_now = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction      
     bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor PWM using balancing PID
     
+    if (abs(error_now)<0.2 && mode_now == "balance"){Output_bal = 0.0;} // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg
+
     Setpoint_lmot = abs(Output_bal);Setpoint_rmot = abs(Output_bal); // Set motor setpoint
     Input_lmot = abs(Final_Rpm_l);Input_rmot = abs(Final_Rpm_r);
+    
+    /*If these errors are of opposite signs, then the 
+    motor must change rotation direction and the accumulated errors must be reset*/
+    
+    if (error_now * error_prev <0){Lmot_PID.Reset_Iterm();Rmot_PID.Reset_Iterm();} 
+    
     Lmot_PID.Compute(); Rmot_PID.Compute();
     
-    if (abs(error_now)<0.2 && mode_now == "balance"){Output_bal = 0.0;} // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg
     if (abs(error_now)>=fall_angle){ // If error_bal > fall_angle, this means robot has fallen down and we need to stop the motors
       Output_bal = 0.0; // Stop the robot
       trans_PID.Reset_Iterm(); // Now initialise the controller to make the sumintegral terms and lastinput terms to "0"
@@ -259,8 +266,7 @@ void get_MPU_data(){
 ///////////////////////// Function for motor control ////////////////////////////////////////////////////////
 
 void mot_cont(){
-/*If these errors are of opposite signs, then the motor must change rotation direction and the accumulated errors must be reset*/
-  if (error_now * error_prev <0){Lmot_PID.Reset_Iterm();Rmot_PID.Reset_Iterm();} 
+
   if (error_now>0){fwd_bot();}  
   else if (error_now<0){back_bot();}
 }
