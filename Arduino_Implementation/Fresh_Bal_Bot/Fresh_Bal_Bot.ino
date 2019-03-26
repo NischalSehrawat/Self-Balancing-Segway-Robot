@@ -37,7 +37,7 @@ Encoder myEnc_l(L_enc_pin1, L_enc_pin2); // Make encoder objects to calculate mo
 
 float error_now, error_prev; // To control to direction of motor rotation
 double Input_bal, Output_bal, Setpoint_bal; // Input output and setpoint variables defined
-double Out_min_bal = -255, Out_max_bal = 255; // PID Output limits, this is the output PWM value
+double Out_min_bal = -350, Out_max_bal = 350; // PID Output limits, this is the output PWM value
 double Kp_bal = 22.0, Ki_bal = 0.0, Kd_bal = 0.60; // Initializing the Proportional, integral and derivative gain constants
 double Output_lower_bal = 30.0; // PWM Limit at which the motors actually start to move
 PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON_E, DIRECT); // PID Controller for balancing
