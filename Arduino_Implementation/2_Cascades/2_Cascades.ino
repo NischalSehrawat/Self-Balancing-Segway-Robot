@@ -26,7 +26,7 @@ short L_enc_pin1 = 18;  short L_enc_pin2 = 19; // left motor encoder pins
 
 float rpm_limit = 1.0; // RPM below this is considered 0, this value is in RPM and NOT [rad/s]
 float avg_pt = 10.0;  // Number of points used for exponentially averaging the RPM signal
-short PPR = 330; // Number of pulses per revolution of the encoder (for a gearbox 1:30, this value is 330 seen from the website)
+short PPR = 330.0; // Number of pulses per revolution of the encoder (for a gearbox 1:30, this value is 330 seen from the website)
 float Final_Rpm_r, Final_Rpm_l; // Motor final averaged out RPM, units can be selected while calling get_RPM function
 My_Motors Rmot(&Final_Rpm_r, rpm_limit, avg_pt, PPR); // Right motor object for calculating rotational velocities from encoder data
 My_Motors Lmot(&Final_Rpm_l, rpm_limit, avg_pt, PPR); // Left motor object for calculating rotational velocities from encoder data
@@ -37,29 +37,29 @@ Encoder myEnc_l(L_enc_pin1, L_enc_pin2); // Make encoder objects to calculate mo
 
 float error_now, error_prev; // To control to direction of motor rotation
 double Input_bal, Output_bal, Setpoint_bal; // Input output and setpoint variables defined
-double Out_min_bal = -350, Out_max_bal = 350; // PID Output limits, this is the output motor RPM value
+double Out_min_bal = -350.0, Out_max_bal = 350.0; // PID Output limits, this is the output motor RPM value
 double Kp_bal = 10.0, Ki_bal = 0.0, Kd_bal = 0.2; // Initializing the Proportional, integral and derivative gain constants
 PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON_E, DIRECT); // PID Controller for balancing
 
 ///////////////////////////////// TRANSLATION PID parameters ///////////////////////////////////////////////////
 
 double Input_trans, Output_trans, Setpoint_trans; // Input output and setpoint variables defined
-double Out_min_trans = -15, Out_max_trans = 15; // PID Output limits, this output is in degrees
+double Out_min_trans = -15.0, Out_max_trans = 15.0; // PID Output limits, this output is in degrees
 double Kp_trans = 5.5, Ki_trans = 0.0, Kd_trans = 0.00; // Initializing the Proportional, integral and derivative gain constants
 PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, Kd_trans, P_ON_E, DIRECT); // PID Controller for translating
 
 ///////////////////////////////// LEFT MOTOR SPEED PID parameters ///////////////////////////////////////////////////
 
 double Input_lmot, Output_lmot, Setpoint_lmot; // Input output and setpoint variables defined
-double Out_min_lmot = 0.0, Out_max_lmot = 255; // PID Output limits, this output is the PWM
+double Out_min_lmot = 0.0, Out_max_lmot = 255.0; // PID Output limits, this output is the PWM
 double Kp_lmot = 4.78, Ki_lmot = 2.4, Kd_lmot = 0.55; // Initializing the Proportional, integral and derivative gain constants
 PID Lmot_PID(&Input_lmot, &Output_lmot, &Setpoint_lmot, Kp_lmot, Ki_lmot, Kd_lmot, P_ON_E, DIRECT); // PID Controller for left motor
 
 ///////////////////////////////// RIGHT MOTOR SPEED PID parameters ///////////////////////////////////////////////////
 
 double Input_rmot, Output_rmot, Setpoint_rmot; // Input output and setpoint variables defined
-double Out_min_rmot = 0.0, Out_max_rmot = 255; // PID Output limits, this output is the PWM
-double Kp_rmot = 4.8, Ki_rmot = 2.4, Kd_rmot = 0.55; // Initializing the Proportional, integral and derivative gain constants
+double Out_min_rmot = 0.0, Out_max_rmot = 255.0; // PID Output limits, this output is the PWM
+double Kp_rmot = 4.80, Ki_rmot = 2.4, Kd_rmot = 0.55; // Initializing the Proportional, integral and derivative gain constants
 PID Rmot_PID(&Input_rmot, &Output_rmot, &Setpoint_rmot, Kp_rmot, Ki_rmot, Kd_rmot, P_ON_E, DIRECT); // PID Controller for right motor
 
 ///////////////////////////////// ROBOT PHYSICAL PROPERTIES ////////////////////////////////////////////
@@ -125,6 +125,7 @@ void setup() {
     t_gyro_prev = millis(); // Log time for gyro calculations [ms]  
     t_led_prev = millis(); // Log time for led blinking 
     t_loop_prev = millis(); // Log time for overall control loop [ms]
+    stop_bot();
     delay(50);  
 }
 
@@ -141,7 +142,7 @@ void loop() {
     Get_Tilt_Angle(); // Update the angle readings to get updated omega_x_calculated, Theta_now
     Lmot.getRPM(myEnc_l.read() / 4.0, "rad/s"); // Get current encoder counts & compute left motor rotational velocity in [rad/s] 
     Rmot.getRPM(myEnc_r.read() / 4.0, "rad/s"); // Get current encoder counts & compute right motor rotational velocity in [rad/s]
-    float V_trans = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl; // Linear translation velocity due to the 2 wheels spinning [m/s]
+    float V_trans = 0.50 * (Final_Rpm_r + Final_Rpm_l) * r_whl; // Linear translation velocity due to the 2 wheels spinning [m/s]
     
     ////////////////////////////////////////// COMPUTE BALANCING PID OUTPUT/ //////////////////////////////////////////////////
     
@@ -179,9 +180,9 @@ void loop() {
     if (abs(error_now)<0.2 && mode_now == "balance"){Output_lmot = 0.0; Output_rmot = 0.0;}    
     else {
     Setpoint_lmot = abs(Output_bal);
-    Setpoint_rmot = abs(Output_bal); // Set motor srpm setpoints
-    Input_lmot = abs(Final_Rpm_l); // Set motor rpm inputs
-    Input_rmot = abs(Final_Rpm_r);
+    Setpoint_rmot = abs(Output_bal); // Set motor rpm setpoints    
+    Input_lmot =  abs(Final_Rpm_l);
+    Input_rmot =  abs(Final_Rpm_r);
     
     /*If error_now and error_prev are of opposite signs, then the 
     motor must change rotation direction and the accumulated errors must be reset*/
@@ -189,6 +190,8 @@ void loop() {
     if (error_now * error_prev <0){Lmot_PID.Reset_Iterm();Rmot_PID.Reset_Iterm();}
   
     Lmot_PID.Compute(); Rmot_PID.Compute(); // Compute Output_lmot and Output_rmot
+
+    Serial.print(Setpoint_rmot);Serial.print(",");Serial.print(Input_lmot);Serial.print(","); Serial.println(Input_rmot);
     
     }
     
