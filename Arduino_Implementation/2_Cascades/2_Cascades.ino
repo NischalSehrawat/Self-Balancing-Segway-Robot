@@ -69,6 +69,7 @@ float l_cog = 0.01075; // Distance of the center of gravity of the upper body fr
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 float full_speed = 350.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 350 RPM @ 12 V] 
 float frac = 0.50; // Factor for calculating fraction of the full linear speed
+float permissible_speed = frac * full_speed; // Actual speed allowed
 float speed_steps = 0.08; // Steps in which speed should be incremented in order to get to the full speed
 float brake_steps = 0.04; // Steps in which speed should be decremented in order to apply brakes, the smaller the value, the longer the duration of brake application
 String mode_prev = "balance", mode_now = "balance"; // To set different modes on the robot
@@ -146,15 +147,13 @@ void loop() {
     
     if (mode_now == "go fwd"){ // If we changed mode to forward now, start increasing the setpoint slowly to avoid jerky behaviour
       Setpoint_trans = Setpoint_trans + speed_steps;
-      trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);
       mode_prev = "go fwd";
-      if (Setpoint_trans > frac * full_speed){Setpoint_trans = frac * full_speed;}
+      if (Setpoint_trans >= permissible_speed){Setpoint_trans = permissible_speed;}
     }
     else if (mode_now == "go bck"){// If we changed mode to backward now, start decreasing the setpoint slowly to avoid jerky behaviour
       mode_prev = "go bck";
       Setpoint_trans = Setpoint_trans - speed_steps;
-      trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);
-      if (Setpoint_trans < -frac * full_speed){Setpoint_trans = -frac * full_speed;}
+      if (Setpoint_trans <= -permissible_speed){Setpoint_trans = -permissible_speed;}
       }
     else if (mode_now == "balance"){ // If we changed mode to balance now, we need to apply brakes
       if (mode_prev == "go fwd"){
@@ -165,7 +164,7 @@ void loop() {
         Setpoint_trans = Setpoint_trans + brake_steps; // If going in bck direction, apply brakes by setting the trans setpoint to opposite value
         if (V_trans>=0.0){mode_prev = "balance";} // Set mode_prev to balance so that the robot goes to balancing mode totally
         }
-      else if (mode_prev == "balance"){Setpoint_trans = 0.0; trans_PID.SetTunings(3.0 * Kp_trans, Ki_trans, Kd_trans);} // Set increased tunings to apply brakes
+      else if (mode_prev == "balance"){Setpoint_trans = 0.0;} // Set increased tunings to apply brakes
       }
   
     Input_trans = V_trans; // Measured value / Input value
