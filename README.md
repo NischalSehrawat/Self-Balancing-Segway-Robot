@@ -35,11 +35,11 @@ A lot of problems were encountered and solved during the implementation on a mic
 
 - **Cascade Control**: I tried 2 different cascade control loops. The first one only has a single cascade while the other has 2 cascade loops. The benefit of 2 cascades is that since the motors also have their own controllers, the speed can be controlled precisely and therefore, the robot drives in a straight line.  
 
-**1 Cascade**
+# **1 Cascade**
 
 ![HCUEV](https://user-images.githubusercontent.com/33701903/54088220-fa2f4e80-435b-11e9-9dd7-16c272d76783.png)
 
-**2 Cascades**
+# **2 Cascades**
 
 ![Capture](https://user-images.githubusercontent.com/33701903/55066488-2f3ae100-507e-11e9-8439-aba950b24e44.PNG)
 
