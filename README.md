@@ -33,15 +33,16 @@ A lot of problems were encountered and solved during the implementation on a mic
 
 - **Motor speed / torques / wheel sizes**: While trying to make the robot move, it was realised that motors having **high torque and high speed** are required. In the first attempt I tried with motors having high torqure but low RPM (**107 RPM** with a gear ratio of **1:90**). Torque is required to carry the weight of the robot. But, since for balancing only a small amount of motor rotation is required, this will work. However in order to be able the move, the robot must quickly try to come under the position of center of gravity of the top frame. Thus a new gearbox with a gear ratio of **1:30** was used to increase the motor **RPM to 350**. Also, bigger diameter wheels (**upgraded from 85mm to 130mm**) were used. Indeed, the robot is able to catchup with the centre of gravity
 
-- **Cascade Control**: I tried 2 different cascade control loops. The first one only has a single cascade while the other has 2 cascade loops. The benefit of 2 cascades is that since the motors also have their own controllers, the speed can be controlled precisely and therefore, the robot drives in a straight line.  
+- **Cascade Control**: I tried the following 2 different cascade control algorithms. The first one only has a single cascade while the other has 2 cascade loops. The benefit of 2 cascades is that since the motors also have their own controllers, the speed can be controlled precisely and therefore, the robot drives in a straight line.  
 
-**1 Cascade**
+### **1 Cascade**
 
 ![HCUEV](https://user-images.githubusercontent.com/33701903/54088220-fa2f4e80-435b-11e9-9dd7-16c272d76783.png)
 
-**2 Cascades**
+### **2 Cascades**
 
-![Control](https://user-images.githubusercontent.com/33701903/54217804-9ab47880-44ec-11e9-9ca5-8b65ceeb794e.PNG)
+![Capture](https://user-images.githubusercontent.com/33701903/55067085-5c3bc380-507f-11e9-971f-6aa71cbcccbc.PNG)
+
 
 - **Connecting Arduino to RaspberryPi**: It is very frustrating to connect the Arduino to the computer with a USB cable each time some piece of code needs to be updated. Therefore, it is very hand to install a RaspberryPi and connect the Arduino to it so that by using **VNC viewer** or **TeamViewer**, we can remotely log into the RaspberryPi and program the Arduino. But is it very important that you donot install the Arduino IDE from the command line using **sudo apt-get install arduino** because this throws a lot of errors and even the simplest codes (like blink) donto get uploaded to the Arduino. Therefore we need to install Arduino IDE using [this link](https://www.raspberrypi.org/magpi/program-arduino-uno-raspberry-pi/). After this it works perfectly fine.
 
