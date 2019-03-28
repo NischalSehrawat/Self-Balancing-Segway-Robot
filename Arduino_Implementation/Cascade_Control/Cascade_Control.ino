@@ -145,15 +145,20 @@ void loop() {
         }
       else if (mode_prev == "balance"){Setpoint_trans = 0.0;} 
       }
-  
-    Input_trans = V_trans; // Measured value / Input value
-    trans_PID.Compute(); // Compute Output_trans of the 1st loop    
+    
+    ////////////////////////////////////////// COMPUTE 1st loop/ //////////////////////////////////////////////////
+
+    Input_trans = V_trans; // Measured value / Input value [m/s]
+    trans_PID.Compute(); // Compute Output_trans of the 1st loop [degrees]
+    
+    ////////////////////////////////////////// COMPUTE 2nd loop/ //////////////////////////////////////////////////
 
     Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
     Input_bal = Theta_now + Theta_correction; // Set Theta_now as the input / current value to the PID algorithm (The correction is added to correct for the error in MPU calculated angle)             
     double error_bal = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction      
     bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor PWM using balancing PID 
-//    bal_PID.Compute();  
+
+    
     Output_bal = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal); // Map the computed output from Out_min to Outmax Output_lower_bal
     
     if (abs(error_bal)<0.2 && mode_now == "balance"){Output_bal = 0.0;} // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg
