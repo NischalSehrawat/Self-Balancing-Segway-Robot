@@ -49,15 +49,15 @@ void My_Motors::getRPM(long ticks, String units){
   
 	int dn = n_now - n_prev; // Calculate change in ticks
 
-	inst_rpm = (1000.0 * dn / dt)*(60.0 / ppr); // Calculate instantaneous RPM
+	inst_rpm = (0.25 * 1000.0 * dn / dt)*(60.0 / ppr); // Calculate instantaneous RPM
     
 	rpm_now = beta*rpm_prev + (1 - beta)*inst_rpm; // Do exponential averaging
 
 	if (abs(rpm_now) < rpm_limit ){rpm_now = 0.0;}
 	
-	if (units == "rad/s"){*my_final_rpm = rpm_2_rad * rpm_now;}
+	if (units == "rad/s"){*my_final_rpm =  rpm_2_rad * rpm_now;}
 
-	else {*my_final_rpm =   rpm_now;}
+	else {*my_final_rpm =  rpm_now;}
   
 	n_prev = n_now; // Reassign parameters for next loop calculations
 
