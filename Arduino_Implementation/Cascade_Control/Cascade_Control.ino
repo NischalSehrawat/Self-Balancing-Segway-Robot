@@ -94,8 +94,7 @@ void setup() {
     ////////////////////////// MPU initialization ///////////////////////////////////////////////////
     
     Wire.begin(); // Start wire library    
-    setupMPU(); // Initializing MPU6050 
-//  delay(5000);       
+    setupMPU(); // Initializing MPU6050  
     get_MPU_data(); // Get initial angles of the MPU  
     pitch = (atan2(accelY-mpu_calib[1], accelZ+mpu_calib[2]))*rad2deg; //  Calculate initial pitch angle [deg] and caliberated for error in accY and accZ
     Theta_prev = pitch; // set the total starting angle to this pitch 
