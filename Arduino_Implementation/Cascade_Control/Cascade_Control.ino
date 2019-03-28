@@ -55,7 +55,7 @@ float r_whl = 0.5 * 0.130; // Wheel radius [m]
 float l_cog = 0.01075; // Distance of the center of gravity of the upper body from the wheel axis [m] 
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 float full_speed = 350.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 350 RPM @ 12 V] 
-float V_max = 0.50 * full_speed; // Maximum speed allowed [m/s]
+float V_max = 0.40 * full_speed; // Maximum speed allowed [m/s]
 float speed_steps = 0.08; // Steps in which speed should be incremented in order to get to the full speed
 float brake_steps = 0.04; // Steps in which speed should be decremented in order to apply brakes, the smaller the value, the longer the duration of brake application
 String mode_prev = "balance", mode_now = "balance"; // To set different modes on the robot
