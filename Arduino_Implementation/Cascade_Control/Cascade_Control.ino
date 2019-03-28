@@ -46,7 +46,7 @@ PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON
 
 double Input_trans, Output_trans, Setpoint_trans; // Input output and setpoint variables defined
 double Out_min_trans = -15, Out_max_trans = 15; // PID Output limits, this output is in degrees
-double Kp_trans = 20.0, Ki_trans = 0.0, Kd_trans = 0.00; // Initializing the Proportional, integral and derivative gain constants
+double Kp_trans = 10.0, Ki_trans = 0.0, Kd_trans = 0.00; // Initializing the Proportional, integral and derivative gain constants
 PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, Kd_trans, P_ON_E, DIRECT); // PID Controller for translating
 
 ///////////////////////////////// ROBOT PHYSICAL PROPERTIES ////////////////////////////////////////////
