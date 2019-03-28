@@ -51,6 +51,7 @@ PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, 
 
 ///////////////////////////////// ROBOT PHYSICAL PROPERTIES ////////////////////////////////////////////
 
+float motor_corr_fac = 0.925; 
 float r_whl = 0.5 * 0.130; // Wheel radius [m]
 float l_cog = 0.01075; // Distance of the center of gravity of the upper body from the wheel axis [m] 
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
@@ -156,7 +157,7 @@ void loop() {
     
     Output_bal = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal); // Map the computed output from Out_min to Outmax Output_lower_bal
 
-    Output_rmot = Output_bal; Output_lmot = Output_bal; // Seperate the output computed for both motors 
+    Output_rmot = motor_corr_fac * Output_bal; Output_lmot = Output_bal; // Seperate the output computed for both motors 
     
     if (abs(error_bal)<0.2 && mode_now == "balance"){Output_rmot = 0.0;Output_lmot = 0.0;} // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg
     
@@ -281,8 +282,8 @@ void read_BT(){
     else if(c=='4'){Kp_bal-= 1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
     else if (c =='5'){Kd_bal+=0.1;Serial.print("Kd_bal = "+String(Kd_bal));}
     else if(c=='6'){Kd_bal-=0.1;Serial.print("Kd_bal = "+String(Kd_bal));}
-    else if (c =='7'){Kp_trans+=1.0;Serial.print("Kp_trans = "+String(Kp_trans));}
-    else if(c=='8'){Kp_trans-=1.0;Serial.print("Kp_trans = "+String(Kp_trans));}
+    else if (c =='7'){motor_corr_fac+=0.01;Serial.print("fac = "+String(motor_corr_fac));}
+    else if(c=='8'){motor_corr_fac-=0.01;Serial.print("fac = "+String(motor_corr_fac));}
     else if(c =='9'){mode_now = "balance";Serial.print(mode_now);}
    
     }  
