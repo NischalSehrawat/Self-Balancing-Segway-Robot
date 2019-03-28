@@ -165,8 +165,6 @@ void loop() {
     
     if (abs(error_bal)>=fall_angle){ // If error_bal > fall_angle, this means robot has fallen down and we need to stop the motors
        Output_bal = 0.0; // Stop the robot
-       trans_PID.Reset_Iterm(); // Now initialise the controller to make the sumintegral terms and lastinput terms to "0"
-       bal_PID.Reset_Iterm();
        mode_now = "balance"; // Change mode to balance
        mode_prev = "balance"; // Change mode to balance
        }       
