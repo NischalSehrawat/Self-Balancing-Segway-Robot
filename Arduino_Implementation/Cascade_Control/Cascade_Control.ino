@@ -32,10 +32,11 @@ My_Motors Rmot(&Final_Rpm_r, rpm_limit, avg_pt, PPR); // Right motor object for 
 My_Motors Lmot(&Final_Rpm_l, rpm_limit, avg_pt, PPR); // Left motor object for calculating rotational velocities from encoder data
 Encoder myEnc_r(R_enc_pin2, R_enc_pin1); // Make encoder objects to calculate motor velocties
 Encoder myEnc_l(L_enc_pin1, L_enc_pin2); // Make encoder objects to calculate motor velocties
+double Output_lmot, Output_rmot; // Variables for storing PWM outputs seperately for left and right motors
 
 ///////////////////////////////// Balancing PID parameters ///////////////////////////////////////////////////
 
-double Input_bal, Output_bal, Setpoint_bal; // Input output and setpoint variables defined
+double Input_bal, Output_bal, Setpoint_bal, error_bal; // Input output and setpoint variables defined
 double Out_min_bal = -255, Out_max_bal = 255; // PID Output limits, this is the output PWM value
 double Kp_bal = 40.0, Ki_bal = 0.0, Kd_bal = 0.80; // Initializing the Proportional, integral and derivative gain constants
 double Output_lower_bal = 30.0; // PWM Limit at which the motors actually start to move
@@ -51,9 +52,6 @@ double Imax = 2.0; // Maximum limit upto which Iterm can rise
 
 ///////////////////////////////// ROBOT PHYSICAL PROPERTIES ////////////////////////////////////////////
 
-/*To correct for the difference between the speeds of the motors, We can use a PID controller here to make corrections, 
-but that would unncessarily complicate things. A simple constant correction factor gives good results*/
-float motor_cor_fac = 0.98; 
 float r_whl = 0.5 * 0.130; // Wheel radius [m]
 float l_cog = 0.01075; // Distance of the center of gravity of the upper body from the wheel axis [m] 
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
@@ -155,20 +153,23 @@ void loop() {
 
     Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
     Input_bal = Theta_now + Theta_correction; // Set Theta_now as the input / current value to the PID algorithm (The correction is added to correct for the error in MPU calculated angle)             
-    double error_bal = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction      
+    error_bal = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction      
     bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor PWM using balancing PID 
 
     
     Output_bal = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal); // Map the computed output from Out_min to Outmax Output_lower_bal
+
+    Output_rmot = Output_bal; Output_lmot = Output_bal; // Seperate the output computed for both motors 
     
-    if (abs(error_bal)<0.2 && mode_now == "balance"){Output_bal = 0.0;} // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg
+    if (abs(error_bal)<0.2 && mode_now == "balance"){Output_rmot = 0.0;Output_lmot = 0.0;} // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg
     
     if (abs(error_bal)>=fall_angle){ // If error_bal > fall_angle, this means robot has fallen down and we need to stop the motors
-       Output_bal = 0.0; // Stop the robot
+       Output_rmot = 0.0;
+       Output_lmot = 0.0; // Stop the robot
        mode_now = "balance"; // Change mode to balance
        mode_prev = "balance"; // Change mode to balance
        }       
-    mot_cont(error_bal, Output_bal); // Apply the calculated output to control the motor
+    mot_cont(); // Apply the calculated output to control the motor
     Blink_Led(); // Blink the LED
     t_loop_prev = t_loop_now; // Set prev loop time equal to current loop time for calculating dt for next loop        
   }  
@@ -231,28 +232,28 @@ void get_MPU_data(){
 
 ///////////////////////// Function for motor control ////////////////////////////////////////////////////////
 
-void mot_cont(float e_rr, double Speed){
+void mot_cont(){
  
-  if (e_rr>0){fwd_bot(Speed);}  
-  else if (e_rr<0){back_bot(Speed);}
+  if (error_bal>0){back_bot();}  // If error_bal is +ve go back
+  else if (error_bal<0){fwd_bot();} // If error_bal is -ve go forward
 }
 
-void back_bot(double Speed){
+void fwd_bot(){
   digitalWrite(Lmot1, LOW);
   digitalWrite(Lmot2, HIGH);
   digitalWrite(Rmot1, LOW);
   digitalWrite(Rmot2, HIGH);  
-  analogWrite(Lmot3,motor_cor_fac*Speed);    
-  analogWrite(Rmot3,Speed);    
+  analogWrite(Lmot3,Output_lmot);    
+  analogWrite(Rmot3,Output_rmot);    
 }
 
-void fwd_bot(double Speed){
+void back_bot(){
   digitalWrite(Lmot1, HIGH);
   digitalWrite(Lmot2, LOW);
   digitalWrite(Rmot1, HIGH);
   digitalWrite(Rmot2, LOW);  
-  analogWrite(Lmot3,motor_cor_fac*Speed); 
-  analogWrite(Rmot3,Speed);   
+  analogWrite(Lmot3,Output_lmot); 
+  analogWrite(Rmot3,Output_rmot);   
 }
 
 void stop_bot(){
