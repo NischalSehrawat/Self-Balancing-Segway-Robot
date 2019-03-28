@@ -38,7 +38,7 @@ double Output_lmot, Output_rmot; // Variables for storing PWM outputs seperately
 
 double Input_bal, Output_bal, Setpoint_bal, error_bal; // Input output and setpoint variables defined
 double Out_min_bal = -255, Out_max_bal = 255; // PID Output limits, this is the output PWM value
-double Kp_bal = 40.0, Ki_bal = 0.0, Kd_bal = 0.80; // Initializing the Proportional, integral and derivative gain constants
+double Kp_bal = 40.0, Ki_bal = 0.0, Kd_bal = 0.60; // Initializing the Proportional, integral and derivative gain constants
 double Output_lower_bal = 30.0; // PWM Limit at which the motors actually start to move
 PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON_E, DIRECT); // PID Controller for balancing
 
@@ -57,7 +57,7 @@ float l_cog = 0.01075; // Distance of the center of gravity of the upper body fr
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 float full_speed = 350.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 350 RPM @ 12 V] 
 float frac = 0.50; // Factor for calculating fraction of the full linear speed
-float permissible_speed = frac * full_speed; // Actual speed allowed [m/s]
+float V_max = frac * full_speed; // Actual speed allowed [m/s]
 float speed_steps = 0.08; // Steps in which speed should be incremented in order to get to the full speed
 float brake_steps = 0.04; // Steps in which speed should be decremented in order to apply brakes, the smaller the value, the longer the duration of brake application
 String mode_prev = "balance", mode_now = "balance"; // To set different modes on the robot
@@ -125,12 +125,12 @@ void loop() {
     if (mode_now == "go fwd"){ // If we changed mode to forward now, start increasing the setpoint slowly to avoid jerky behaviour
       Setpoint_trans = Setpoint_trans + speed_steps;
       mode_prev = "go fwd";
-      if (Setpoint_trans > permissible_speed){Setpoint_trans = permissible_speed;}
+      if (Setpoint_trans > V_max){Setpoint_trans = V_max;}
     }
     else if (mode_now == "go bck"){// If we changed mode to backward now, start decreasing the setpoint slowly to avoid jerky behaviour
       mode_prev = "go bck";
       Setpoint_trans = Setpoint_trans - speed_steps;
-      if (Setpoint_trans < -permissible_speed){Setpoint_trans = -permissible_speed;}
+      if (Setpoint_trans < -V_max){Setpoint_trans = -V_max;}
       }
     else if (mode_now == "balance"){ // If we changed mode to balance now, we need to apply brakes
       if (mode_prev == "go fwd"){
