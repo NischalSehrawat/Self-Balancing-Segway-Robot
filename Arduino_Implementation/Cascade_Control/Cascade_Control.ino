@@ -38,14 +38,14 @@ double Output_lmot, Output_rmot; // Variables for storing PWM outputs seperately
 
 double Input_bal, Output_bal, Setpoint_bal, error_bal; // Input output and setpoint variables defined
 double Out_min_bal = -255, Out_max_bal = 255; // PID Output limits, this is the output PWM value
-double Kp_bal = 40.0, Ki_bal = 0.0, Kd_bal = 0.60; // Initializing the Proportional, integral and derivative gain constants
+double Kp_bal = 36.0, Ki_bal = 0.0, Kd_bal = 0.80; // Initializing the Proportional, integral and derivative gain constants
 double Output_lower_bal = 30.0; // PWM Limit at which the motors actually start to move
 PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON_E, DIRECT); // PID Controller for balancing
 
 ///////////////////////////////// TRANSLATION PID parameters ///////////////////////////////////////////////////
 
 double Input_trans, Output_trans, Setpoint_trans; // Input output and setpoint variables defined
-double Out_min_trans = -15, Out_max_trans = 15; // PID Output limits, this output is in degrees
+double Out_min_trans = -10, Out_max_trans = 10; // PID Output limits, this output is in degrees
 double Kp_trans = 10.0, Ki_trans = 0.0, Kd_trans = 0.00; // Initializing the Proportional, integral and derivative gain constants
 PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, Kd_trans, P_ON_E, DIRECT); // PID Controller for translating
 
@@ -55,7 +55,7 @@ float r_whl = 0.5 * 0.130; // Wheel radius [m]
 float l_cog = 0.01075; // Distance of the center of gravity of the upper body from the wheel axis [m] 
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 float full_speed = 350.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 350 RPM @ 12 V] 
-float V_max = 0.40 * full_speed; // Maximum speed allowed [m/s]
+float V_max = 0.35 * full_speed; // Maximum speed allowed [m/s]
 float speed_steps = 0.08; // Steps in which speed should be incremented in order to get to the full speed
 float brake_steps = 0.04; // Steps in which speed should be decremented in order to apply brakes, the smaller the value, the longer the duration of brake application
 String mode_prev = "balance", mode_now = "balance"; // To set different modes on the robot
