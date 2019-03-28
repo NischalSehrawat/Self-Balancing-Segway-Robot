@@ -33,7 +33,7 @@ A lot of problems were encountered and solved during the implementation on a mic
 
 - **Motor speed / torques / wheel sizes**: While trying to make the robot move, it was realised that motors having **high torque and high speed** are required. In the first attempt I tried with motors having high torqure but low RPM (**107 RPM** with a gear ratio of **1:90**). Torque is required to carry the weight of the robot. But, since for balancing only a small amount of motor rotation is required, this will work. However in order to be able the move, the robot must quickly try to come under the position of center of gravity of the top frame. Thus a new gearbox with a gear ratio of **1:30** was used to increase the motor **RPM to 350**. Also, bigger diameter wheels (**upgraded from 85mm to 130mm**) were used. Indeed, the robot is able to catchup with the centre of gravity
 
-- **Cascade Control**:  
+- **Cascade Control**:  Currently testing this achitecture, but the controllers are **P** for outer loop and **PD** for the inner loop. Rotational loop still not implemented.
 
 ![Capture](https://user-images.githubusercontent.com/33701903/55119437-2257d500-50f2-11e9-8144-fa20cac4b41c.JPG)
 
