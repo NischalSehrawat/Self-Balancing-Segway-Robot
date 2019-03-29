@@ -55,13 +55,15 @@ float motor_corr_fac = 0.925;
 float r_whl = 0.5 * 0.130; // Wheel radius [m]
 float l_cog = 0.01075; // Distance of the center of gravity of the upper body from the wheel axis [m] 
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
-float full_speed = 350.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 350 RPM @ 12 V] 
-float V_max = 0.35 * full_speed; // Maximum speed allowed [m/s]
+float full_speed = 350.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 350 RPM @ 12 V]
+float frac_full_speed = 0.35; // Fraction of full speed allowed 
+float V_max = frac_full_speed * full_speed; // Maximum speed allowed [m/s]
 float V_max_fwd = 0.01, V_min_bck = -0.01; // Variables used for storing minimum and maximum values of translation speed for applying brakes
 float speed_ratio_mode_change = 0.05; // Ratio when the mode_prev must be set to "balance"
 float speed_steps = 0.08; // Steps in which speed should be incremented in order to get to the full speed
 float brake_steps = 0.04; // Steps in which speed should be decremented in order to apply brakes, the smaller the value, the longer the duration of brake application
 String mode_prev = "balance", mode_now = "balance"; // To set different modes on the robot
+bool lock = true; // Variable to prevent accidental changing of parameters
 
 ////////////// LED BLINKING PARAMETERS/////////////////////////
 
@@ -279,16 +281,41 @@ void rotate_bot(double Speed){
 void read_BT(){
   if (Serial.available()>0){
     char c = Serial.read();
-    if(c =='0'){mode_now = "go bck";Serial.print(mode_now);}
-    else if (c =='1'){mode_now = "go fwd";Serial.print(mode_now);}
-    else if(c=='2'){mode_now = "stop";Serial.print(mode_now);}
-    else if (c =='3'){Kp_bal+=1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
-    else if(c=='4'){Kp_bal-= 1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
-    else if (c =='5'){Kd_bal+=0.1;Serial.print("Kd_bal = "+String(Kd_bal));}
-    else if(c=='6'){Kd_bal-=0.1;Serial.print("Kd_bal = "+String(Kd_bal));}
-    else if (c =='7'){motor_corr_fac+=0.01;Serial.print("fac = "+String(motor_corr_fac));}
-    else if(c=='8'){motor_corr_fac-=0.01;Serial.print("fac = "+String(motor_corr_fac));}
-    else if(c =='9'){mode_now = "balance";Serial.print(mode_now);}
+    if (c == 'm'){lock = false;Serial.print("Unlocked");}
+    if (c == 'n'){lock = true;Serial.print("Locked");}
+    else if (c =='0' & lock == false){mode_now = "balance";Serial.print(mode_now);} 
+    else if (c =='1' & lock == false){mode_now = "go fwd";Serial.print(mode_now);} 
+    else if (c =='2' & lock == false){mode_now = "go bck";Serial.print(mode_now);} 
+    else if (c =='3' & lock == false){Kp_bal+=1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
+    else if (c =='4' & lock == false){Kp_bal-= 1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
+    else if (c =='5' & lock == false){Kd_bal+=0.05;Serial.print("Kd_bal = "+String(Kd_bal));}
+    else if (c =='6' & lock == false){Kd_bal-=0.05;Serial.print("Kd_bal = "+String(Kd_bal));}
+    else if (c =='7' & lock == false){Kp_trans+=0.5;Serial.print("Kp_trans = "+String(Kp_trans));} 
+    else if (c =='8' & lock == false){Kp_trans-=0.5;Serial.print("Kp_trans = "+String(Kp_trans));} 
+    else if (c =='9' & lock == false){motor_corr_fac+=0.01;Serial.print("MoFac = "+String(motor_corr_fac));} 
+    else if (c =='a' & lock == false){motor_corr_fac-=0.01;Serial.print("MoFac = "+String(motor_corr_fac));} 
+    else if (c =='b' & lock == false){speed_ratio_mode_change+=0.01;Serial.print("SrMoCh = "+String(speed_ratio_mode_change));} 
+    else if (c =='c' & lock == false){speed_ratio_mode_change-=0.01;Serial.print("SrMoCh = "+String(speed_ratio_mode_change));} 
+    else if (c =='d' & lock == false){speed_steps+=0.01;Serial.print("speed_steps = "+String(speed_steps));} 
+    else if (c =='e' & lock == false){speed_steps-=0.01;Serial.print("speed_steps = "+String(speed_steps));} 
+    else if (c =='f' & lock == false){brake_steps+=0.01;Serial.print("brake_steps = "+String(brake_steps));} 
+    else if (c =='g' & lock == false){brake_steps-=0.01;Serial.print("brake_steps = "+String(brake_steps));} 
+    else if (c =='h' & lock == false){frac_full_speed+=0.05;Serial.print("FrFs = "+String(frac_full_speed));} 
+    else if (c =='i' & lock == false){frac_full_speed-=0.05;Serial.print("FrFs = "+String(frac_full_speed));} 
+    else if (c =='j' & lock == false){Theta_correction+=0.1;Serial.print("Theta_Cor = "+String(Theta_correction));} 
+    else if (c =='k' & lock == false){Theta_correction-=0.1;Serial.print("Theta_Cor = "+String(Theta_correction));} 
+    else if (c =='l' & lock == false){
+    	mode_now = "balance";mode_prev = "balance";
+    	Kp_bal = 36.0; Kd_bal = 0.8;
+    	Kp_trans = 10.0;
+    	motor_corr_fac = 0.925;
+    	speed_ratio_mode_change = 0.05;
+    	speed_steps = 0.08;
+    	brake_steps = 0.04;
+    	frac_full_speed = 0.35;
+    	Theta_correction = 2.5;
+
+    } //Reset all parameters to default values
    
     }  
 }
