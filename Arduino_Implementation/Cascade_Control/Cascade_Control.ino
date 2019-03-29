@@ -56,10 +56,10 @@ float r_whl = 0.5 * 0.130; // Wheel radius [m]
 float l_cog = 0.01075; // Distance of the center of gravity of the upper body from the wheel axis [m] 
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 float full_speed = 350.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 350 RPM @ 12 V]
-float frac_full_speed = 0.35; // Fraction of full speed allowed 
+float frac_full_speed = 0.40; // Fraction of full speed allowed 
 float V_max = frac_full_speed * full_speed; // Maximum speed allowed [m/s]
 float V_max_fwd = 0.01, V_min_bck = -0.01; // Variables used for storing minimum and maximum values of translation speed for applying brakes
-float speed_ratio_mode_change = 0.05; // Ratio when the mode_prev must be set to "balance"
+float speed_ratio_mode_change = 0.40; // Ratio when the mode_prev must be set to "balance"
 float speed_steps = 0.08; // Steps in which speed should be incremented in order to get to the full speed
 float brake_steps = 0.04; // Steps in which speed should be decremented in order to apply brakes, the smaller the value, the longer the duration of brake application
 String mode_prev = "balance", mode_now = "balance"; // To set different modes on the robot
@@ -295,7 +295,7 @@ void read_BT(){
     else if (c =='9' & lock == false){motor_corr_fac+=0.01;Serial.print("MoFac = "+String(motor_corr_fac));} 
     else if (c =='a' & lock == false){motor_corr_fac-=0.01;Serial.print("MoFac = "+String(motor_corr_fac));} 
     else if (c =='b' & lock == false){speed_ratio_mode_change+=0.01;Serial.print("SrMoCh = "+String(speed_ratio_mode_change));} 
-    else if (c =='c' & lock == false){speed_ratio_mode_change-=0.01;Serial.print("SrMoCh = "+String(speed_ratio_mode_change));} 
+    else if (c =='c' & lock == false){speed_ratio_mode_change-=0.01;Serial.print("SrMoCh = "+String(speed_ratio_mode_change));}  
     else if (c =='d' & lock == false){speed_steps+=0.01;Serial.print("speed_steps = "+String(speed_steps));} 
     else if (c =='e' & lock == false){speed_steps-=0.01;Serial.print("speed_steps = "+String(speed_steps));} 
     else if (c =='f' & lock == false){brake_steps+=0.01;Serial.print("brake_steps = "+String(brake_steps));} 
@@ -305,14 +305,15 @@ void read_BT(){
     else if (c =='j' & lock == false){Theta_correction+=0.1;Serial.print("Theta_Cor = "+String(Theta_correction));} 
     else if (c =='k' & lock == false){Theta_correction-=0.1;Serial.print("Theta_Cor = "+String(Theta_correction));} 
     else if (c =='l' & lock == false){
+      Serial.print("Reset ");
     	mode_now = "balance";mode_prev = "balance";
     	Kp_bal = 36.0; Kd_bal = 0.8;
     	Kp_trans = 10.0;
     	motor_corr_fac = 0.925;
-    	speed_ratio_mode_change = 0.05;
+    	speed_ratio_mode_change = 0.40;
     	speed_steps = 0.08;
     	brake_steps = 0.04;
-    	frac_full_speed = 0.35;
+    	frac_full_speed = 0.40;
     	Theta_correction = 2.5;
 
     } //Reset all parameters to default values
