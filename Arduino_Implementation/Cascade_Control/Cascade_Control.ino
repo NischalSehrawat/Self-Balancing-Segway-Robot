@@ -53,7 +53,6 @@ PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, 
 
 float motor_corr_fac = 0.925; 
 float r_whl = 0.5 * 0.130; // Wheel radius [m]
-float l_cog = 0.01075; // Distance of the center of gravity of the upper body from the wheel axis [m] 
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 float full_speed = 350.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 350 RPM @ 12 V]
 float frac_full_speed = 0.40; // Fraction of full speed allowed 
@@ -63,7 +62,7 @@ float speed_ratio_mode_change = 0.40; // Ratio when the mode_prev must be set to
 float speed_steps = 0.08; // Steps in which speed should be incremented in order to get to the full speed
 float brake_steps = 0.04; // Steps in which speed should be decremented in order to apply brakes, the smaller the value, the longer the duration of brake application
 String mode_prev = "balance", mode_now = "balance"; // To set different modes on the robot
-bool lock = true; // Variable to prevent accidental changing of parameters
+bool lock = true; // Variable to prevent accidental changing of parameters by bluetooth app
 
 ////////////// LED BLINKING PARAMETERS/////////////////////////
 
@@ -139,10 +138,14 @@ void loop() {
     else if (mode_now == "balance"){ // If we changed mode to balance now, we need to apply brakes
       if (mode_prev == "go fwd"){
         Setpoint_trans = Setpoint_trans - brake_steps; // If going in fwd direction, apply brakes by setting the trans setpoint to opposite value
+        /*if the ratio of current velocity and the maximum velocity measured since the robot started moving forward
+        is less than speed_ratio_mode_change, change mode_prev to balance*/
         if (V_trans/V_max_fwd<=speed_ratio_mode_change){mode_prev = "balance";} // Set mode_prev to balance so that the robot goes to balancing mode totally
         }
       else if (mode_prev == "go bck"){
         Setpoint_trans = Setpoint_trans + brake_steps; // If going in bck direction, apply brakes by setting the trans setpoint to opposite value
+        /*if the ratio of current velocity and the minimum velocity measured since the robot started moving backward
+        is less than speed_ratio_mode_change, change mode_prev to balance*/
         if (V_trans/V_min_bck<=speed_ratio_mode_change){mode_prev = "balance";} // Set mode_prev to balance so that the robot goes to balancing mode totally
         }
       else if (mode_prev == "balance"){Setpoint_trans = 0.0;V_min_bck = -0.01; V_max_fwd = 0.01;}// Re-initialise the variables
@@ -162,11 +165,11 @@ void loop() {
 
     
     Output_bal = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal); // Map the computed output from Out_min to Outmax Output_lower_bal
-
     Output_rmot = motor_corr_fac * Output_bal; Output_lmot = Output_bal; // Seperate the output computed for both motors 
-    
     if (abs(error_bal)<0.2 && mode_now == "balance"){Output_rmot = 0.0;Output_lmot = 0.0;} // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg
     
+    ///////////////////////////////////////// If robot has fallen then stop the motors /////////////////////////////////////////////
+
     if (abs(error_bal)>=fall_angle){ // If error_bal > fall_angle, this means robot has fallen down and we need to stop the motors
        Output_rmot = 0.0;
        Output_lmot = 0.0; // Stop the robot
