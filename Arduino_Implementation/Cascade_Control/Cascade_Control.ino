@@ -170,12 +170,14 @@ void loop() {
     
     ///////////////////////////////////////// If robot has fallen then stop the motors /////////////////////////////////////////////
 
-    if (abs(error_bal)>=fall_angle){ // If error_bal > fall_angle, this means robot has fallen down and we need to stop the motors
+    if (abs(error_bal)>=fall_angle){
        Output_rmot = 0.0;
        Output_lmot = 0.0; // Stop the robot
        mode_now = "balance"; // Change mode to balance
        mode_prev = "balance"; // Change mode to balance
-       }       
+       }
+    ///////////////////////////////////////// Apply motor controls /////////////////////////////////////////////
+       
     mot_cont(); // Apply the calculated output to control the motor
     Blink_Led(); // Blink the LED
     t_loop_prev = t_loop_now; // Set prev loop time equal to current loop time for calculating dt for next loop        
