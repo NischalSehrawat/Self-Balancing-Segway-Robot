@@ -1,4 +1,4 @@
-# Balancing-Robot-RaspberryPi [(Current Status)](https://www.youtube.com/watch?v=qLhnLk07C0s&list=PLveRMPt4kAsA41ivMscrzFSWWx54CI52J&index=7&t=0s)
+# Balancing-Robot-RaspberryPi [(Current Status)](https://www.youtube.com/watch?v=j3caxAyNHA4&index=1&list=PLveRMPt4kAsA41ivMscrzFSWWx54CI52J)
 
 
 This is my project for balancing an inverted pendulum using an Arduino Mega and Raspberry Pi. In my [earlier ](https://www.youtube.com/watch?v=-TRXWSr9_dE&list=PLveRMPt4kAsA41ivMscrzFSWWx54CI52J&t=0s&index=2) approach I was successful in making the robot balance but in order to move it like a **Segway**, it needs more thorough analysis. Therefore I decided to go into greater details and study it more thoroughly.  
