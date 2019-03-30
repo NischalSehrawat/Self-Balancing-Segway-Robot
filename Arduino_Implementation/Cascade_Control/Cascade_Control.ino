@@ -179,6 +179,7 @@ void loop() {
        Output_rmot = 0.0;
        Output_lmot = 0.0; // Stop the robot
        rotation_speed = 0.0;
+       rotating = false;
        mode_now = "balance"; // Change mode to balance
        mode_prev = "balance"; // Change mode to balance
        }
