@@ -272,9 +272,7 @@ void fwd_bot(){
       analogWrite(Lmot3,Output_lmot - rotation_speed);
       analogWrite(Rmot3,Output_rmot + rotation_speed); // orig
     }
-
-  } 
-   
+  }   
 }
 
 void back_bot(){
@@ -297,7 +295,6 @@ void back_bot(){
       analogWrite(Rmot3,Output_rmot - rotation_speed); 
     }
   }  
-  
 }
 void stop_bot(){
   digitalWrite(Lmot1, LOW);
