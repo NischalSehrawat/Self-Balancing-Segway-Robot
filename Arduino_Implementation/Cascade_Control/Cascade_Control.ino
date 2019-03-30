@@ -58,7 +58,12 @@ float full_speed = 350.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of th
 float frac_full_speed = 0.40; // Fraction of full speed allowed 
 float V_max = frac_full_speed * full_speed; // Maximum speed allowed [m/s]
 float V_max_fwd = 0.01, V_min_bck = -0.01; // Variables used for storing minimum and maximum values of translation speed for applying brakes
-float speed_ratio_mode_change = 0.40; // Ratio when the mode_prev must be set to "balance"
+/*Ratio when the mode_prev must be set to "balance". This is the ratio between 
+instantaneous translation velocity and max / min (fwd / back) velocities. This ratio decides
+when the mode must be set to balance. Lower values mean we must wait for longer time for the 
+speeds to decrease. Higher value mean we donot wait for longer time. The higher the value, 
+the smoother the stopping of the robot*/
+float speed_ratio_mode_change = 0.40; 
 float speed_steps = 0.08; // Steps in which speed should be incremented in order to get to the full speed
 float brake_steps = 0.04; // Steps in which speed should be decremented in order to apply brakes, the smaller the value, the longer the duration of brake application
 String mode_prev = "balance", mode_now = "balance"; // To set balancing, moving fwd and moving backward modes on the robot
