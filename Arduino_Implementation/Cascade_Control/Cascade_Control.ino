@@ -322,8 +322,12 @@ void read_BT(){
     if (c == 'm'){lock = false;Serial.print("Unlocked");}
     if (c == 'n'){lock = true;Serial.print("Locked");}
     else if (c =='0' & lock == false){mode_now = "balance";rotating = false;Serial.print(mode_now);} 
-    else if (c =='1' & lock == false){mode_now = "go fwd";Serial.print(mode_now);} 
-    else if (c =='2' & lock == false){mode_now = "go bck";Serial.print(mode_now);} 
+    else if (c =='1' & lock == false){mode_now = "go fwd";Serial.print(mode_now);
+    if (rotating == true){rotating = false;}
+    } 
+    else if (c =='2' & lock == false){mode_now = "go bck";Serial.print(mode_now);
+    if (rotating == true){rotating = false;}
+    } 
     else if (c =='3' & lock == false){Kp_bal+=1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
     else if (c =='4' & lock == false){Kp_bal-= 1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
     else if (c =='5' & lock == false){Kd_bal+=0.05;Serial.print("Kd_bal = "+String(Kd_bal));}
