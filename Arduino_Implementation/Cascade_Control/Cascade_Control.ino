@@ -58,10 +58,8 @@ float full_speed = 350.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of th
 float frac_full_speed = 0.40; // Fraction of full speed allowed 
 float V_max = frac_full_speed * full_speed; // Maximum speed allowed [m/s]
 float V_max_fwd = 0.01, V_min_bck = -0.01; // Variables used for storing minimum and maximum values of translation speed for applying brakes
-/*Ratio when the mode_prev must be set to "balance". This is the ratio between 
-instantaneous translation velocity and max / min (fwd / back) velocities. This ratio decides
-when the mode must be set to balance. Lower values mean we must wait for longer time for the 
-speeds to decrease. Higher value mean we donot wait for longer time. The higher the value, 
+/*Ratio when the mode_prev must be set to "balance". This is the ratio between instantaneous translation velocity and max / min (fwd / back) velocities. This ratio decides
+when the mode must be set to balance. Lower values mean we must wait for longer time for the speeds to decrease. Higher value mean we donot wait for longer time. The higher the value, 
 the smoother the stopping of the robot*/
 float speed_ratio_mode_change = 0.40; 
 float speed_steps = 0.08; // Steps in which speed should be incremented in order to get to the full speed
@@ -70,7 +68,7 @@ String mode_prev = "balance", mode_now = "balance"; // To set balancing, moving 
 bool lock = true; // Variable to prevent accidental changing of parameters by bluetooth app
 bool rotating = false; // To set rotation mode on the robot
 String rotation_direction = ""; // To set rotation direction
-double rotation_speed = 5; // Set rotation speed
+double rotation_speed = 20; // Set rotation speed
 
 ////////////// LED BLINKING PARAMETERS/////////////////////////
 
@@ -173,18 +171,18 @@ void loop() {
         
     Output_bal = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal); // Map the computed output from Out_min to Outmax Output_lower_bal
     Output_rmot = motor_corr_fac * Output_bal; Output_lmot = Output_bal; // Seperate the output computed for both motors 
-    if (abs(error_bal)<0.2 && mode_now == "balance"){Output_rmot = 0.0;Output_lmot = 0.0;} // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg
+    if (abs(error_bal)<0.2 && mode_now == "balance" && rotating == false){Output_rmot = 0.0; Output_lmot = 0.0;} // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg
     
     ///////////////////////////////////////// If robot has fallen then stop the motors /////////////////////////////////////////////
 
     if (abs(error_bal)>=fall_angle){
        Output_rmot = 0.0;
        Output_lmot = 0.0; // Stop the robot
+       rotation_speed = 0.0;
        mode_now = "balance"; // Change mode to balance
        mode_prev = "balance"; // Change mode to balance
        }
     ///////////////////////////////////////// Apply motor controls /////////////////////////////////////////////
-       
     mot_cont(); // Apply the calculated output to control the motor
     Blink_Led(); // Blink the LED
     t_loop_prev = t_loop_now; // Set prev loop time equal to current loop time for calculating dt for next loop        
@@ -266,14 +264,16 @@ void fwd_bot(){
   }
   else if(rotating == true){ // For rotating clockwise in forward direction, apply extra voltage to left motor
     if (rotation_direction == "clockwise"){
-      analogWrite(Lmot3,Output_lmot + rotation_speed);
-      analogWrite(Rmot3,Output_rmot); 
+      analogWrite(Lmot3,Output_lmot + rotation_speed); // orig
+      analogWrite(Rmot3,Output_rmot - rotation_speed); 
     }
     else if (rotation_direction == "counter_clockwise"){// For rotating anti - clockwise in forward direction, apply extra voltage to right motor
-      analogWrite(Lmot3,Output_lmot);
-      analogWrite(Rmot3,Output_rmot + rotation_speed); 
+      analogWrite(Lmot3,Output_lmot - rotation_speed);
+      analogWrite(Rmot3,Output_rmot + rotation_speed); // orig
     }
-  }    
+
+  } 
+   
 }
 
 void back_bot(){
@@ -288,16 +288,16 @@ void back_bot(){
   }
   else if (rotating == true){ // For rotating clockwise in backward direction, apply extra voltage to right motor
     if (rotation_direction == "clockwise"){
-      analogWrite(Lmot3,Output_lmot);
-      analogWrite(Rmot3,Output_rmot + rotation_speed); 
+      analogWrite(Lmot3,Output_lmot- rotation_speed);
+      analogWrite(Rmot3,Output_rmot + rotation_speed); // orig
     }
     else if (rotation_direction == "counter_clockwise"){ // For rotating anti - clockwise in backward direction, apply extra voltage to left motor
-      analogWrite(Lmot3,Output_lmot + rotation_speed);
-      analogWrite(Rmot3,Output_rmot); 
+      analogWrite(Lmot3,Output_lmot + rotation_speed); // orig
+      analogWrite(Rmot3,Output_rmot - rotation_speed); 
     }
-  }   
+  }  
+  
 }
-
 void stop_bot(){
   digitalWrite(Lmot1, LOW);
   digitalWrite(Lmot2, LOW);
@@ -333,8 +333,8 @@ void read_BT(){
     else if (c =='a' & lock == false){motor_corr_fac-=0.01;Serial.print("MoFac = "+String(motor_corr_fac));} 
     // else if (c =='b' & lock == false){speed_ratio_mode_change+=0.01;Serial.print("SrMoCh = "+String(speed_ratio_mode_change));} 
     // else if (c =='c' & lock == false){speed_ratio_mode_change-=0.01;Serial.print("SrMoCh = "+String(speed_ratio_mode_change));} 
-    else if (c =='b' & lock == false & mode_now == "balance"){rotating = true; rotation_direction = "counter_clockwise";}
-    else if (c =='c' & lock == false & mode_now == "balance"){rotating = true; rotation_direction = "clockwise";}
+    else if (c =='b' & lock == false & mode_now == "balance"){rotating = true; rotation_direction = "counter_clockwise";Serial.print("Rot anticlk");}
+    else if (c =='c' & lock == false & mode_now == "balance"){rotating = true; rotation_direction = "clockwise";Serial.print("Rot clk");}
     else if (c =='d' & lock == false){speed_steps+=0.01;Serial.print("speed_steps = "+String(speed_steps));} 
     else if (c =='e' & lock == false){speed_steps-=0.01;Serial.print("speed_steps = "+String(speed_steps));} 
     else if (c =='f' & lock == false){brake_steps+=0.01;Serial.print("brake_steps = "+String(brake_steps));} 
