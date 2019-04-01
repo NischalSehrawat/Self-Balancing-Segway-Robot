@@ -172,42 +172,7 @@ void loop() {
     
     ////////////////////////////////////////// COMPUTE 2nd loop/ //////////////////////////////////////////////////
  
-
-    if (rotating == true && mode_now == "balance"){ // If rotating and balanced then
-    	if (flag == true){
-    	  Rot_Speed_init+= rot_steps;
-       if (Rot_Speed_init>=Rot_Speed_max){Rot_Speed_init=Rot_Speed_max; flag = false;}
-    	  }
-    	else if (flag == false){
-    	  Rot_Speed_init-= rot_steps;
-    	  if (Rot_Speed_init<=0){Rot_Speed_init=0; flag = true;}
-    	  }
-    }
-
-//    if (rotating == true && mode_now == "balance"){ // If rotating and balanced then
-//    	Setpoint_bal = 0.0; 
-//    	if (initialise_rot_speed == true){Rot_Speed_init = Rot_Speed_max; initialise_rot_speed = false;} //Make initial rotation speed equal to max rot speed just once.
-//    		Rot_Speed_init-= rot_steps; // Start reducing the rotation speed
-//    		if (Rot_Speed_init<1.0){initialise_rot_speed = true;} // If rotation speed falls below 1, set initialise flag to true to initialise the rot speed again
-//    }
-
-
-//     if (rotating == true && mode_now == "balance"){ // If rotating and balanced then
-//     	if (lean_fwd == true){ // set lean fwd to true to lean a bit forward
-//     		Setpoint_bal = 0.0; // Set balancing setpoint to a +ve value to lean forward
-//     		Rot_Speed_init+= rot_steps; // Start increasing the rotation speed
-//     		if (Rot_Speed_init>=Rot_Speed_max){lean_fwd = false; Rot_Speed_init = 0.0;} // If rotation speed falls below 1, set initialise flag to true to initialise the rot speed again
-//     	}
-//     	else if (lean_fwd == false){
-//     		Setpoint_bal = 0.0;
-//     		Rot_Speed_init+= rot_steps;
-//     		if (Rot_Speed_init>=Rot_Speed_max){lean_fwd = true; Rot_Speed_init = 0.0;}    		
-//     	}
-//     }
-
-    Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
-    
-
+    Setpoint_bal = Output_trans;} // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
     Input_bal = Theta_now + Theta_correction; // Set Theta_now as the input / current value to the PID algorithm (The correction is added to correct for the error in MPU calculated angle)             
     error_bal = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction      
     bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor PWM using balancing PID 
