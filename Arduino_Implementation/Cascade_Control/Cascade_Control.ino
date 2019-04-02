@@ -172,7 +172,7 @@ void loop() {
     
     ////////////////////////////////////////// COMPUTE 2nd loop/ //////////////////////////////////////////////////
  
-    Setpoint_bal = Output_trans;} // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
+    Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
     Input_bal = Theta_now + Theta_correction; // Set Theta_now as the input / current value to the PID algorithm (The correction is added to correct for the error in MPU calculated angle)             
     error_bal = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction      
     bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor PWM using balancing PID 
