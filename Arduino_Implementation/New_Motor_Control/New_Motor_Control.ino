@@ -4,7 +4,6 @@
 #include <PID_v1.h>
 #include <My_Motors.h>
 #include <Encoder.h>
-#include <TimerOne.h>
 
 ///////////////////////////////// MPU-6050 parameters //////////////////////////////////////////////
 
@@ -117,8 +116,6 @@ void setup() {
     t_gyro_prev = millis(); // Log time for gyro calculations [ms]  
     t_led_prev = millis(); // Log time for led blinking 
     t_loop_prev = millis(); // Log time for overall control loop [ms]
-    // Timer1.initialize(100000);
-    // Timer1.attachInterrupt(rotate_bot);
     delay(50);  
 }
 
@@ -173,18 +170,17 @@ void loop() {
     ////////////////////////////////////////// COMPUTE 2nd loop/ //////////////////////////////////////////////////
  
     Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
-    
     Input_bal = Theta_now + Theta_correction; // Set Theta_now as the input / current value to the PID algorithm (The correction is added to correct for the error in MPU calculated angle)             
-    
     error_bal = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction      
-    
     bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor PWM using balancing PID 
+    /*Scale the output from 0-255 to 30-255 and then negate it if the initial output computed by PID loop was negetive*/
+    float Output_bal_scaled = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal);
     
-    Output_bal = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal); // Map the computed output from Out_min to Outmax Output_lower_bal
+    if (Output_bal<0){Output_bal_scaled-=1;} // Negate the Output_bal_scaled if the output was negative 
+
+    Output_rmot =  motor_corr_fac * Output_bal_scaled; Output_lmot = Output_bal_scaled; // Seperate the output computed for both motors 
     
-    Output_rmot =  motor_corr_fac * Output_bal; Output_lmot = Output_bal; // Seperate the output computed for both motors 
-    
-    if (abs(error_bal)<0.2 && mode_now == "balance" && rotating == false){Output_rmot = 0.0; Output_lmot = 0.0;} // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg
+    if (abs(error_bal)<0.2 && mode_now == "balance"){Output_rmot = 0.0; Output_lmot = 0.0;} // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg
     
     ///////////////////////////////////////// If robot has fallen then stop the motors /////////////////////////////////////////////
 
@@ -259,95 +255,50 @@ void get_MPU_data(){
 
 ///////////////////////// Function for motor control ////////////////////////////////////////////////////////
 
+/*
+Now I have 4 possibilities
+1. Both motor outputs are positive => move motors forward
+2. Both motor outputs are negetive => move motors backward
+3. Left motor positive and right motor negetive => Anti - Clockwise rotation
+4. Left motor negative and right motor positive => Clockwise rotation
+*/
+
 void mot_cont(){
 
-  if (rotating == false){
-    if (error_bal>0){back_bot();}  // If error_bal is +ve go back
-    else if (error_bal<0){fwd_bot();} // If error_bal is -ve go forward    
+  if (Output_lmot<=0 & Output_rmot<=0){ // => move motors forward
+    digitalWrite(Lmot1, LOW);
+    digitalWrite(Lmot2, HIGH);
+    digitalWrite(Rmot1, LOW);
+    digitalWrite(Rmot2, HIGH);
+    analogWrite(Lmot3,abs(Output_lmot));    
+    analogWrite(Rmot3,abs(Output_rmot));
+  }
+  else if (Output_lmot>0 & Output_rmot>0){ // => move motors backward
+    digitalWrite(Lmot1, HIGH);
+    digitalWrite(Lmot2, LOW);
+    digitalWrite(Rmot1, HIGH);
+    digitalWrite(Rmot2, LOW);
+    analogWrite(Lmot3,abs(Output_lmot));
+    analogWrite(Rmot3,abs(Output_rmot));
   }
 
-  else if (rotating == true){
-    if (error_bal<0 & rotation_direction == "clockwise"){
-      digitalWrite(Lmot1, LOW);
-      digitalWrite(Lmot2, HIGH);
-      digitalWrite(Rmot1, LOW);
-      digitalWrite(Rmot2, HIGH);
-      analogWrite(Lmot3,Output_lmot + Rot_Speed_init); // orig
-      analogWrite(Rmot3,Output_rmot);      
-    }
-    else if (error_bal<0 & rotation_direction == "counter_clockwise"){
-      digitalWrite(Lmot1, HIGH);
-      digitalWrite(Lmot2, LOW);
-      digitalWrite(Rmot1, HIGH);
-      digitalWrite(Rmot2, LOW);
-      analogWrite(Lmot3,Output_lmot); // orig
-      analogWrite(Rmot3,Output_rmot + Rot_Speed_init);      
-    }
+  else if (Output_lmot<=0 & Output_rmot>=0){ // => Move clockwise
+    digitalWrite(Lmot1, LOW);
+    digitalWrite(Lmot2, HIGH);
+    digitalWrite(Rmot1, HIGH);
+    digitalWrite(Rmot2, LOW);
+    analogWrite(Lmot3,abs(Output_lmot));    
+    analogWrite(Rmot3,abs(Output_rmot));
   }
-
-}
-
-void fwd_bot(){
-  digitalWrite(Lmot1, LOW);
-  digitalWrite(Lmot2, HIGH);
-  digitalWrite(Rmot1, LOW);
-  digitalWrite(Rmot2, HIGH);
-  
-  if (rotating == false){ // If not rotating, we donot need to apply different voltages to the motors
-    analogWrite(Lmot3,Output_lmot);    
-    analogWrite(Rmot3,Output_rmot); 
+  else if (Output_lmot>=0 & Output_rmot<=0){ // => Move anti - clockwise
+    digitalWrite(Lmot1, HIGH);
+    digitalWrite(Lmot2, LOW);
+    digitalWrite(Rmot1, LOW);
+    digitalWrite(Rmot2, HIGH);
+    analogWrite(Lmot3,abs(Output_lmot));
+    analogWrite(Rmot3,abs(Output_rmot));
   }
-  else if(rotating == true){ // For rotating clockwise in forward direction, apply extra voltage to left motor
-    if (rotation_direction == "clockwise"){
-      analogWrite(Lmot3,Output_lmot + Rot_Speed_init); // orig
-      analogWrite(Rmot3,Output_rmot);
-    }
-    else if (rotation_direction == "counter_clockwise"){// For rotating anti - clockwise in forward direction, apply extra voltage to right motor
-      analogWrite(Lmot3,Output_lmot);
-      analogWrite(Rmot3,Output_rmot + Rot_Speed_init); // orig
-    }
-  } 
-  
 }
-
-void back_bot(){
-  digitalWrite(Lmot1, HIGH);
-  digitalWrite(Lmot2, LOW);
-  digitalWrite(Rmot1, HIGH);
-  digitalWrite(Rmot2, LOW);
-
-
-  if (rotating == false){ // If not rotating, we donot need to apply different voltages to the motors
-    analogWrite(Lmot3,Output_lmot);
-    analogWrite(Rmot3,Output_rmot);
-    }
-  else if(rotating == true){ // For rotating clockwise in forward direction, apply extra voltage to left motor
-    if (rotation_direction == "clockwise"){
-      analogWrite(Lmot3,Output_lmot); // orig
-      analogWrite(Rmot3,Output_rmot + Rot_Speed_init);
-    }
-    else if (rotation_direction == "counter_clockwise"){// For rotating anti - clockwise in forward direction, apply extra voltage to right motor
-      analogWrite(Lmot3,Output_lmot + Rot_Speed_init);
-      analogWrite(Rmot3,Output_rmot); // orig
-    }
-  } 
-}
-void stop_bot(){
-  digitalWrite(Lmot1, LOW);
-  digitalWrite(Lmot2, LOW);
-  digitalWrite(Rmot1, LOW);
-  digitalWrite(Rmot2, LOW);  
-}
-
-//
-// void rotate_bot(){
-//  digitalWrite(Lmot1, HIGH);
-//  digitalWrite(Lmot2, LOW);
-//  digitalWrite(Rmot1, LOW);
-//  digitalWrite(Rmot2, HIGH);
-//  analogWrite(Lmot3,150);
-//  analogWrite(Rmot3, 150); // orig
-// }
 
 ///////////////////////////////// READ BLUETOOTH ////////////////////////
 
@@ -371,10 +322,10 @@ void read_BT(){
     else if (c =='8' & lock == false){Kp_trans-=0.5;Serial.print("Kp_trans = "+String(Kp_trans));} 
     else if (c =='9' & lock == false){motor_corr_fac+=0.01;Serial.print("MoFac = "+String(motor_corr_fac));} 
     else if (c =='a' & lock == false){motor_corr_fac-=0.01;Serial.print("MoFac = "+String(motor_corr_fac));} 
-     else if (c =='b' & lock == false){speed_ratio_mode_change+=0.01;Serial.print("SrMoCh = "+String(speed_ratio_mode_change));} 
-     else if (c =='c' & lock == false){speed_ratio_mode_change-=0.01;Serial.print("SrMoCh = "+String(speed_ratio_mode_change));} 
-//    else if (c =='b' & lock == false & mode_now == "balance"){rotating = true;rotation_direction = "counter_clockwise";Serial.print("Rot anticlk");}
-//    else if (c =='c' & lock == false & mode_now == "balance"){rotating = true;rotation_direction = "clockwise";Serial.print("Rot clk");}
+//     else if (c =='b' & lock == false){speed_ratio_mode_change+=0.01;Serial.print("SrMoCh = "+String(speed_ratio_mode_change));} 
+//     else if (c =='c' & lock == false){speed_ratio_mode_change-=0.01;Serial.print("SrMoCh = "+String(speed_ratio_mode_change));} 
+    else if (c =='b' & lock == false & mode_now == "balance"){rotating = true;rotation_direction = "counter_clockwise";Serial.print("Rot anticlk");}
+    else if (c =='c' & lock == false & mode_now == "balance"){rotating = true;rotation_direction = "clockwise";Serial.print("Rot clk");}
     else if (c =='d' & lock == false){Rot_Speed_init+=2.0;Serial.print("Rot_sp = "+String(Rot_Speed_init));} 
     else if (c =='e' & lock == false){Rot_Speed_init-=2.0;Serial.print("Rot_sp = "+String(Rot_Speed_init));}
 //    else if (c =='d' & lock == false){speed_steps+=0.01;Serial.print("speed_steps = "+String(speed_steps));} 
