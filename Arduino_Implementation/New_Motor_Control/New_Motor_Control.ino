@@ -70,10 +70,9 @@ String mode_prev = "balance", mode_now = "balance"; // To set balancing, moving 
 bool lock = true; // Variable to prevent accidental changing of parameters by bluetooth app
 bool rotating = false;  // To set rotation mode on the robot
 String rotation_direction = ""; // To set rotation direction
-double Rot_Speed_init = 0, Rot_Speed_max = 90; // Set rotation speed
-double rot_steps = 0.1;
-double Sp_for_rot = 0.5;
-volatile bool flag = true; // Set leaning direction for rotating
+double Rot_Speed = 0, Rot_Max = 20, rot_steps = 0.1; // Set rotation speed
+
+
 
 ////////////// LED BLINKING PARAMETERS/////////////////////////
 
@@ -159,7 +158,10 @@ void loop() {
         is less than speed_ratio_mode_change, change mode_prev to balance*/
         if (V_trans/V_min_bck<=speed_ratio_mode_change){mode_prev = "balance";} // Set mode_prev to balance so that the robot goes to balancing mode totally
         }
-      else if (mode_prev == "balance"){Setpoint_trans = 0.0;V_min_bck = -0.01; V_max_fwd = 0.01;}// Re-initialise the variables
+      else if (mode_prev == "balance"){
+      Setpoint_trans = 0.0;
+      V_min_bck = -0.01; 
+      V_max_fwd = 0.01;}// Re-initialise the variables
       }
     
     ////////////////////////////////////////// COMPUTE 1st loop/ //////////////////////////////////////////////////
@@ -179,8 +181,23 @@ void loop() {
     if (Output_bal<0){Output_bal_scaled-=1;} // Negate the Output_bal_scaled if the output was negative 
 
     Output_rmot =  motor_corr_fac * Output_bal_scaled; Output_lmot = Output_bal_scaled; // Seperate the output computed for both motors 
+
+    if (rotating == true){    	
+    	Rot_Speed+=rot_steps;
+
+    	if (Rot_Speed>=Rot_Max){Rot_Speed = Rot_Max;}
+
+    	if (rotation_direction == "clockwise"){
+    		Output_lmot+=Rot_Speed;
+    		Output_rmot-=Rot_Speed;
+    	}
+    	else if (rotation_direction == "counter_clockwise"){
+    		Output_lmot-=Rot_Speed;
+    		Output_rmot+=Rot_Speed;
+    	}
+    }
     
-    if (abs(error_bal)<0.2 && mode_now == "balance"){Output_rmot = 0.0; Output_lmot = 0.0;} // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg
+    if (abs(error_bal)<0.2 && mode_now == "balance" && rotating == false){Output_rmot = 0.0; Output_lmot = 0.0;} // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg
     
     ///////////////////////////////////////// If robot has fallen then stop the motors /////////////////////////////////////////////
 
@@ -188,6 +205,7 @@ void loop() {
        Output_rmot = 0.0;
        Output_lmot = 0.0; // Stop the robot
        rotating = false;
+       Rot_Speed = 0.0;
        mode_now = "balance"; // Change mode to balance
        mode_prev = "balance"; // Change mode to balance
        }
@@ -256,9 +274,9 @@ void get_MPU_data(){
 ///////////////////////// Function for motor control ////////////////////////////////////////////////////////
 
 /*
-Now I have 4 possibilities
-1. Both motor outputs are positive => move motors forward
-2. Both motor outputs are negetive => move motors backward
+Now we have 4 possibilities
+1. Both motor outputs are negetive => move motors forward
+2. Both motor outputs are positive => move motors backward
 3. Left motor positive and right motor negetive => Anti - Clockwise rotation
 4. Left motor negative and right motor positive => Clockwise rotation
 */
@@ -307,12 +325,16 @@ void read_BT(){
     char c = Serial.read();
     if (c == 'm'){lock = false;Serial.print("Unlocked");}
     if (c == 'n'){lock = true;Serial.print("Locked");}
-    else if (c =='0' & lock == false){mode_now = "balance";rotating = false;Rot_Speed_init = 0.0; Serial.print(mode_now);} 
+    else if (c =='0' & lock == false){
+    	mode_now = "balance";
+    	rotating = false; 
+    	Rot_Speed = 0.0; 
+    	Serial.print(mode_now);} 
     else if (c =='1' & lock == false){mode_now = "go fwd";Serial.print(mode_now);
-    if (rotating == true){rotating = false;}
+    if (rotating == true){rotating = false;Rot_Speed = 0.0;Rot_Speed = 0.0;}
     } 
     else if (c =='2' & lock == false){mode_now = "go bck";Serial.print(mode_now);
-    if (rotating == true){rotating = false;}
+    if (rotating == true){rotating = false;Rot_Speed = 0.0;}
     } 
     else if (c =='3' & lock == false){Kp_bal+=1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
     else if (c =='4' & lock == false){Kp_bal-= 1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
@@ -324,8 +346,16 @@ void read_BT(){
     else if (c =='a' & lock == false){motor_corr_fac-=0.01;Serial.print("MoFac = "+String(motor_corr_fac));} 
 //     else if (c =='b' & lock == false){speed_ratio_mode_change+=0.01;Serial.print("SrMoCh = "+String(speed_ratio_mode_change));} 
 //     else if (c =='c' & lock == false){speed_ratio_mode_change-=0.01;Serial.print("SrMoCh = "+String(speed_ratio_mode_change));} 
-    else if (c =='b' & lock == false & mode_now == "balance"){rotating = true;rotation_direction = "counter_clockwise";Serial.print("Rot anticlk");}
-    else if (c =='c' & lock == false & mode_now == "balance"){rotating = true;rotation_direction = "clockwise";Serial.print("Rot clk");}
+    else if (c =='b' & lock == false & mode_now == "balance"){
+    	rotating = true;
+    	rotation_direction = "counter_clockwise";
+    	Serial.print("Rot anticlk");
+    }
+    else if (c =='c' & lock == false & mode_now == "balance"){
+    	rotating = true; 
+    	rotation_direction = "clockwise";
+    	Serial.print("Rot clk");
+    }
     else if (c =='d' & lock == false){Rot_Speed_init+=2.0;Serial.print("Rot_sp = "+String(Rot_Speed_init));} 
     else if (c =='e' & lock == false){Rot_Speed_init-=2.0;Serial.print("Rot_sp = "+String(Rot_Speed_init));}
 //    else if (c =='d' & lock == false){speed_steps+=0.01;Serial.print("speed_steps = "+String(speed_steps));} 
