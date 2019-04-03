@@ -377,7 +377,7 @@ void read_BT(){
     	brake_steps = 0.04;
     	frac_full_speed = 0.40;
     	Theta_correction = 2.5;
-    	Rot_Speed_init = 70;
+    	Rot_Max = 70;
 
     } //Reset all parameters to default values
    
