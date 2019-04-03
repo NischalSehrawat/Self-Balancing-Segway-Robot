@@ -70,7 +70,7 @@ String mode_prev = "balance", mode_now = "balance"; // To set balancing, moving 
 bool lock = true; // Variable to prevent accidental changing of parameters by bluetooth app
 bool rotating = false;  // To set rotation mode on the robot
 String rotation_direction = ""; // To set rotation direction
-double Rot_Speed = 0, Rot_Max = 20, rot_steps = 0.1; // Set rotation speed
+double Rot_Speed = 0, Rot_Max = 50, rot_steps = 0.1; // Set rotation speed
 
 
 
@@ -377,7 +377,7 @@ void read_BT(){
     	brake_steps = 0.04;
     	frac_full_speed = 0.40;
     	Theta_correction = 2.5;
-    	Rot_Max = 70;
+    	Rot_Max = 50;
 
     } //Reset all parameters to default values
    
