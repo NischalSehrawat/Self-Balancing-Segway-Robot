@@ -1,9 +1,10 @@
-
 ///////////////////////////////// Include all the required libraries ////////////////////////////////
 #include <Wire.h>
 #include <PID_v1.h>
 #include <My_Motors.h>
 #include <Encoder.h>
+#include <TimerOne.h>
+
 
 ///////////////////////////////// MPU-6050 parameters //////////////////////////////////////////////
 
@@ -70,7 +71,9 @@ String mode_prev = "balance", mode_now = "balance"; // To set balancing, moving 
 bool lock = true; // Variable to prevent accidental changing of parameters by bluetooth app
 bool rotating = false;  // To set rotation mode on the robot
 String rotation_direction = ""; // To set rotation direction
-double Rot_Speed = 0, Rot_Max = 50, rot_steps = 0.1; // Set rotation speed
+double Rot_Max = 150.0, rot_steps = 20.0; // Set rotation speed
+double Rot_Speed = Rot_Max;
+bool start_again;
 
 
 
@@ -115,6 +118,8 @@ void setup() {
     t_gyro_prev = millis(); // Log time for gyro calculations [ms]  
     t_led_prev = millis(); // Log time for led blinking 
     t_loop_prev = millis(); // Log time for overall control loop [ms]
+//    Timer1.initialize(5000000);
+//    Timer1.attachInterrupt(turn);
     delay(50);  
 }
 
@@ -176,24 +181,27 @@ void loop() {
     error_bal = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction      
     bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor PWM using balancing PID 
     /*Scale the output from 0-255 to 30-255 and then negate it if the initial output computed by PID loop was negetive*/
-    float Output_bal_scaled = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal);
+    double Output_bal_scaled = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal);
     
-    if (Output_bal<0){Output_bal_scaled-=1;} // Negate the Output_bal_scaled if the output was negative 
+    if (Output_bal<0){Output_bal_scaled*=-1;} // Negate the Output_bal_scaled if the output was negative 
 
     Output_rmot =  motor_corr_fac * Output_bal_scaled; Output_lmot = Output_bal_scaled; // Seperate the output computed for both motors 
 
-    if (rotating == true){    	
-    	Rot_Speed+=rot_steps;
+    if (rotating == true){
 
-    	if (Rot_Speed>=Rot_Max){Rot_Speed = Rot_Max;}
+      if (start_again == true){Rot_Speed = Rot_Max; start_again = false;}
+          	
+    	Rot_Speed-=rot_steps;
 
+    	if (Rot_Speed<0){Rot_Speed = 0;}
+    	
     	if (rotation_direction == "clockwise"){
-    		Output_lmot+=Rot_Speed;
-    		Output_rmot-=Rot_Speed;
+    		Output_lmot -=  Rot_Speed;
+    		Output_rmot +=  Rot_Speed;
     	}
     	else if (rotation_direction == "counter_clockwise"){
-    		Output_lmot-=Rot_Speed;
-    		Output_rmot+=Rot_Speed;
+    		Output_lmot +=   Rot_Speed;
+    		Output_rmot -=  Rot_Speed;
     	}
     }
     
@@ -210,6 +218,7 @@ void loop() {
        mode_prev = "balance"; // Change mode to balance
        }
     ///////////////////////////////////////// Apply motor controls /////////////////////////////////////////////
+   
     mot_cont(); // Apply the calculated output to control the motor
     Blink_Led(); // Blink the LED
     t_loop_prev = t_loop_now; // Set prev loop time equal to current loop time for calculating dt for next loop
@@ -273,6 +282,13 @@ void get_MPU_data(){
 
 ///////////////////////// Function for motor control ////////////////////////////////////////////////////////
 
+void turn(){
+  if (rotating == false){return;}
+  else if (rotating == true){
+    start_again = true;
+  }  
+}
+
 /*
 Now we have 4 possibilities
 1. Both motor outputs are negetive => move motors forward
@@ -328,7 +344,6 @@ void read_BT(){
     else if (c =='0' & lock == false){
     	mode_now = "balance";
     	rotating = false; 
-    	Rot_Speed = 0.0; 
     	Serial.print(mode_now);} 
     else if (c =='1' & lock == false){mode_now = "go fwd";Serial.print(mode_now);
     if (rotating == true){rotating = false;Rot_Speed = 0.0;Rot_Speed = 0.0;}
@@ -348,16 +363,18 @@ void read_BT(){
 //     else if (c =='c' & lock == false){speed_ratio_mode_change-=0.01;Serial.print("SrMoCh = "+String(speed_ratio_mode_change));} 
     else if (c =='b' & lock == false & mode_now == "balance"){
     	rotating = true;
+      start_again = true;
     	rotation_direction = "counter_clockwise";
     	Serial.print("Rot anticlk");
     }
     else if (c =='c' & lock == false & mode_now == "balance"){
-    	rotating = true; 
+    	rotating = true;
+      start_again = true; 
     	rotation_direction = "clockwise";
     	Serial.print("Rot clk");
     }
-    else if (c =='d' & lock == false){Rot_Speed_init+=2.0;Serial.print("Rot_sp = "+String(Rot_Speed_init));} 
-    else if (c =='e' & lock == false){Rot_Speed_init-=2.0;Serial.print("Rot_sp = "+String(Rot_Speed_init));}
+    else if (c =='d' & lock == false){Rot_Max+=2.0;Serial.print("Rot_Max = "+String(Rot_Max));} 
+    else if (c =='e' & lock == false){Rot_Max-=2.0;Serial.print("Rot_Max = "+String(Rot_Max));}
 //    else if (c =='d' & lock == false){speed_steps+=0.01;Serial.print("speed_steps = "+String(speed_steps));} 
 //    else if (c =='e' & lock == false){speed_steps-=0.01;Serial.print("speed_steps = "+String(speed_steps));} 
     else if (c =='f' & lock == false){brake_steps+=0.01;Serial.print("brake_steps = "+String(brake_steps));} 
@@ -377,7 +394,7 @@ void read_BT(){
     	brake_steps = 0.04;
     	frac_full_speed = 0.40;
     	Theta_correction = 2.5;
-    	Rot_Max = 50;
+    	Rot_Max = 150;
 
     } //Reset all parameters to default values
    
