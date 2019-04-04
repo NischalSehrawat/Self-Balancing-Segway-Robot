@@ -185,7 +185,7 @@ void loop() {
     
     if (Output_bal<0){Output_bal_scaled*=-1;} // Negate the Output_bal_scaled if the output was negative 
 
-    Output_rmot =  motor_corr_fac * Output_bal_scaled; Output_lmot = Output_bal_scaled; // Seperate the output computed for both motors 
+    Output_rmot =  Output_bal_scaled; Output_lmot = Output_bal_scaled; // Seperate the output computed for both motors 
 
     if (rotating == true){
       if (start_again == true){Rot_Speed = Rot_Max; start_again = false;}          	
@@ -201,6 +201,8 @@ void loop() {
     	}
     }
     
+    Output_rmot *=  motor_corr_fac; // Scale the right motor PWM 
+
     if (abs(error_bal)<0.2 && mode_now == "balance" && rotating == false){Output_rmot = 0.0; Output_lmot = 0.0;} // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg
     
     ///////////////////////////////////////// If robot has fallen then stop the motors /////////////////////////////////////////////
