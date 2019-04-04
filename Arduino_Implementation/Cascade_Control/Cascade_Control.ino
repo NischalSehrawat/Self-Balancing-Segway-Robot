@@ -199,7 +199,7 @@ void loop() {
     		Output_lmot -=  Rot_Speed;
     		Output_rmot +=  Rot_Speed;
     	}
-    	else if (rotation_direction == "counter_clockwise"){
+    	else if (rotation_direction == "anti_clockwise"){
     		Output_lmot +=   Rot_Speed;
     		Output_rmot -=  Rot_Speed;
     	}
@@ -362,7 +362,7 @@ void read_BT(){
     else if (c =='b' & lock == false & mode_now == "balance"){
     	rotating = true;
         start_again = true;
-    	rotation_direction = "counter_clockwise";
+    	rotation_direction = "anti_clockwise";
     	Serial.print("Rot anticlk");
     }
     else if (c =='c' & lock == false & mode_now == "balance"){
