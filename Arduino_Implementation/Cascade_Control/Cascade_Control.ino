@@ -188,13 +188,9 @@ void loop() {
     Output_rmot =  motor_corr_fac * Output_bal_scaled; Output_lmot = Output_bal_scaled; // Seperate the output computed for both motors 
 
     if (rotating == true){
-
-      if (start_again == true){Rot_Speed = Rot_Max; start_again = false;}
-          	
+      if (start_again == true){Rot_Speed = Rot_Max; start_again = false;}          	
     	Rot_Speed-=rot_steps;
-
-    	if (Rot_Speed<0){Rot_Speed = 0; rotating == true}
-    	
+    	if (Rot_Speed<0){Rot_Speed = 0; rotating == true}    	
     	if (rotation_direction == "clockwise"){
     		Output_lmot -=  Rot_Speed;
     		Output_rmot +=  Rot_Speed;
