@@ -48,7 +48,7 @@ PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON
 ///////////////////////////////// TRANSLATION PID parameters ///////////////////////////////////////////////////
 
 double Input_trans, Output_trans, Setpoint_trans; // Input output and setpoint variables defined
-double Out_min_trans = -10, Out_max_trans = 10; // PID Output limits, this output is in degrees
+double Out_min_trans = -25, Out_max_trans = 25; // PID Output limits, this output is in degrees
 double Kp_trans = 10.0, Ki_trans = 0.0, Kd_trans = 0.00; // Initializing the Proportional, integral and derivative gain constants
 PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, Kd_trans, P_ON_E, DIRECT); // PID Controller for translating
 
@@ -71,7 +71,7 @@ String mode_prev = "balance", mode_now = "balance"; // To set balancing, moving 
 bool lock = true; // Variable to prevent accidental changing of parameters by bluetooth app
 bool rotating = false;  // To set rotation mode on the robot
 String rotation_direction = ""; // To set rotation direction
-double Rot_Max = 150.0, rot_steps = 10.0; // Max rotation speed and the steps in which speed is decreased to "0"
+double Rot_Max = 150.0, rot_steps = 20.0; // Max rotation speed and the steps in which speed is decreased to "0"
 double Rot_Speed = Rot_Max;
 bool start_again; // Boolean to reset Rot_Speed = Rot_max once Rot_Speed decreases from Rot_Max to 0
 
