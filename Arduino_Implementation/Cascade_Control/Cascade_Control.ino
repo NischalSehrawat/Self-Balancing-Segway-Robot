@@ -359,8 +359,6 @@ void read_BT(){
     else if (c =='8' & lock == false){Kp_trans-=0.5;Serial.print("Kp_trans = "+String(Kp_trans));} 
     else if (c =='9' & lock == false){motor_corr_fac+=0.01;Serial.print("MoFac = "+String(motor_corr_fac));} 
     else if (c =='a' & lock == false){motor_corr_fac-=0.01;Serial.print("MoFac = "+String(motor_corr_fac));} 
-//     else if (c =='b' & lock == false){speed_ratio_mode_change+=0.01;Serial.print("SrMoCh = "+String(speed_ratio_mode_change));} 
-//     else if (c =='c' & lock == false){speed_ratio_mode_change-=0.01;Serial.print("SrMoCh = "+String(speed_ratio_mode_change));} 
     else if (c =='b' & lock == false & mode_now == "balance"){
     	rotating = true;
       start_again = true;
@@ -375,8 +373,6 @@ void read_BT(){
     }
     else if (c =='d' & lock == false){Rot_Max+=2.0;Serial.print("Rot_Max = "+String(Rot_Max));} 
     else if (c =='e' & lock == false){Rot_Max-=2.0;Serial.print("Rot_Max = "+String(Rot_Max));}
-//    else if (c =='d' & lock == false){speed_steps+=0.01;Serial.print("speed_steps = "+String(speed_steps));} 
-//    else if (c =='e' & lock == false){speed_steps-=0.01;Serial.print("speed_steps = "+String(speed_steps));} 
     else if (c =='f' & lock == false){brake_steps+=0.01;Serial.print("brake_steps = "+String(brake_steps));} 
     else if (c =='g' & lock == false){brake_steps-=0.01;Serial.print("brake_steps = "+String(brake_steps));} 
     else if (c =='h' & lock == false){frac_full_speed+=0.05;V_max = frac_full_speed * full_speed; Serial.print("FrFs = "+String(frac_full_speed));} 
