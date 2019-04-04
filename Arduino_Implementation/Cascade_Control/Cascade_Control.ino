@@ -361,13 +361,13 @@ void read_BT(){
     else if (c =='a' & lock == false){motor_corr_fac-=0.01;Serial.print("MoFac = "+String(motor_corr_fac));} 
     else if (c =='b' & lock == false & mode_now == "balance"){
     	rotating = true;
-      start_again = true;
+        start_again = true;
     	rotation_direction = "counter_clockwise";
     	Serial.print("Rot anticlk");
     }
     else if (c =='c' & lock == false & mode_now == "balance"){
     	rotating = true;
-      start_again = true; 
+        start_again = true; 
     	rotation_direction = "clockwise";
     	Serial.print("Rot clk");
     }
