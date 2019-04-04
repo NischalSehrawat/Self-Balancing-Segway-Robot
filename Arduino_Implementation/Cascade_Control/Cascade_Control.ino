@@ -54,7 +54,7 @@ PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, 
 
 ///////////////////////////////// ROBOT PHYSICAL PROPERTIES ////////////////////////////////////////////
 
-float motor_corr_fac = 0.925; 
+float motor_corr_fac = 0.925;// factor to correct for the difference b/w the motor characteristics
 float r_whl = 0.5 * 0.130; // Wheel radius [m]
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 float full_speed = 350.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 350 RPM @ 12 V]
@@ -71,9 +71,9 @@ String mode_prev = "balance", mode_now = "balance"; // To set balancing, moving 
 bool lock = true; // Variable to prevent accidental changing of parameters by bluetooth app
 bool rotating = false;  // To set rotation mode on the robot
 String rotation_direction = ""; // To set rotation direction
-double Rot_Max = 150.0, rot_steps = 20.0; // Set rotation speed
+double Rot_Max = 150.0, rot_steps = 20.0; // Max rotation speed and the steps in which speed is decreased to "0"
 double Rot_Speed = Rot_Max;
-bool start_again;
+bool start_again; // Boolean to reset Rot_Speed = Rot_max once Rot_Speed decreases from Rot_Max to 0
 
 
 
@@ -193,7 +193,7 @@ void loop() {
           	
     	Rot_Speed-=rot_steps;
 
-    	if (Rot_Speed<0){Rot_Speed = 0;}
+    	if (Rot_Speed<0){Rot_Speed = 0; rotating == true}
     	
     	if (rotation_direction == "clockwise"){
     		Output_lmot -=  Rot_Speed;
