@@ -71,7 +71,7 @@ String mode_prev = "balance", mode_now = "balance"; // To set balancing, moving 
 bool lock = true; // Variable to prevent accidental changing of parameters by bluetooth app
 bool rotating = false;  // To set rotation mode on the robot
 String rotation_direction = ""; // To set rotation direction
-double Rot_Max = 150.0, rot_steps = 20.0; // Max rotation speed and the steps in which speed is decreased to "0"
+double Rot_Max = 150.0, rot_steps = 10.0; // Max rotation speed and the steps in which speed is decreased to "0"
 double Rot_Speed = Rot_Max;
 bool start_again; // Boolean to reset Rot_Speed = Rot_max once Rot_Speed decreases from Rot_Max to 0
 
@@ -190,7 +190,7 @@ void loop() {
     if (rotating == true){
       if (start_again == true){Rot_Speed = Rot_Max; start_again = false;}          	
     	Rot_Speed-=rot_steps;
-    	if (Rot_Speed<0){Rot_Speed = 0; rotating == true}    	
+    	if (Rot_Speed<0){Rot_Speed = 0; rotating == true;}    	
     	if (rotation_direction == "clockwise"){
     		Output_lmot -=  Rot_Speed;
     		Output_rmot +=  Rot_Speed;
