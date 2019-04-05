@@ -52,6 +52,13 @@ double Out_min_trans = -10, Out_max_trans = 10; // PID Output limits, this outpu
 double Kp_trans = 10.0, Ki_trans = 0.0, Kd_trans = 0.00; // Initializing the Proportional, integral and derivative gain constants
 PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, Kd_trans, P_ON_E, DIRECT); // PID Controller for translating
 
+///////////////////////////////// Path Correction PID parameters ///////////////////////////////////////////////////
+
+double Input_path_cor, Output_path_cor, Setpoint_path_cor; // Input output and setpoint variables defined
+double Out_min_path_cor = 0, Out_max_path_cor = 10; // PID Output limits, this output is in degrees
+double Kp_path_cor = 0.5, Ki_path_cor = 0.0, Kd_path_cor = 0.00; // Initializing the Proportional, integral and derivative gain constants
+PID path_cor_PID(&Input_path_cor, &Output_path_cor, &Setpoint_path_cor, Kp_path_cor, Ki_path_cor, Kd_path_cor, P_ON_E, DIRECT); // PID Controller for path correction
+
 ///////////////////////////////// ROBOT PHYSICAL PROPERTIES ////////////////////////////////////////////
 
 float motor_corr_fac = 0.925;// factor to correct for the difference b/w the motor characteristics
@@ -107,7 +114,12 @@ void setup() {
     trans_PID.SetSampleTime(t_loop); // Set Loop time for PID [milliseconds]
     trans_PID.SetMode(AUTOMATIC); // Set PID mode to Automatic        
     trans_PID.SetOutputLimits(Out_min_trans, Out_max_trans); // Set upper and lower limits for the maximum output limits for PID loop
-  
+
+    ////////////////////////// Path Correction PID initialization ////////////////////////////////////////////////////////        
+
+    path_cor_PID.SetSampleTime(t_loop); // Set Loop time for PID [milliseconds]
+    path_cor_PID.SetMode(AUTOMATIC); // Set PID mode to Automatic        
+    path_cor_PID.SetOutputLimits(Out_min_path_cor, Out_max_path_cor); // Set upper and lower limits for the maximum output limits for PID loop  
     ////////////////////////// MPU initialization ///////////////////////////////////////////////////
     
     Wire.begin(); // Start wire library    
@@ -201,7 +213,16 @@ void loop() {
     	}
     }
     
-    Output_rmot *=  motor_corr_fac; // Scale the right motor PWM 
+    //////////////////////////////////////////  Make corrections for straight line travel/ //////////////////////////////////////////////////
+    
+    if (rotating == false){ // Apply straight path correction only if the robot is not rotating
+
+      Setpoint_path_cor = abs(Final_Rpm_l); // Set left motor RPM as setpoint
+      Input_path_cor = abs(Final_Rpm_r); // Set right motor RPM as input
+      path_cor_PID.Compute(); // Compute the output of path correction PID
+      if (Output_path_cor>0){} // If output is >0 ie. left motor is spinning faster, subtract output_path cor from it
+      else if (Output_path_cor<0){} // If output is <0 ie. right motor is spinning faster, subtract output_path cor from it      
+    }
 
     if (abs(error_bal)<0.2 && mode_now == "balance" && rotating == false){Output_rmot = 0.0; Output_lmot = 0.0;} // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg
     
