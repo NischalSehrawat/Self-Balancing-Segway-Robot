@@ -370,9 +370,7 @@ void read_BT(){
     char c = Serial.read();
     if (c == 'm'){lock = false;Serial.print("Unlocked");}
     if (c == 'n'){lock = true;Serial.print("Locked");}
-    else if (c =='0' & lock == false){
-    	mode_now = "balance";
-    	Serial.print(mode_now);} 
+    else if (c =='0' & lock == false){mode_now = "balance";Serial.print(mode_now);} 
     else if (c =='1' & lock == false){mode_now = "go fwd";Serial.print(mode_now);} 
     else if (c =='2' & lock == false){mode_now = "go bck";Serial.print(mode_now);} 
     else if (c =='3' & lock == false){Kp_bal+=1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
