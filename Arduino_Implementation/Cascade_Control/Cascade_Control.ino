@@ -323,8 +323,8 @@ void Blink_Led(){
 Now we have 4 possibilities
 1. Both motor outputs are negetive => move motors forward
 2. Both motor outputs are positive => move motors backward
-3. Left motor positive and right motor negetive => Anti - Clockwise rotation
-4. Left motor negative and right motor positive => Clockwise rotation
+3. Left motor negative and right motor positive => Clockwise rotation
+4. Left motor positive and right motor negative => Anti - Clockwise rotation
 */
 
 void mot_cont(){
