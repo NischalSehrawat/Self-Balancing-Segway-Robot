@@ -136,7 +136,7 @@ void loop() {
     
     ////////////////////////////////////////// COMPUTE BALANCING PID OUTPUT/ //////////////////////////////////////////////////
     
-    if (mode_now == "go fwd"){ // If we changed mode to forward now, start increasing the setpoint slowly to avoid jerky behaviour
+    if (mode_now == "go fwd"){ // If we change mode to forward now, start increasing the setpoint slowly to avoid jerky behaviour
       switch_bal_controller = true;
       switch_trans_controller = true;
       Setpoint_trans = Setpoint_trans + speed_steps;
@@ -144,7 +144,7 @@ void loop() {
       if (Setpoint_trans > V_max){Setpoint_trans = V_max;}
       if (V_max_fwd < V_trans) {V_max_fwd = V_trans;} // If the current velocity is more than V_max_fwd, then this is the new max velocity
     }
-    else if (mode_now == "go bck"){// If we changed mode to backward now, start decreasing the setpoint slowly to avoid jerky behaviour
+    else if (mode_now == "go bck"){// If we change mode to backward now, start decreasing the setpoint slowly to avoid jerky behaviour
       mode_prev = "go bck";
       switch_bal_controller = true;
       switch_trans_controller = true;
@@ -152,7 +152,7 @@ void loop() {
       if (Setpoint_trans < -V_max){Setpoint_trans = -V_max;}
       if (V_min_bck > V_trans) {V_min_bck = V_trans;} // If the current velocity is less than V_min_bck, then this is the new min velocity
       }
-    else if (mode_now == "balance"){ // If we changed mode to balance now, we need to apply brakes
+    else if (mode_now == "balance"){ // If we change mode to balance now, we need to apply brakes
       /*Braking algorithms in case moving command was given from the user*/
       if (mode_prev == "go fwd"){
         Setpoint_trans = Setpoint_trans - brake_steps; // If going in fwd direction, apply brakes by setting the trans setpoint to opposite value
