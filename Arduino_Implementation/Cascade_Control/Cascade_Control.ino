@@ -81,10 +81,8 @@ bool start_again; // Boolean to reset Rot_Speed = Rot_max once Rot_Speed decreas
 
 ////////////// LED BLINKING PARAMETERS/////////////////////////
 
-long t_led_prev, t_led_now, dt_led; // Time parameters to log times for LED blinking
 bool led_state = 0; // Parameter to turn LED from ON / OFF
 int pin = 13; // PIN where LED is attached
-int blink_rate = 100; // Blink after every [millis]
 double t_loop_prev, t_loop_now, dt_loop; // Time parameters to log times for main control loop
 double t_loop = 20.0; // Overall loop time [millis]
 
@@ -118,10 +116,9 @@ void setup() {
     pitch = (atan2(accelY-mpu_calib[1], accelZ+mpu_calib[2]))*rad2deg; //  Calculate initial pitch angle [deg] and caliberated for error in accY and accZ
     Theta_prev = pitch; // set the total starting angle to this pitch 
     t_gyro_prev = millis(); // Log time for gyro calculations [ms]  
-    t_led_prev = millis(); // Log time for led blinking 
     t_loop_prev = millis(); // Log time for overall control loop [ms]
-//    Timer1.initialize(5000000);
-//    Timer1.attachInterrupt(turn);
+   Timer1.initialize(250000);
+   Timer1.attachInterrupt(Blink_Led);
     delay(50);  
 }
 
@@ -230,7 +227,7 @@ void loop() {
     ///////////////////////////////////////// Apply motor controls /////////////////////////////////////////////
    
     mot_cont(); // Apply the calculated output to control the motor
-    Blink_Led(); // Blink the LED
+    // Blink_Led(); // Blink the LED
     t_loop_prev = t_loop_now; // Set prev loop time equal to current loop time for calculating dt for next loop
   }  
 }
@@ -292,11 +289,9 @@ void get_MPU_data(){
 
 ///////////////////////// Function for motor control ////////////////////////////////////////////////////////
 
-void turn(){
-  if (rotating == false){return;}
-  else if (rotating == true){
-    start_again = true;
-  }  
+void Blink_Led(){
+  if (led_state ==0){digitalWrite(pin, 1);led_state = 1;}
+  else if(led_state == 1){digitalWrite(pin, 0);led_state = 0;}
 }
 
 /*
@@ -408,14 +403,3 @@ void read_BT(){
     }  
 }
 
-///////////////////////////////////// NON BLOCKING FUNCTION TO BLINK LED ///////////////
-
-void Blink_Led(){  
-  t_led_now = millis();
-  dt_led = t_led_now - t_led_prev;
-  if (dt_led>blink_rate){
-      if (led_state ==0){digitalWrite(pin, 1);led_state = 1;}
-      else if(led_state == 1){digitalWrite(pin, 0);led_state = 0;}
-      t_led_prev = t_led_now;   
-      }
-   }
