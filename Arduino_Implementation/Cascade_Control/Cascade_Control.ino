@@ -231,11 +231,10 @@ void loop() {
     
     else if (rotating == false){ // Account for motor speed differences, if not rotating
       if (Final_Rpm_l>0 && Final_Rpm_r>0){Output_rmot*=motor_corr_fac_fwd;}
-      else if (Final_Rpm_l<0 && Final_Rpm_r<0){Output_lmot*=motor_corr_fac_bck;}
-      
-      // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg  
-      
-      if (abs(error_bal)<0.3 && mode_now == "balance"){Output_rmot = 0.0; Output_lmot = 0.0;} 
+      else if (Final_Rpm_l<0 && Final_Rpm_r<0){Output_lmot*=motor_corr_fac_bck;}      
+
+      // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg      
+      if (abs(error_bal)<0.2 && mode_now == "balance"){Output_rmot = 0.0; Output_lmot = 0.0;} 
     }    
     
     ///////////////////////////////////////// If robot has fallen then stop the motors /////////////////////////////////////////////
