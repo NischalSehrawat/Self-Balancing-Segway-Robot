@@ -252,7 +252,6 @@ void loop() {
     ///////////////////////////////////////// Apply motor controls /////////////////////////////////////////////
    
     mot_cont(); // Apply the calculated output to control the motor
-    // Blink_Led(); // Blink the LED
     t_loop_prev = t_loop_now; // Set prev loop time equal to current loop time for calculating dt for next loop
   }  
 }
