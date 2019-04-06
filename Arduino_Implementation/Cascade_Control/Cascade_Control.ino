@@ -50,8 +50,9 @@ bool switch_bal_controller = false; // Variable to switch to a softer controller
 
 double Input_trans, Output_trans, Setpoint_trans; // Input output and setpoint variables defined
 double Out_min_trans = -25, Out_max_trans = 25; // PID Output limits, this output is in degrees
-double Kp_trans = 10.0, Ki_trans = 0.0, Kd_trans = 0.00; // Initializing the Proportional, integral and derivative gain constants
+double Kp_trans = 20.0, Ki_trans = 0.0, Kd_trans = 0.00; // Initializing the Proportional, integral and derivative gain constants
 PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, Kd_trans, P_ON_E, DIRECT); // PID Controller for translating
+bool switch_trans_controller = false; // Variable to switch trans controller behavior once moving commands are issued
 
 ///////////////////////////////// ROBOT PHYSICAL PROPERTIES ////////////////////////////////////////////
 
@@ -140,6 +141,7 @@ void loop() {
     
     if (mode_now == "go fwd"){ // If we changed mode to forward now, start increasing the setpoint slowly to avoid jerky behaviour
       switch_bal_controller = true;
+      switch_trans_controller = true;
       Setpoint_trans = Setpoint_trans + speed_steps;
       mode_prev = "go fwd";
       if (Setpoint_trans > V_max){Setpoint_trans = V_max;}
@@ -148,19 +150,23 @@ void loop() {
     else if (mode_now == "go bck"){// If we changed mode to backward now, start decreasing the setpoint slowly to avoid jerky behaviour
       mode_prev = "go bck";
       switch_bal_controller = true;
+      switch_trans_controller = true;
       Setpoint_trans = Setpoint_trans - speed_steps;
       if (Setpoint_trans < -V_max){Setpoint_trans = -V_max;}
       if (V_min_bck > V_trans) {V_min_bck = V_trans;} // If the current velocity is less than V_min_bck, then this is the new min velocity
       }
     else if (mode_now == "balance"){ // If we changed mode to balance now, we need to apply brakes
+      /*Braking algorithms in case moving command was given from the user*/
       if (mode_prev == "go fwd"){
         Setpoint_trans = Setpoint_trans - brake_steps; // If going in fwd direction, apply brakes by setting the trans setpoint to opposite value
+        switch_trans_controller = false; // Reset trans_PID to original value to get increased braking
         /*if the ratio of current velocity and the maximum velocity measured since the robot started moving forward
         is less than speed_ratio_mode_change, change mode_prev to balance*/
         if (V_trans/V_max_fwd<=speed_ratio_mode_change){mode_prev = "balance"; t_mode_switch = millis();} // Set mode_prev to balance so that the robot goes to balancing mode totally
         }
       else if (mode_prev == "go bck"){
         Setpoint_trans = Setpoint_trans + brake_steps; // If going in bck direction, apply brakes by setting the trans setpoint to opposite value
+        switch_trans_controller = false; // Reset trans_PID to original value to get increased braking
         /*if the ratio of current velocity and the minimum velocity measured since the robot started moving backward
         is less than speed_ratio_mode_change, change mode_prev to balance*/
         if (V_trans/V_min_bck<=speed_ratio_mode_change){mode_prev = "balance"; t_mode_switch = millis();} // Set mode_prev to balance so that the robot goes to balancing mode totally
@@ -177,6 +183,8 @@ void loop() {
     ////////////////////////////////////////// COMPUTE 1st loop/ //////////////////////////////////////////////////
 
     Input_trans = V_trans; // Measured value / Input value [m/s]
+    if (switch_trans_controller = false){trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);} // Keep original value to increase braking
+    else if (switch_trans_controller = true){trans_PID.SetTunings(0.3 * Kp_trans, Ki_trans, Kd_trans);} // Change trans_PID to 0.3 * original value to reduce bending angle
     trans_PID.Compute(); // Compute Output_trans of the 1st loop [degrees]
     
     ////////////////////////////////////////// COMPUTE 2nd loop/ //////////////////////////////////////////////////
@@ -219,9 +227,7 @@ void loop() {
       // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg  
       
       if (abs(error_bal)<0.3 && mode_now == "balance"){Output_rmot = 0.0; Output_lmot = 0.0;} 
-    }
-
-    
+    }    
     
     ///////////////////////////////////////// If robot has fallen then stop the motors /////////////////////////////////////////////
 
@@ -360,7 +366,7 @@ void read_BT(){
     	rotating = false; 
     	Serial.print(mode_now);} 
     else if (c =='1' & lock == false){mode_now = "go fwd";Serial.print(mode_now);
-    if (rotating == true){rotating = false;Rot_Speed = 0.0;Rot_Speed = 0.0;}
+    if (rotating == true){rotating = false;Rot_Speed = 0.0;}
     } 
     else if (c =='2' & lock == false){mode_now = "go bck";Serial.print(mode_now);
     if (rotating == true){rotating = false;Rot_Speed = 0.0;}
@@ -369,8 +375,8 @@ void read_BT(){
     else if (c =='4' & lock == false){Kp_bal-= 1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
     else if (c =='5' & lock == false){Kd_bal+=0.05;Serial.print("Kd_bal = "+String(Kd_bal));}
     else if (c =='6' & lock == false){Kd_bal-=0.05;Serial.print("Kd_bal = "+String(Kd_bal));}
-    else if (c =='7' & lock == false){Kp_trans+=0.5;Serial.print("Kp_trans = "+String(Kp_trans));} 
-    else if (c =='8' & lock == false){Kp_trans-=0.5;Serial.print("Kp_trans = "+String(Kp_trans));} 
+    else if (c =='7' & lock == false){Kp_trans+=0.5;trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);Serial.print("Kp_trans = "+String(Kp_trans));} 
+    else if (c =='8' & lock == false){Kp_trans-=0.5;trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);Serial.print("Kp_trans = "+String(Kp_trans));} 
     else if (c =='9' & lock == false){motor_corr_fac_fwd+=0.01;Serial.print("MoFac = "+String(motor_corr_fac_fwd));} 
     else if (c =='a' & lock == false){motor_corr_fac_fwd-=0.01;Serial.print("MoFac = "+String(motor_corr_fac_fwd));} 
     else if (c =='b' & lock == false & mode_now == "balance"){
@@ -397,7 +403,8 @@ void read_BT(){
       Serial.print("Reset");
     	mode_now = "balance";mode_prev = "balance"; rotating = false;
     	Kp_bal = 46.0; Kd_bal = 0.8;
-    	Kp_trans = 10.0;
+    	Kp_trans = 20.0;
+      trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);
     	motor_corr_fac_fwd = 0.95;
       motor_corr_fac_bck = 0.97;
     	speed_ratio_mode_change = 0.40;
