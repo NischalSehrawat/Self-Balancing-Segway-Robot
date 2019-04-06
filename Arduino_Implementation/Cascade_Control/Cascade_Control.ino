@@ -43,7 +43,6 @@ double Out_min_bal = -255, Out_max_bal = 255; // PID Output limits, this is the 
 double Kp_bal = 46.0, Ki_bal = 0.0, Kd_bal = 0.80; // Initializing the Proportional, integral and derivative gain constants
 double Output_lower_bal = 30.0; // PWM Limit at which the motors actually start to move
 PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON_E, DIRECT); // PID Controller for balancing
-bool switch_bal_controller = false; // Variable to switch to a softer controller when the robot is moving to make stopping / starting behavior smooth
 
 ///////////////////////////////// TRANSLATION PID parameters ///////////////////////////////////////////////////
 
@@ -51,7 +50,6 @@ double Input_trans, Output_trans, Setpoint_trans; // Input output and setpoint v
 double Out_min_trans = -25, Out_max_trans = 25; // PID Output limits, this output is in degrees
 double Kp_trans = 20.0, Ki_trans = 0.0, Kd_trans = 0.00; // Initializing the Proportional, integral and derivative gain constants
 PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, Kd_trans, P_ON_E, DIRECT); // PID Controller for translating
-bool switch_trans_controller = false; // Variable to switch trans controller behavior once moving commands are issued
 
 ///////////////////////////////// ROBOT PHYSICAL PROPERTIES ////////////////////////////////////////////
 
@@ -64,23 +62,32 @@ float full_speed = 350.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of th
 float frac_full_speed = 0.40; // Fraction of full speed allowed 
 float V_max = frac_full_speed * full_speed; // Maximum speed allowed [m/s]
 float V_max_fwd = 0.01, V_min_bck = -0.01; // Variables used for storing minimum and maximum values of translation speed for applying brakes
-/*Ratio when the mode_prev must be set to "balance". This is the ratio between instantaneous translation velocity and max / min (fwd / back) velocities. This ratio decides
-when the mode must be set to balance. Lower values mean we must wait for longer time for the speeds to decrease. Higher value mean we donot wait for longer time. The higher the value, 
+
+/*Ratio when the mode_prev must be set to "balance". This is the ratio between 
+instantaneous translation velocity and max / min (fwd / back) velocities. This ratio decides
+when the mode must be set to balance. Lower values mean we must wait for longer time for 
+the speeds to decrease. Higher value mean we donot wait for longer time. The higher the value, 
 the smoother the stopping of the robot*/
+
 float speed_ratio_mode_change = 0.40; 
 float speed_steps = 0.08; // Steps in which speed should be incremented in order to get to the full speed
 float brake_steps = 0.04; // Steps in which speed should be decremented in order to apply brakes, the smaller the value, the longer the duration of brake application
 String mode_prev = "balance", mode_now = "balance"; // To set balancing, moving fwd and moving backward modes on the robot
-bool lock = true; // Variable to prevent accidental changing of parameters by bluetooth app
-bool rotating = false;  // To set rotation mode on the robot
 String rotation_direction = ""; // To set rotation direction
 double Rot_Max = 150.0, rot_steps = 20.0; // Max rotation speed and the steps in which speed is decreased to "0"
 double Rot_Speed = Rot_Max;
+
+////////////// All boolean switching PARAMETERS/////////////////////////
+
+bool switch_bal_controller = false; // Variable to switch to a softer controller when the robot is moving to make stopping / starting behavior smooth
+bool switch_trans_controller = false; // Variable to switch trans controller behavior once moving commands are issued
+bool lock = true; // Variable to prevent accidental changing of parameters by bluetooth app
+bool rotating = false;  // To set rotation mode on the robot
 bool start_again; // Boolean to reset Rot_Speed = Rot_max once Rot_Speed decreases from Rot_Max to 0
+bool led_state = 0; // Parameter to turn LED from ON / OFF
 
 ////////////// LED BLINKING / Loop time PARAMETERS/////////////////////////
 
-bool led_state = 0; // Parameter to turn LED from ON / OFF
 int pin = 13; // PIN where LED is attached
 double t_loop_prev, t_loop_now, dt_loop, t_mode_switch; // Time parameters to log times for main control loop
 double t_loop = 20.0; // Overall loop time [millis]
