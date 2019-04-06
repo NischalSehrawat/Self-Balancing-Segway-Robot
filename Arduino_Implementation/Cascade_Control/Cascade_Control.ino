@@ -140,15 +140,17 @@ void loop() {
       // If we change mode to forward now, switch controllers and start increasing the setpoint slowly to avoid jerky behaviour
       switch_bal_controller = true;
       switch_trans_controller = true;
+      rotating = false;
       Setpoint_trans = Setpoint_trans + speed_steps;
       mode_prev = "go fwd";
       if (Setpoint_trans > V_max){Setpoint_trans = V_max;}
       if (V_max_fwd < V_trans) {V_max_fwd = V_trans;} // If the current velocity is more than V_max_fwd, then this is the new max velocity
     }
     else if (mode_now == "go bck"){
-      // If we change mode to forward now, switch controllers and start decreasing the setpoint slowly to avoid jerky behaviour
+      // If we change mode to back now, switch controllers and start decreasing the setpoint slowly to avoid jerky behaviour
       switch_bal_controller = true;
       switch_trans_controller = true;
+      rotating = false;
       Setpoint_trans = Setpoint_trans - speed_steps;
       mode_prev = "go bck";
       if (Setpoint_trans < -V_max){Setpoint_trans = -V_max;}
@@ -171,6 +173,7 @@ void loop() {
         }
       else if (mode_prev == "balance"){
         Setpoint_trans = 0.0;
+        rotating = false;
         V_min_bck = -0.01; // Re-initialise the variables
         V_max_fwd = 0.01;
         /*Switch to a stiffer balancing controller 2 seconds after stopping*/
@@ -235,6 +238,8 @@ void loop() {
        Output_lmot = 0.0; // Stop the robot
        rotating = false;
        Rot_Speed = 0.0;
+       switch_bal_controller = false;
+       switch_trans_controller = false;
        mode_now = "balance"; // Change mode to balance
        mode_prev = "balance"; // Change mode to balance
        }
@@ -362,14 +367,9 @@ void read_BT(){
     if (c == 'n'){lock = true;Serial.print("Locked");}
     else if (c =='0' & lock == false){
     	mode_now = "balance";
-    	rotating = false; 
     	Serial.print(mode_now);} 
-    else if (c =='1' & lock == false){mode_now = "go fwd";Serial.print(mode_now);
-    if (rotating == true){rotating = false;Rot_Speed = 0.0;}
-    } 
-    else if (c =='2' & lock == false){mode_now = "go bck";Serial.print(mode_now);
-    if (rotating == true){rotating = false;Rot_Speed = 0.0;}
-    } 
+    else if (c =='1' & lock == false){mode_now = "go fwd";Serial.print(mode_now);} 
+    else if (c =='2' & lock == false){mode_now = "go bck";Serial.print(mode_now);} 
     else if (c =='3' & lock == false){Kp_bal+=1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
     else if (c =='4' & lock == false){Kp_bal-= 1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
     else if (c =='5' & lock == false){Kd_bal+=0.05;Serial.print("Kd_bal = "+String(Kd_bal));}
@@ -380,13 +380,13 @@ void read_BT(){
     else if (c =='a' & lock == false){motor_corr_fac_fwd-=0.01;Serial.print("MoFac = "+String(motor_corr_fac_fwd));} 
     else if (c =='b' & lock == false & mode_now == "balance"){
     	rotating = true;
-        start_again = true;
+      start_again = true;
     	rotation_direction = "anti_clockwise";
     	Serial.print("Rot anticlk");
     }
     else if (c =='c' & lock == false & mode_now == "balance"){
     	rotating = true;
-        start_again = true; 
+      start_again = true; 
     	rotation_direction = "clockwise";
     	Serial.print("Rot clk");
     }
@@ -401,6 +401,8 @@ void read_BT(){
     else if (c =='l' & lock == false){
       Serial.print("Reset");
     	mode_now = "balance";mode_prev = "balance"; rotating = false;
+      switch_bal_controller = false;
+      switch_trans_controller = false;
     	Kp_bal = 46.0; Kd_bal = 0.8;
     	Kp_trans = 20.0;
       trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);
