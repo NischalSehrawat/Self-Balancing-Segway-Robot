@@ -5,7 +5,6 @@
 #include <Encoder.h>
 #include <TimerOne.h>
 
-
 ///////////////////////////////// MPU-6050 parameters //////////////////////////////////////////////
 
 long accelX, accelY, accelZ, gyroX, gyroY, gyroZ; // Parameters to record the raw accelerometer / gyro data
@@ -79,9 +78,7 @@ double Rot_Max = 150.0, rot_steps = 20.0; // Max rotation speed and the steps in
 double Rot_Speed = Rot_Max;
 bool start_again; // Boolean to reset Rot_Speed = Rot_max once Rot_Speed decreases from Rot_Max to 0
 
-
-
-////////////// LED BLINKING PARAMETERS/////////////////////////
+////////////// LED BLINKING / Loop time PARAMETERS/////////////////////////
 
 bool led_state = 0; // Parameter to turn LED from ON / OFF
 int pin = 13; // PIN where LED is attached
