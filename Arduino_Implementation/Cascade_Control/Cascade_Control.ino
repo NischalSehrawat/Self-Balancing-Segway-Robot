@@ -56,7 +56,7 @@ PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, 
 
 /*Both motors have different characteristics, the right motor spins faster when going in forward direction but slower in backward direction.
 Therefore, we need correction factors to drive straight*/
-float motor_corr_fac_fwd = 0.91, motor_corr_fac_bck = 0.97;// factor to correct for the difference b/w the motor characteristics
+float motor_corr_fac_fwd = 0.95, motor_corr_fac_bck = 0.97;// factor to correct for the difference b/w the motor characteristics
 float r_whl = 0.5 * 0.130; // Wheel radius [m]
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 float full_speed = 350.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 350 RPM @ 12 V]
@@ -209,7 +209,7 @@ void loop() {
       
       // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg  
       
-      if (abs(error_bal)<0.2 && mode_now == "balance"){Output_rmot = 0.0; Output_lmot = 0.0;} 
+      if (abs(error_bal)<0.3 && mode_now == "balance"){Output_rmot = 0.0; Output_lmot = 0.0;} 
     }
 
     
