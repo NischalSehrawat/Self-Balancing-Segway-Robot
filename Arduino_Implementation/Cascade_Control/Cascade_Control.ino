@@ -403,7 +403,7 @@ void read_BT(){
     else if (c =='k' & lock == false){Theta_correction-=0.1;Serial.print("Theta_Cor = "+String(Theta_correction));} 
     else if (c =='l' & lock == false){
       Serial.print("Reset");
-    	mode_now = "balance";mode_prev = "balance"; rotating = false;
+      mode_now = "balance";mode_prev = "balance"; rotating = false;
       switch_bal_controller = false;
       switch_trans_controller = false;
     	Kp_bal = 46.0; Kd_bal = 0.8;
