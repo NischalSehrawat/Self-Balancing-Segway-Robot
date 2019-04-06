@@ -201,7 +201,7 @@ void loop() {
     Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
     Input_bal = Theta_now + Theta_correction; // Set Theta_now as the input / current value to the PID algorithm (The correction is added to correct for the error in MPU calculated angle)             
     error_bal = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction 
-    /* If balancing use a harder / stronger controller, but moving, use a softer controller for smooth stopping / starting*/
+    /* If balancing use a harder / stronger controller, but while moving use a softer controller for smooth stopping / starting*/
     if (switch_bal_controller == false){bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);} // Compute motor PWM using harder balancing PID
     else if (switch_bal_controller == true){bal_PID.Compute_For_MPU(0.5 * Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);} // Compute motor PWM using softer balancing PID     
      
