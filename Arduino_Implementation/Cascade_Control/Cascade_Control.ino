@@ -41,9 +41,10 @@ double Output_lmot, Output_rmot; // Variables for storing PWM outputs seperately
 
 double Input_bal, Output_bal, Setpoint_bal, error_bal; // Input output and setpoint variables defined
 double Out_min_bal = -255, Out_max_bal = 255; // PID Output limits, this is the output PWM value
-double Kp_bal = 50.0, Ki_bal = 0.0, Kd_bal = 0.80; // Initializing the Proportional, integral and derivative gain constants
+double Kp_bal = 46.0, Ki_bal = 0.0, Kd_bal = 0.80; // Initializing the Proportional, integral and derivative gain constants
 double Output_lower_bal = 30.0; // PWM Limit at which the motors actually start to move
 PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON_E, DIRECT); // PID Controller for balancing
+bool switch_bal_controller = false; // Variable to switch to a softer controller when the robot is moving to make stopping / starting behavior smooth
 
 ///////////////////////////////// TRANSLATION PID parameters ///////////////////////////////////////////////////
 
@@ -83,7 +84,7 @@ bool start_again; // Boolean to reset Rot_Speed = Rot_max once Rot_Speed decreas
 
 bool led_state = 0; // Parameter to turn LED from ON / OFF
 int pin = 13; // PIN where LED is attached
-double t_loop_prev, t_loop_now, dt_loop; // Time parameters to log times for main control loop
+double t_loop_prev, t_loop_now, dt_loop, t_mode_switch; // Time parameters to log times for main control loop
 double t_loop = 20.0; // Overall loop time [millis]
 
 void setup() {
@@ -117,7 +118,7 @@ void setup() {
     Theta_prev = pitch; // set the total starting angle to this pitch 
     t_gyro_prev = millis(); // Log time for gyro calculations [ms]  
     t_loop_prev = millis(); // Log time for overall control loop [ms]
-   Timer1.initialize(250000);
+   Timer1.initialize(150000);
    Timer1.attachInterrupt(Blink_Led);
     delay(50);  
 }
@@ -138,6 +139,7 @@ void loop() {
     ////////////////////////////////////////// COMPUTE BALANCING PID OUTPUT/ //////////////////////////////////////////////////
     
     if (mode_now == "go fwd"){ // If we changed mode to forward now, start increasing the setpoint slowly to avoid jerky behaviour
+      switch_bal_controller = true;
       Setpoint_trans = Setpoint_trans + speed_steps;
       mode_prev = "go fwd";
       if (Setpoint_trans > V_max){Setpoint_trans = V_max;}
@@ -145,6 +147,7 @@ void loop() {
     }
     else if (mode_now == "go bck"){// If we changed mode to backward now, start decreasing the setpoint slowly to avoid jerky behaviour
       mode_prev = "go bck";
+      switch_bal_controller = true;
       Setpoint_trans = Setpoint_trans - speed_steps;
       if (Setpoint_trans < -V_max){Setpoint_trans = -V_max;}
       if (V_min_bck > V_trans) {V_min_bck = V_trans;} // If the current velocity is less than V_min_bck, then this is the new min velocity
@@ -154,19 +157,22 @@ void loop() {
         Setpoint_trans = Setpoint_trans - brake_steps; // If going in fwd direction, apply brakes by setting the trans setpoint to opposite value
         /*if the ratio of current velocity and the maximum velocity measured since the robot started moving forward
         is less than speed_ratio_mode_change, change mode_prev to balance*/
-        if (V_trans/V_max_fwd<=speed_ratio_mode_change){mode_prev = "balance";} // Set mode_prev to balance so that the robot goes to balancing mode totally
+        if (V_trans/V_max_fwd<=speed_ratio_mode_change){mode_prev = "balance"; t_mode_switch = millis();} // Set mode_prev to balance so that the robot goes to balancing mode totally
         }
       else if (mode_prev == "go bck"){
         Setpoint_trans = Setpoint_trans + brake_steps; // If going in bck direction, apply brakes by setting the trans setpoint to opposite value
         /*if the ratio of current velocity and the minimum velocity measured since the robot started moving backward
         is less than speed_ratio_mode_change, change mode_prev to balance*/
-        if (V_trans/V_min_bck<=speed_ratio_mode_change){mode_prev = "balance";} // Set mode_prev to balance so that the robot goes to balancing mode totally
+        if (V_trans/V_min_bck<=speed_ratio_mode_change){mode_prev = "balance"; t_mode_switch = millis();} // Set mode_prev to balance so that the robot goes to balancing mode totally
         }
       else if (mode_prev == "balance"){
-      Setpoint_trans = 0.0;
-      V_min_bck = -0.01; 
-      V_max_fwd = 0.01;}// Re-initialise the variables
+        Setpoint_trans = 0.0;
+        V_min_bck = -0.01; // Re-initialise the variables
+        V_max_fwd = 0.01;
+        double dt_mode_switch = millis() - t_mode_switch;
+        if (dt_mode_switch > 2000){switch_bal_controller = false;}
       }
+    }
     
     ////////////////////////////////////////// COMPUTE 1st loop/ //////////////////////////////////////////////////
 
@@ -177,8 +183,11 @@ void loop() {
  
     Setpoint_bal = Output_trans; // Set the output [angle in deg] of the translation PID as Setpoint to the balancing PID loop
     Input_bal = Theta_now + Theta_correction; // Set Theta_now as the input / current value to the PID algorithm (The correction is added to correct for the error in MPU calculated angle)             
-    error_bal = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction      
-    bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);// Compute motor PWM using balancing PID 
+    error_bal = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction 
+    /* If balancing use a harder / stronger controller, but moving, use a softer controller for smooth stopping / starting*/
+    if (switch_bal_controller == false){bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);} // Compute motor PWM using harder balancing PID
+    else if (switch_bal_controller == true){bal_PID.Compute_For_MPU(0.5 * Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);} // Compute motor PWM using softer balancing PID     
+     
     /*Scale the output from 0-255 to 30-255 and then negate it if the initial output computed by PID loop was negetive*/
     double Output_bal_scaled = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal);
     
@@ -387,9 +396,9 @@ void read_BT(){
     else if (c =='l' & lock == false){
       Serial.print("Reset");
     	mode_now = "balance";mode_prev = "balance"; rotating = false;
-    	Kp_bal = 50.0; Kd_bal = 0.8;
+    	Kp_bal = 46.0; Kd_bal = 0.8;
     	Kp_trans = 10.0;
-    	motor_corr_fac_fwd = 0.91;
+    	motor_corr_fac_fwd = 0.95;
       motor_corr_fac_bck = 0.97;
     	speed_ratio_mode_change = 0.40;
     	speed_steps = 0.08;
