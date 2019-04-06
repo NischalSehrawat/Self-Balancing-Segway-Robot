@@ -41,7 +41,7 @@ double Output_lmot, Output_rmot; // Variables for storing PWM outputs seperately
 
 double Input_bal, Output_bal, Setpoint_bal, error_bal; // Input output and setpoint variables defined
 double Out_min_bal = -255, Out_max_bal = 255; // PID Output limits, this is the output PWM value
-double Kp_bal = 36.0, Ki_bal = 0.0, Kd_bal = 0.80; // Initializing the Proportional, integral and derivative gain constants
+double Kp_bal = 50.0, Ki_bal = 0.0, Kd_bal = 0.80; // Initializing the Proportional, integral and derivative gain constants
 double Output_lower_bal = 30.0; // PWM Limit at which the motors actually start to move
 PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON_E, DIRECT); // PID Controller for balancing
 
@@ -52,16 +52,11 @@ double Out_min_trans = -25, Out_max_trans = 25; // PID Output limits, this outpu
 double Kp_trans = 10.0, Ki_trans = 0.0, Kd_trans = 0.00; // Initializing the Proportional, integral and derivative gain constants
 PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, Kd_trans, P_ON_E, DIRECT); // PID Controller for translating
 
-///////////////////////////////// Path Correction PID parameters ///////////////////////////////////////////////////
-
-double Input_path_cor, Output_path_cor, Setpoint_path_cor; // Input output and setpoint variables defined
-double Out_min_path_cor = 0, Out_max_path_cor = 10; // PID Output limits, this output is in degrees
-double Kp_path_cor = 0.5, Ki_path_cor = 0.0, Kd_path_cor = 0.00; // Initializing the Proportional, integral and derivative gain constants
-PID path_cor_PID(&Input_path_cor, &Output_path_cor, &Setpoint_path_cor, Kp_path_cor, Ki_path_cor, Kd_path_cor, P_ON_E, DIRECT); // PID Controller for path correction
-
 ///////////////////////////////// ROBOT PHYSICAL PROPERTIES ////////////////////////////////////////////
 
-float motor_corr_fac = 0.925;// factor to correct for the difference b/w the motor characteristics
+/*Both motors have different characteristics, the right motor spins faster when going in forward direction but slower in backward direction.
+Therefore, we need correction factors to drive straight*/
+float motor_corr_fac_fwd = 0.91, motor_corr_fac_bck = 0.97;// factor to correct for the difference b/w the motor characteristics
 float r_whl = 0.5 * 0.130; // Wheel radius [m]
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 float full_speed = 350.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 350 RPM @ 12 V]
@@ -114,12 +109,7 @@ void setup() {
     trans_PID.SetSampleTime(t_loop); // Set Loop time for PID [milliseconds]
     trans_PID.SetMode(AUTOMATIC); // Set PID mode to Automatic        
     trans_PID.SetOutputLimits(Out_min_trans, Out_max_trans); // Set upper and lower limits for the maximum output limits for PID loop
-
-    ////////////////////////// Path Correction PID initialization ////////////////////////////////////////////////////////        
-
-    path_cor_PID.SetSampleTime(t_loop); // Set Loop time for PID [milliseconds]
-    path_cor_PID.SetMode(AUTOMATIC); // Set PID mode to Automatic        
-    path_cor_PID.SetOutputLimits(Out_min_path_cor, Out_max_path_cor); // Set upper and lower limits for the maximum output limits for PID loop  
+ 
     ////////////////////////// MPU initialization ///////////////////////////////////////////////////
     
     Wire.begin(); // Start wire library    
@@ -197,8 +187,11 @@ void loop() {
     
     if (Output_bal<0){Output_bal_scaled*=-1;} // Negate the Output_bal_scaled if the output was negative 
 
-    Output_rmot =  Output_bal_scaled; Output_lmot = Output_bal_scaled; // Seperate the output computed for both motors 
-
+    Output_rmot = Output_bal_scaled; Output_lmot = Output_bal_scaled; // Seperate the output computed for both motors 
+    
+    /*It is to be noted here that the Output_bal (& hence Output_lmot, Output_rmot) is -ve if the robot moves in 
+    fwd direction and +ve if the robot moves in backward direction*/
+    
     if (rotating == true){
       if (start_again == true){Rot_Speed = Rot_Max; start_again = false;}          	
     	Rot_Speed-=rot_steps;
@@ -213,18 +206,16 @@ void loop() {
     	}
     }
     
-    //////////////////////////////////////////  Make corrections for straight line travel/ //////////////////////////////////////////////////
-    
-    if (rotating == false){ // Apply straight path correction only if the robot is not rotating
-
-      Setpoint_path_cor = abs(Final_Rpm_l); // Set left motor RPM as setpoint
-      Input_path_cor = abs(Final_Rpm_r); // Set right motor RPM as input
-      path_cor_PID.Compute(); // Compute the output of path correction PID
-      if (Output_path_cor>0){} // If output is >0 ie. left motor is spinning faster, subtract output_path cor from it
-      else if (Output_path_cor<0){} // If output is <0 ie. right motor is spinning faster, subtract output_path cor from it      
+    else if (rotating == false){ // Account for motor speed differences, if not rotating
+      if (Final_Rpm_l>0 && Final_Rpm_r>0){Output_rmot*=motor_corr_fac_fwd;}
+      else if (Final_Rpm_l<0 && Final_Rpm_r<0){Output_lmot*=motor_corr_fac_bck;}
+      
+      // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg  
+      
+      if (abs(error_bal)<0.2 && mode_now == "balance"){Output_rmot = 0.0; Output_lmot = 0.0;} 
     }
 
-    if (abs(error_bal)<0.2 && mode_now == "balance" && rotating == false){Output_rmot = 0.0; Output_lmot = 0.0;} // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg
+    
     
     ///////////////////////////////////////// If robot has fallen then stop the motors /////////////////////////////////////////////
 
@@ -376,8 +367,8 @@ void read_BT(){
     else if (c =='6' & lock == false){Kd_bal-=0.05;Serial.print("Kd_bal = "+String(Kd_bal));}
     else if (c =='7' & lock == false){Kp_trans+=0.5;Serial.print("Kp_trans = "+String(Kp_trans));} 
     else if (c =='8' & lock == false){Kp_trans-=0.5;Serial.print("Kp_trans = "+String(Kp_trans));} 
-    else if (c =='9' & lock == false){motor_corr_fac+=0.01;Serial.print("MoFac = "+String(motor_corr_fac));} 
-    else if (c =='a' & lock == false){motor_corr_fac-=0.01;Serial.print("MoFac = "+String(motor_corr_fac));} 
+    else if (c =='9' & lock == false){motor_corr_fac_fwd+=0.01;Serial.print("MoFac = "+String(motor_corr_fac_fwd));} 
+    else if (c =='a' & lock == false){motor_corr_fac_fwd-=0.01;Serial.print("MoFac = "+String(motor_corr_fac_fwd));} 
     else if (c =='b' & lock == false & mode_now == "balance"){
     	rotating = true;
         start_again = true;
@@ -392,8 +383,8 @@ void read_BT(){
     }
     else if (c =='d' & lock == false){Rot_Max+=2.0;Serial.print("Rot_Max = "+String(Rot_Max));} 
     else if (c =='e' & lock == false){Rot_Max-=2.0;Serial.print("Rot_Max = "+String(Rot_Max));}
-    else if (c =='f' & lock == false){brake_steps+=0.01;Serial.print("brake_steps = "+String(brake_steps));} 
-    else if (c =='g' & lock == false){brake_steps-=0.01;Serial.print("brake_steps = "+String(brake_steps));} 
+//    else if (c =='f' & lock == false){Kp_path_cor+=0.1;Serial.print("Kp_PaCo = "+String(Kp_path_cor));} 
+//    else if (c =='g' & lock == false){Kp_path_cor-=0.1;Serial.print("Kp_PaCo = "+String(Kp_path_cor));} 
     else if (c =='h' & lock == false){frac_full_speed+=0.05;V_max = frac_full_speed * full_speed; Serial.print("FrFs = "+String(frac_full_speed));} 
     else if (c =='i' & lock == false){frac_full_speed-=0.05;V_max = frac_full_speed * full_speed; Serial.print("FrFs = "+String(frac_full_speed));} 
     else if (c =='j' & lock == false){Theta_correction+=0.1;Serial.print("Theta_Cor = "+String(Theta_correction));} 
@@ -401,9 +392,10 @@ void read_BT(){
     else if (c =='l' & lock == false){
       Serial.print("Reset");
     	mode_now = "balance";mode_prev = "balance"; rotating = false;
-    	Kp_bal = 36.0; Kd_bal = 0.8;
+    	Kp_bal = 50.0; Kd_bal = 0.8;
     	Kp_trans = 10.0;
-    	motor_corr_fac = 0.925;
+    	motor_corr_fac_fwd = 0.91;
+      motor_corr_fac_bck = 0.97;
     	speed_ratio_mode_change = 0.40;
     	speed_steps = 0.08;
     	brake_steps = 0.04;
