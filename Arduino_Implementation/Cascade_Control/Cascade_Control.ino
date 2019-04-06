@@ -402,23 +402,22 @@ void read_BT(){
     else if (c =='j' & lock == false){Theta_correction+=0.1;Serial.print("Theta_Cor = "+String(Theta_correction));} 
     else if (c =='k' & lock == false){Theta_correction-=0.1;Serial.print("Theta_Cor = "+String(Theta_correction));} 
     else if (c =='l' & lock == false){
-      Serial.print("Reset");
+      //Reset all parameters to default values
+      Serial.print("Reset"); 
       mode_now = "balance";mode_prev = "balance"; rotating = false;
       switch_bal_controller = false;
       switch_trans_controller = false;
-    	Kp_bal = 46.0; Kd_bal = 0.8;
-    	Kp_trans = 20.0;
+      Kp_bal = 46.0; Kd_bal = 0.8;
+      Kp_trans = 20.0;
       trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);
-    	motor_corr_fac_fwd = 0.95;
-      motor_corr_fac_bck = 0.97;
-    	speed_ratio_mode_change = 0.40;
-    	speed_steps = 0.08;
-    	brake_steps = 0.04;
-    	frac_full_speed = 0.40;
-    	Theta_correction = 2.5;
-    	Rot_Max = 150;
+      motor_corr_fac_fwd = 0.95;motor_corr_fac_bck = 0.97;
+      speed_ratio_mode_change = 0.40;
+      speed_steps = 0.08;brake_steps = 0.04;
+      frac_full_speed = 0.40;
+      Theta_correction = 2.5;
+      Rot_Max = 150;
 
-    } //Reset all parameters to default values
+    } 
    
     }  
 }
