@@ -35,7 +35,9 @@ My_Motors Lmot(&Final_Rpm_l, rpm_limit, avg_pt, PPR); // Left motor object for c
 Encoder myEnc_r(R_enc_pin2, R_enc_pin1); // Make encoder objects to calculate motor velocties
 Encoder myEnc_l(L_enc_pin1, L_enc_pin2); // Make encoder objects to calculate motor velocties
 double Output_lmot, Output_rmot; // Variables for storing PWM outputs seperately for left and right motors
-double enc_ref, enc_now; // Variables to store encoder values for holding position
+double enc_ref; // Variables to store encoder values for holding position
+float Enc_max_fwd = 1.0, Enc_min_bck = 1.0; // Variables used for storing minimum and maximum values of Encoder reading for applying brakes
+
 
 ///////////////////////////////// Balancing PID parameters ///////////////////////////////////////////////////
 
@@ -56,7 +58,7 @@ PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, 
 
 double Input_hp, Output_hp, Setpoint_hp; // Input output and setpoint variables defined
 double Out_min_hp = -1.5, Out_max_hp = 1.5; // PID Output limits, this output is in [m/s]
-double Kp_hp = 0.003, Ki_hp = 0.0, Kd_hp = 0.0; // Initializing the Proportional, integral and derivative gain constants
+double Kp_hp = 0.002, Ki_hp = 0.0, Kd_hp = 0.0001; // Initializing the Proportional, integral and derivative gain constants
 PID Hold_Posn(&Input_hp, &Output_hp, &Setpoint_hp, Kp_hp, Ki_hp, Kd_hp, P_ON_E, DIRECT); // PID Controller for holding poistion
 
 ///////////////////////////////// ROBOT PHYSICAL PROPERTIES ////////////////////////////////////////////
@@ -70,6 +72,7 @@ float full_speed = 350.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of th
 float frac_full_speed = 0.40; // Fraction of full speed allowed 
 float V_max = frac_full_speed * full_speed; // Maximum speed allowed [m/s]
 float V_max_fwd = 0.01, V_min_bck = -0.01; // Variables used for storing minimum and maximum values of translation speed for applying brakes
+float V_trans; // Variable for storing instantaneous translation speed of the robot [m/s]
 
 /*Ratio when the mode_prev must be set to "balance". This is the ratio between 
 instantaneous translation velocity and max / min (fwd / back) velocities. This ratio decides
@@ -93,6 +96,8 @@ bool rotating = false;  // To set rotation mode on the robot
 bool start_again; // Boolean to reset Rot_Speed = Rot_max once Rot_Speed decreases from Rot_Max to 0
 bool led_state = 0; // Parameter to turn LED from ON / OFF
 bool enc_initialised = false; // Variable to store Setpoint value for holding position control
+bool fwd_enc, bck_enc; // Varibles to decide in which direction the robot is moving after being distrubed
+
 
 ////////////// LED BLINKING / Loop time PARAMETERS/////////////////////////
 
@@ -138,8 +143,8 @@ void setup() {
     Theta_prev = pitch; // set the total starting angle to this pitch 
     t_gyro_prev = millis(); // Log time for gyro calculations [ms]  
     t_loop_prev = millis(); // Log time for overall control loop [ms]
-   Timer1.initialize(150000);
-   Timer1.attachInterrupt(Blink_Led);
+    Timer1.initialize(150000);
+    Timer1.attachInterrupt(Blink_Led);
     delay(1000);  
 }
 
@@ -154,7 +159,7 @@ void loop() {
     Get_Tilt_Angle(); // Update the angle readings to get updated omega_x_calculated, Theta_now
     Lmot.getRPM(myEnc_l.read(), "rad/s"); // Get current encoder counts & compute left motor rotational velocity in [rad/s] 
     Rmot.getRPM(myEnc_r.read(), "rad/s"); // Get current encoder counts & compute right motor rotational velocity in [rad/s]
-    float V_trans = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl;// Calculate the total Robot linear translation velocity [m/s]
+    V_trans = 0.5 * (Final_Rpm_r + Final_Rpm_l) * r_whl;// Calculate the total Robot linear translation velocity [m/s]
     
     ////////////////////////////////////////// COMPUTE BALANCING PID OUTPUT/ //////////////////////////////////////////////////
     
@@ -357,8 +362,30 @@ void Hold_Position(){
     
    Setpoint_hp = enc_ref;
    Input_hp = int(0.25 * (myEnc_r.read() + myEnc_l.read())); // Take reading now and these are the input values
-   
    Hold_Posn.Compute();
+
+//   /* Logic for de-accelerating the robot to stop it from overshooting from the target position*/
+//   if (Input_hp > enc_ref & V_trans > 0){ // Robot is moving in forward direction, so start checking the encoder values for maximum
+//    fwd_enc = true;
+//    if (Enc_max_fwd < Input_hp) {Enc_max_fwd = Input_hp;} // If the current velocity is less than Enc_max_fwd, then this is the new max enocdercount
+//    } 
+//   else if (Input_hp < enc_ref & V_trans < 0){ // Robot is moving in backward direction, so start checking the encoder values for minimum values
+//    bck_enc = true;
+//    if (Enc_min_bck > Input_hp) {Enc_min_bck = Input_hp;} // If the current encoder count is less than Enc_min_bck, then this is the new min enocdercount
+//    }
+//    /*De-accelerate the robot when initially it was going in +ve direction but now it is going in -ve direction when the ratio of enc_now and max_enc is 0.6  */
+//   if (fwd_enc == true & V_trans < 0){
+//    Serial.println("Entered here1");
+//    if (Input_hp > enc_ref &  Input_hp / Enc_max_fwd <0.70){Output_hp = 0.0;Serial.println("Entered here2");}     
+//    if (-50<Input_hp<50){fwd_enc = false;Enc_max_fwd = 1.0 ;}// Re-initialise the variable
+//    
+//   }
+//   /*De-accelerate the robot when initially it was going in -ve direction but now it is going in +ve direction when the ratio of enc_now and min_enc is 0.6  */
+//   else if (bck_enc == true & V_trans > 0){
+//    if (Input_hp < enc_ref & Input_hp / Enc_min_bck <0.70){Output_hp = 0.0;}
+//    if (-50<Input_hp<50){bck_enc = false;Enc_min_bck = -1.0 ;}     // Re-initialise the variable
+//   }
+
 }
 
 /*
