@@ -35,12 +35,13 @@ My_Motors Lmot(&Final_Rpm_l, rpm_limit, avg_pt, PPR); // Left motor object for c
 Encoder myEnc_r(R_enc_pin2, R_enc_pin1); // Make encoder objects to calculate motor velocties
 Encoder myEnc_l(L_enc_pin1, L_enc_pin2); // Make encoder objects to calculate motor velocties
 double Output_lmot, Output_rmot; // Variables for storing PWM outputs seperately for left and right motors
+double enc_ref, enc_now; // Variables to store encoder values for holding position
 
 ///////////////////////////////// Balancing PID parameters ///////////////////////////////////////////////////
 
 double Input_bal, Output_bal, Setpoint_bal, error_bal; // Input output and setpoint variables defined
 double Out_min_bal = -255, Out_max_bal = 255; // PID Output limits, this is the output PWM value
-double Kp_bal = 46.0, Ki_bal = 0.0, Kd_bal = 0.80; // Initializing the Proportional, integral and derivative gain constants
+double Kp_bal = 24.0, Ki_bal = 0.0, Kd_bal = 0.80; // Initializing the Proportional, integral and derivative gain constants
 double Output_lower_bal = 30.0; // PWM Limit at which the motors actually start to move
 PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON_E, DIRECT); // PID Controller for balancing
 
@@ -48,8 +49,18 @@ PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON
 
 double Input_trans, Output_trans, Setpoint_trans; // Input output and setpoint variables defined
 double Out_min_trans = -25, Out_max_trans = 25; // PID Output limits, this output is in degrees
-double Kp_trans = 20.0, Ki_trans = 0.0, Kd_trans = 0.00; // Initializing the Proportional, integral and derivative gain constants
+double Kp_trans = 15.0, Ki_trans = 0.0, Kd_trans = 0.00; // Initializing the Proportional, integral and derivative gain constants
 PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, Kd_trans, P_ON_E, DIRECT); // PID Controller for translating
+
+///////////////////////////////// HOLD POSITION PID parameters ///////////////////////////////////////////////////
+
+double Input_hp, Output_hp, Setpoint_hp; // Input output and setpoint variables defined
+//double Out_min_hp = -0.7, Out_max_hp = 0.7; // PID Output limits, this output is in [m/s]
+//double Kp_hp = 0.005, Ki_hp = 0.0, Kd_hp = 0.0001; // Initializing the Proportional, integral and derivative gain constants
+double Out_min_hp = -1.0, Out_max_hp = 1.0; // PID Output limits, this output is in [m/s]
+double Kp_hp = 0.02, Ki_hp = 0.0, Kd_hp = 0.0001; // Initializing the Proportional, integral and derivative gain constants
+PID Hold_Posn(&Input_hp, &Output_hp, &Setpoint_hp, Kp_hp, Ki_hp, Kd_hp, P_ON_E, DIRECT); // PID Controller for holding poistion
+float Enc_max_fwd = 1.0, Enc_min_bck = -1.0; // Variables used for storing minimum and maximum values of encoder counts for applying brakes
 
 ///////////////////////////////// ROBOT PHYSICAL PROPERTIES ////////////////////////////////////////////
 
@@ -85,12 +96,14 @@ bool lock = true; // Variable to prevent accidental changing of parameters by bl
 bool rotating = false;  // To set rotation mode on the robot
 bool start_again; // Boolean to reset Rot_Speed = Rot_max once Rot_Speed decreases from Rot_Max to 0
 bool led_state = 0; // Parameter to turn LED from ON / OFF
+bool enc_initialised = false; // Variable to store Setpoint value for holding position control
 
 ////////////// LED BLINKING / Loop time PARAMETERS/////////////////////////
 
 int pin = 13; // PIN where LED is attached
 double t_loop_prev, t_loop_now, dt_loop, t_mode_switch; // Time parameters to log times for main control loop
 double t_loop = 20.0; // Overall loop time [millis]
+
 
 void setup() {
 
@@ -113,6 +126,12 @@ void setup() {
     trans_PID.SetSampleTime(t_loop); // Set Loop time for PID [milliseconds]
     trans_PID.SetMode(AUTOMATIC); // Set PID mode to Automatic        
     trans_PID.SetOutputLimits(Out_min_trans, Out_max_trans); // Set upper and lower limits for the maximum output limits for PID loop
+
+   ////////////////////////// TRANSLATION PID initialization ////////////////////////////////////////////////////////        
+
+    Hold_Posn.SetSampleTime(t_loop); // Set Loop time for PID [milliseconds]
+    Hold_Posn.SetMode(AUTOMATIC); // Set PID mode to Automatic        
+    Hold_Posn.SetOutputLimits(Out_min_hp, Out_max_hp); // Set upper and lower limits for the maximum output limits for PID loop
  
     ////////////////////////// MPU initialization ///////////////////////////////////////////////////
     
@@ -125,7 +144,7 @@ void setup() {
     t_loop_prev = millis(); // Log time for overall control loop [ms]
    Timer1.initialize(150000);
    Timer1.attachInterrupt(Blink_Led);
-    delay(50);  
+    delay(1000);  
 }
 
 void loop() {
@@ -133,7 +152,7 @@ void loop() {
   t_loop_now = millis();
   dt_loop = t_loop_now - t_loop_prev; // Calculate time change since last loop [millis]
   /*Begin the main computing loop, enter the loop only if the minimum loop time is elapsed*/
-  if (dt_loop>=t_loop){  
+  if (dt_loop>=t_loop){    
   
     read_BT(); // Read data from the bluetooth
     Get_Tilt_Angle(); // Update the angle readings to get updated omega_x_calculated, Theta_now
@@ -148,6 +167,8 @@ void loop() {
       switch_bal_controller = true;
       switch_trans_controller = true;
       rotating = false;
+      enc_initialised = false;
+      
       Setpoint_trans = Setpoint_trans + speed_steps;
       mode_prev = "go fwd";
       if (Setpoint_trans > V_max){Setpoint_trans = V_max;}
@@ -158,6 +179,8 @@ void loop() {
       switch_bal_controller = true;
       switch_trans_controller = true;
       rotating = false;
+      enc_initialised = false;
+      
       Setpoint_trans = Setpoint_trans - speed_steps;
       mode_prev = "go bck";
       if (Setpoint_trans < -V_max){Setpoint_trans = -V_max;}
@@ -179,13 +202,17 @@ void loop() {
         if (V_trans/V_min_bck<=speed_ratio_mode_change){mode_prev = "balance"; t_mode_switch = millis();} // Set mode_prev to balance so that the robot goes to balancing mode totally
         }
       else if (mode_prev == "balance"){
-        Setpoint_trans = 0.0;
-        rotating = false;
         V_min_bck = -0.01; // Re-initialise the variables
         V_max_fwd = 0.01;
-        /*Switch to a stiffer balancing controller 2 seconds after stopping*/
         double dt_mode_switch = millis() - t_mode_switch;
-        if (dt_mode_switch > 2000){switch_bal_controller = false;}
+        
+        if (dt_mode_switch < 2000){Setpoint_trans = 0.0;}                
+        /*Switch to a stiffer balancing controller 2 seconds after stopping*/        
+        else if (dt_mode_switch > 2000){
+          switch_bal_controller = false;
+          Hold_Position();
+          Setpoint_trans = Output_hp;          
+        }
       }
     }
     
@@ -246,13 +273,14 @@ void loop() {
        Rot_Speed = 0.0;
        switch_bal_controller = false;
        switch_trans_controller = false;
+       enc_initialised == false;
        mode_now = "balance"; // Change mode to balance
        mode_prev = "balance"; // Change mode to balance
        }
     ///////////////////////////////////////// Apply motor controls /////////////////////////////////////////////
    
     mot_cont(); // Apply the calculated output to control the motor
-    t_loop_prev = t_loop_now; // Set prev loop time equal to current loop time for calculating dt for next loop
+    t_loop_prev = t_loop_now; // Set prev loop time equal to current loop time for calculating dt for next loop    
   }  
 }
 
@@ -316,6 +344,17 @@ void get_MPU_data(){
 void Blink_Led(){
   if (led_state ==0){digitalWrite(pin, 1);led_state = 1;}
   else if(led_state == 1){digitalWrite(pin, 0);led_state = 0;}
+}
+
+void Hold_Position(){
+
+  if (enc_initialised == false){
+    enc_ref = int(0.25 * (myEnc_r.read() + myEnc_l.read())); // This is the setpoint value
+    enc_initialised = true; // We have taken the reference value, so now we need to stop taking reference values
+    } 
+   Setpoint_hp = enc_ref;
+   Input_hp = int(0.25 * (myEnc_r.read() + myEnc_l.read())); // Take reading now and these are the input values
+   Hold_Posn.Compute();
 }
 
 /*
@@ -395,8 +434,8 @@ void read_BT(){
     }
     else if (c =='d' & lock == false){Rot_Max+=2.0;Serial.print("Rot_Max = "+String(Rot_Max));} 
     else if (c =='e' & lock == false){Rot_Max-=2.0;Serial.print("Rot_Max = "+String(Rot_Max));}
-//    else if (c =='f' & lock == false){Kp_path_cor+=0.1;Serial.print("Kp_PaCo = "+String(Kp_path_cor));} 
-//    else if (c =='g' & lock == false){Kp_path_cor-=0.1;Serial.print("Kp_PaCo = "+String(Kp_path_cor));} 
+    else if (c =='f' & lock == false){Kp_hp+=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); Serial.print("Kp_hp = "+String(Kp_hp));} 
+    else if (c =='g' & lock == false){Kp_hp-=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); Serial.print("Kp_hp = "+String(Kp_hp));} 
     else if (c =='h' & lock == false){frac_full_speed+=0.05;V_max = frac_full_speed * full_speed; Serial.print("FrFs = "+String(frac_full_speed));} 
     else if (c =='i' & lock == false){frac_full_speed-=0.05;V_max = frac_full_speed * full_speed; Serial.print("FrFs = "+String(frac_full_speed));} 
     else if (c =='j' & lock == false){Theta_correction+=0.1;Serial.print("Theta_Cor = "+String(Theta_correction));} 
