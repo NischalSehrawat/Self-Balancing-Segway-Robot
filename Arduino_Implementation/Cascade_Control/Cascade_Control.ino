@@ -41,7 +41,7 @@ double enc_ref, enc_now; // Variables to store encoder values for holding positi
 
 double Input_bal, Output_bal, Setpoint_bal, error_bal; // Input output and setpoint variables defined
 double Out_min_bal = -255, Out_max_bal = 255; // PID Output limits, this is the output PWM value
-double Kp_bal = 24.0, Ki_bal = 0.0, Kd_bal = 0.80; // Initializing the Proportional, integral and derivative gain constants
+double Kp_bal = 44.0, Ki_bal = 0.0, Kd_bal = 0.80; // Initializing the Proportional, integral and derivative gain constants
 double Output_lower_bal = 30.0; // PWM Limit at which the motors actually start to move
 PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON_E, DIRECT); // PID Controller for balancing
 
@@ -49,18 +49,15 @@ PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON
 
 double Input_trans, Output_trans, Setpoint_trans; // Input output and setpoint variables defined
 double Out_min_trans = -25, Out_max_trans = 25; // PID Output limits, this output is in degrees
-double Kp_trans = 15.0, Ki_trans = 0.0, Kd_trans = 0.00; // Initializing the Proportional, integral and derivative gain constants
+double Kp_trans = 5.0, Kp_trans_hard = 5.0,  Ki_trans = 0.0, Kd_trans = 0.0; // Initializing the Proportional, integral and derivative gain constants
 PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, Kd_trans, P_ON_E, DIRECT); // PID Controller for translating
 
 ///////////////////////////////// HOLD POSITION PID parameters ///////////////////////////////////////////////////
 
 double Input_hp, Output_hp, Setpoint_hp; // Input output and setpoint variables defined
-//double Out_min_hp = -0.7, Out_max_hp = 0.7; // PID Output limits, this output is in [m/s]
-//double Kp_hp = 0.005, Ki_hp = 0.0, Kd_hp = 0.0001; // Initializing the Proportional, integral and derivative gain constants
-double Out_min_hp = -1.0, Out_max_hp = 1.0; // PID Output limits, this output is in [m/s]
-double Kp_hp = 0.02, Ki_hp = 0.0, Kd_hp = 0.0001; // Initializing the Proportional, integral and derivative gain constants
+double Out_min_hp = -1.5, Out_max_hp = 1.5; // PID Output limits, this output is in [m/s]
+double Kp_hp = 0.003, Ki_hp = 0.0, Kd_hp = 0.0; // Initializing the Proportional, integral and derivative gain constants
 PID Hold_Posn(&Input_hp, &Output_hp, &Setpoint_hp, Kp_hp, Ki_hp, Kd_hp, P_ON_E, DIRECT); // PID Controller for holding poistion
-float Enc_max_fwd = 1.0, Enc_min_bck = -1.0; // Variables used for storing minimum and maximum values of encoder counts for applying brakes
 
 ///////////////////////////////// ROBOT PHYSICAL PROPERTIES ////////////////////////////////////////////
 
@@ -90,8 +87,7 @@ double Rot_Speed = Rot_Max;
 
 ////////////// All boolean switching PARAMETERS/////////////////////////
 
-bool switch_bal_controller = false; // Variable to switch to a softer controller when the robot is moving to make stopping / starting behavior smooth
-bool switch_trans_controller = false; // Variable to switch trans controller behavior once moving commands are issued
+bool switch_trans_controller = false, switch_bal_controller = false; // Variable to switch trans controller behavior once moving commands are issued
 bool lock = true; // Variable to prevent accidental changing of parameters by bluetooth app
 bool rotating = false;  // To set rotation mode on the robot
 bool start_again; // Boolean to reset Rot_Speed = Rot_max once Rot_Speed decreases from Rot_Max to 0
@@ -165,9 +161,9 @@ void loop() {
     if (mode_now == "go fwd"){ 
       // If we change mode to forward now, switch controllers and start increasing the setpoint slowly to avoid jerky behaviour
       switch_bal_controller = true;
-      switch_trans_controller = true;
       rotating = false;
       enc_initialised = false;
+      Kp_trans_hard = Kp_trans;
       
       Setpoint_trans = Setpoint_trans + speed_steps;
       mode_prev = "go fwd";
@@ -177,9 +173,9 @@ void loop() {
     else if (mode_now == "go bck"){
       // If we change mode to back now, switch controllers and start decreasing the setpoint slowly to avoid jerky behaviour
       switch_bal_controller = true;
-      switch_trans_controller = true;
       rotating = false;
       enc_initialised = false;
+      Kp_trans_hard = Kp_trans;
       
       Setpoint_trans = Setpoint_trans - speed_steps;
       mode_prev = "go bck";
@@ -189,14 +185,18 @@ void loop() {
     else if (mode_now == "balance"){ // If we change mode to balance now, we need to apply brakes      
       if (mode_prev == "go fwd"){
         Setpoint_trans = Setpoint_trans - brake_steps; // If going in fwd direction, apply brakes by setting the trans setpoint to opposite value
-        switch_trans_controller = false; // Reset trans_PID to original value to get increased braking
+        switch_trans_controller = true; // Reset trans_PID to 2*Kp_trans value to get increased braking
+        Kp_trans_hard+=0.2;
+        if (Kp_trans_hard>2 * Kp_trans){Kp_trans_hard = 2 * Kp_trans;}
         /*if the ratio of current velocity and the maximum velocity measured since the robot started moving forward
         is less than speed_ratio_mode_change, change mode_prev to balance*/
         if (V_trans/V_max_fwd<=speed_ratio_mode_change){mode_prev = "balance"; t_mode_switch = millis();} // Set mode_prev to balance so that the robot goes to balancing mode totally
         }
       else if (mode_prev == "go bck"){
         Setpoint_trans = Setpoint_trans + brake_steps; // If going in bck direction, apply brakes by setting the trans setpoint to opposite value
-        switch_trans_controller = false; // Reset trans_PID to original value to get increased braking
+        switch_trans_controller = true; // Reset trans_PID to original value to get increased braking
+        Kp_trans_hard+=0.2;
+        if (Kp_trans_hard>2 * Kp_trans){Kp_trans_hard = 2 * Kp_trans;}
         /*if the ratio of current velocity and the minimum velocity measured since the robot started moving backward
         is less than speed_ratio_mode_change, change mode_prev to balance*/
         if (V_trans/V_min_bck<=speed_ratio_mode_change){mode_prev = "balance"; t_mode_switch = millis();} // Set mode_prev to balance so that the robot goes to balancing mode totally
@@ -204,8 +204,9 @@ void loop() {
       else if (mode_prev == "balance"){
         V_min_bck = -0.01; // Re-initialise the variables
         V_max_fwd = 0.01;
-        double dt_mode_switch = millis() - t_mode_switch;
+        switch_trans_controller = false;
         
+        double dt_mode_switch = millis() - t_mode_switch;        
         if (dt_mode_switch < 2000){Setpoint_trans = 0.0;}                
         /*Switch to a stiffer balancing controller 2 seconds after stopping*/        
         else if (dt_mode_switch > 2000){
@@ -219,8 +220,8 @@ void loop() {
     ////////////////////////////////////////// COMPUTE 1st loop/ //////////////////////////////////////////////////
 
     Input_trans = V_trans; // Measured value / Input value [m/s]
-    if (switch_trans_controller = false){trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);} // Keep original value to increase braking
-    else if (switch_trans_controller = true){trans_PID.SetTunings(0.3 * Kp_trans, Ki_trans, Kd_trans);} // Change trans_PID to 0.3 * original value to reduce bending angle
+    if (switch_trans_controller == false){trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);} // Keep original value to reduce bending angle
+    else if (switch_trans_controller == true){trans_PID.SetTunings(Kp_trans_hard, Ki_trans, Kd_trans);} // Change trans_PID to 1.5 * original value to increase braking 
     trans_PID.Compute(); // Compute Output_trans of the 1st loop [degrees]
     
     ////////////////////////////////////////// COMPUTE 2nd loop/ //////////////////////////////////////////////////
@@ -230,7 +231,8 @@ void loop() {
     error_bal = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction 
     /* If balancing use a harder / stronger controller, but while moving use a softer controller for smooth stopping / starting*/
     if (switch_bal_controller == false){bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);} // Compute motor PWM using harder balancing PID
-    else if (switch_bal_controller == true){bal_PID.Compute_For_MPU(0.5 * Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);} // Compute motor PWM using softer balancing PID     
+    else if (switch_bal_controller == true){bal_PID.Compute_For_MPU(0.5 * Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);} // Compute motor PWM using softer balancing PID
+    bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);     
      
     /*Scale the output from 0-255 to 30-255 and then negate it if the initial output computed by PID loop was negetive*/
     double Output_bal_scaled = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal);
@@ -257,7 +259,7 @@ void loop() {
     }
     
     else if (rotating == false){ // Account for motor speed differences, if not rotating
-      if (Final_Rpm_l>0 && Final_Rpm_r>0){Output_rmot*=motor_corr_fac_fwd;}
+      if (Final_Rpm_l>0 && Final_Rpm_r>0){Output_lmot*=motor_corr_fac_fwd;}
       else if (Final_Rpm_l<0 && Final_Rpm_r<0){Output_lmot*=motor_corr_fac_bck;}      
 
       // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg      
@@ -280,7 +282,7 @@ void loop() {
     ///////////////////////////////////////// Apply motor controls /////////////////////////////////////////////
    
     mot_cont(); // Apply the calculated output to control the motor
-    t_loop_prev = t_loop_now; // Set prev loop time equal to current loop time for calculating dt for next loop    
+    t_loop_prev = t_loop_now; // Set prev loop time equal to current loop time for calculating dt for next loop 
   }  
 }
 
@@ -352,8 +354,10 @@ void Hold_Position(){
     enc_ref = int(0.25 * (myEnc_r.read() + myEnc_l.read())); // This is the setpoint value
     enc_initialised = true; // We have taken the reference value, so now we need to stop taking reference values
     } 
+    
    Setpoint_hp = enc_ref;
    Input_hp = int(0.25 * (myEnc_r.read() + myEnc_l.read())); // Take reading now and these are the input values
+   
    Hold_Posn.Compute();
 }
 
@@ -414,8 +418,8 @@ void read_BT(){
     else if (c =='2' & lock == false){mode_now = "go bck";Serial.print(mode_now);} 
     else if (c =='3' & lock == false){Kp_bal+=1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
     else if (c =='4' & lock == false){Kp_bal-= 1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
-    else if (c =='5' & lock == false){Kd_bal+=0.05;Serial.print("Kd_bal = "+String(Kd_bal));}
-    else if (c =='6' & lock == false){Kd_bal-=0.05;Serial.print("Kd_bal = "+String(Kd_bal));}
+    else if (c =='5' & lock == false){Kd_bal+=0.01;Serial.print("Kd_bal = "+String(Kd_bal));}
+    else if (c =='6' & lock == false){Kd_bal-=0.01;Serial.print("Kd_bal = "+String(Kd_bal));}
     else if (c =='7' & lock == false){Kp_trans+=0.5;trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);Serial.print("Kp_trans = "+String(Kp_trans));} 
     else if (c =='8' & lock == false){Kp_trans-=0.5;trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);Serial.print("Kp_trans = "+String(Kp_trans));} 
     else if (c =='9' & lock == false){motor_corr_fac_fwd+=0.01;Serial.print("MoFac = "+String(motor_corr_fac_fwd));} 
@@ -432,10 +436,10 @@ void read_BT(){
       rotation_direction = "clockwise";
       Serial.print("Rot clk");
     }
-    else if (c =='d' & lock == false){Rot_Max+=2.0;Serial.print("Rot_Max = "+String(Rot_Max));} 
-    else if (c =='e' & lock == false){Rot_Max-=2.0;Serial.print("Rot_Max = "+String(Rot_Max));}
-    else if (c =='f' & lock == false){Kp_hp+=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); Serial.print("Kp_hp = "+String(Kp_hp));} 
-    else if (c =='g' & lock == false){Kp_hp-=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); Serial.print("Kp_hp = "+String(Kp_hp));} 
+    else if (c =='d' & lock == false){Kp_hp=0.0001;Serial.print("Kp_hp = "+String(Kp_hp));} 
+    else if (c =='e' & lock == false){Kp_hp-=.0001;Serial.print("Kp_hp = "+String(Kp_hp));}
+//    else if (c =='f' & lock == false){Kp_hp+=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); Serial.print("Kp_hp = "+String(Kp_hp));} 
+//    else if (c =='g' & lock == false){Kp_hp-=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); Serial.print("Kp_hp = "+String(Kp_hp));} 
     else if (c =='h' & lock == false){frac_full_speed+=0.05;V_max = frac_full_speed * full_speed; Serial.print("FrFs = "+String(frac_full_speed));} 
     else if (c =='i' & lock == false){frac_full_speed-=0.05;V_max = frac_full_speed * full_speed; Serial.print("FrFs = "+String(frac_full_speed));} 
     else if (c =='j' & lock == false){Theta_correction+=0.1;Serial.print("Theta_Cor = "+String(Theta_correction));} 
@@ -446,8 +450,8 @@ void read_BT(){
       mode_now = "balance";mode_prev = "balance"; rotating = false;
       switch_bal_controller = false;
       switch_trans_controller = false;
-      Kp_bal = 46.0; Kd_bal = 0.8;
-      Kp_trans = 20.0;
+      Kp_bal = 44.0; Kd_bal = 0.8;
+      Kp_trans = 5.0;
       trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);
       motor_corr_fac_fwd = 0.95;motor_corr_fac_bck = 0.97;
       speed_ratio_mode_change = 0.40;
