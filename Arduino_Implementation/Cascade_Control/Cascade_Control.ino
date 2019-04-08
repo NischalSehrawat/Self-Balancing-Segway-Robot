@@ -43,7 +43,7 @@ float Enc_max_fwd = 1.0, Enc_min_bck = -1.0; // Variables used for storing minim
 
 double Input_bal, Output_bal, Setpoint_bal, error_bal; // Input output and setpoint variables defined
 double Out_min_bal = -255, Out_max_bal = 255; // PID Output limits, this is the output PWM value
-double Kp_bal = 44.0, Ki_bal = 0.0, Kd_bal = 0.80; // Initializing the Proportional, integral and derivative gain constants
+double Kp_bal = 38.0, Ki_bal = 0.0, Kd_bal = 0.80; // Initializing the Proportional, integral and derivative gain constants
 double Output_lower_bal = 30.0; // PWM Limit at which the motors actually start to move
 PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON_E, DIRECT); // PID Controller for balancing
 
@@ -58,14 +58,14 @@ PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, 
 
 double Input_hp, Output_hp, Setpoint_hp; // Input output and setpoint variables defined
 double Out_min_hp = -1.5, Out_max_hp = 1.5; // PID Output limits, this output is in [m/s]
-double Kp_hp = 0.003, Ki_hp = 0.0, Kd_hp = 0.0001; // Initializing the Proportional, integral and derivative gain constants
+double Kp_hp = 0.003, Ki_hp = 0.0, Kd_hp = 0.0; // Initializing the Proportional, integral and derivative gain constants
 PID Hold_Posn(&Input_hp, &Output_hp, &Setpoint_hp, Kp_hp, Ki_hp, Kd_hp, P_ON_E, DIRECT); // PID Controller for holding poistion
 
 ///////////////////////////////// ROBOT PHYSICAL PROPERTIES ////////////////////////////////////////////
 
 /*Both motors have different characteristics, the right motor spins faster when going in forward direction but slower in backward direction.
 Therefore, we need correction factors to drive straight*/
-float motor_corr_fac_fwd = 0.95, motor_corr_fac_bck = 0.97;// factor to correct for the difference b/w the motor characteristics
+float motor_corr_fac_fwd = 0.95, motor_corr_fac_bck = 0.94;// factor to correct for the difference b/w the motor characteristics
 float r_whl = 0.5 * 0.130; // Wheel radius [m]
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 float full_speed = 350.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 350 RPM @ 12 V]
@@ -236,8 +236,7 @@ void loop() {
     error_bal = Setpoint_bal - Input_bal; // To decide actuator / motor rotation direction 
     /* If balancing use a harder / stronger controller, but while moving use a softer controller for smooth stopping / starting*/
     if (switch_bal_controller == false){bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);} // Compute motor PWM using harder balancing PID
-    else if (switch_bal_controller == true){bal_PID.Compute_For_MPU(0.5 * Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);} // Compute motor PWM using softer balancing PID
-    bal_PID.Compute_For_MPU(Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);     
+    else if (switch_bal_controller == true){bal_PID.Compute_For_MPU(0.63 * Kp_bal, Ki_bal, Kd_bal, omega_x_gyro);} // Compute motor PWM using softer balancing PID
      
     /*Scale the output from 0-255 to 30-255 and then negate it if the initial output computed by PID loop was negetive*/
     double Output_bal_scaled = map(abs(Output_bal), 0, Out_max_bal, Output_lower_bal, Out_max_bal);
@@ -362,6 +361,7 @@ void Hold_Position(){
     
    Setpoint_hp = enc_ref;
    Input_hp = int(0.25 * (myEnc_r.read() + myEnc_l.read())); // Take reading now and these are the input values
+   
    Hold_Posn.Compute();
 
   // // We need to manipulate the Output_hp only when the robot has reversed its direction
@@ -371,7 +371,7 @@ void Hold_Position(){
   /* If the ratio of input / Enc max comes down below 0.6, this means that the robot started going back.
   This Won't happed when going forward because Enc_max is still getting updated at that time. 
   But once the robot reached extremity, Enc_max will become constant*/
-    if (Input_hp / Enc_max_fwd <0.6 & Input_hp / enc_ref > 2.0){Output_hp = 0.0;}
+    if (Input_hp / Enc_max_fwd <0.60 & Input_hp / enc_ref > 2.0){Output_hp = 0.0;}
     else if (Input_hp / enc_ref < 2.0){Enc_max_fwd = 1.0;} // Re-initialise Enc_max to 1.0 to start again
   }
   else if (Input_hp < enc_ref){ // Robot is moving in backward direction, so start checking the encoder values for maximum
@@ -379,7 +379,7 @@ void Hold_Position(){
   /* If the ratio of input / Enc min comes down below 0.6, this means that the robot started going fwd.
   This Won't happed when going bck because Enc_min is still getting updated at that time. 
   But once the robot reached extremity, Enc_min will become constant*/
-    if (Input_hp / Enc_min_bck <0.6 & Input_hp / enc_ref > 2.0){Output_hp = 0.0;}
+    if (Input_hp / Enc_min_bck <0.60 & Input_hp / enc_ref > 2.0){Output_hp = 0.0;}
     else if (Input_hp / enc_ref < 2.0){Enc_min_bck = -1.0;} // Re-initialise Enc_min to -1.0 to start again
   }
 }
