@@ -165,10 +165,10 @@ void loop() {
     
     if (mode_now == "go fwd"){ 
       // If we change mode to forward now, switch controllers and start increasing the setpoint slowly to avoid jerky behaviour
-      switch_bal_controller = true;
-      rotating = false;
-      enc_initialised = false;
-      Kp_trans_hard = Kp_trans;
+      switch_bal_controller = true; // Switch to a softer Kp_bal controller for smooth movements
+      rotating = false; // Set rotating = false as an interlock
+      enc_initialised = false; // Initialise encoder for the next time the robot comes to standstill and starts balancing
+      Kp_trans_hard = Kp_trans; // reset Kp_trans_hard to Kp_trans which got increased while braking
       
       Setpoint_trans = Setpoint_trans + speed_steps;
       mode_prev = "go fwd";
@@ -177,21 +177,21 @@ void loop() {
     }
     else if (mode_now == "go bck"){
       // If we change mode to back now, switch controllers and start decreasing the setpoint slowly to avoid jerky behaviour
-      switch_bal_controller = true;
-      rotating = false;
-      enc_initialised = false;
-      Kp_trans_hard = Kp_trans;
+      switch_bal_controller = true; // Switch to a softer Kp_bal controller for smooth movements
+      rotating = false;// Set rotating = false as an interlock
+      enc_initialised = false; // Initialise encoder for the next time the robot comes to standstill and starts balancing
+      Kp_trans_hard = Kp_trans;// reset Kp_trans_hard to Kp_trans which got increased while braking
       
-      Setpoint_trans = Setpoint_trans - speed_steps;
+      Setpoint_trans = Setpoint_trans - speed_steps; // Start reducing the setpoints slowly
       mode_prev = "go bck";
+      
       if (Setpoint_trans < -V_max){Setpoint_trans = -V_max;}
       if (V_min_bck > V_trans) {V_min_bck = V_trans;} // If the current velocity is less than V_min_bck, then this is the new min velocity
-      }
     else if (mode_now == "balance"){ // If we change mode to balance now, we need to apply brakes      
       if (mode_prev == "go fwd"){
         Setpoint_trans = Setpoint_trans - brake_steps; // If going in fwd direction, apply brakes by setting the trans setpoint to opposite value
-        switch_trans_controller = true; // Reset trans_PID to 2*Kp_trans value to get increased braking
-        Kp_trans_hard+=0.2;
+        switch_trans_controller = true; // Switch to a harder trans_PID controller to get increased braking
+        Kp_trans_hard+=0.2; // Increase Kp_trans_hard in steps for smooth transition  
         if (Kp_trans_hard>2 * Kp_trans){Kp_trans_hard = 2 * Kp_trans;}
         /*if the ratio of current velocity and the maximum velocity measured since the robot started moving forward
         is less than speed_ratio_mode_change, change mode_prev to balance*/
@@ -199,8 +199,8 @@ void loop() {
         }
       else if (mode_prev == "go bck"){
         Setpoint_trans = Setpoint_trans + brake_steps; // If going in bck direction, apply brakes by setting the trans setpoint to opposite value
-        switch_trans_controller = true; // Reset trans_PID to original value to get increased braking
-        Kp_trans_hard+=0.2;
+        switch_trans_controller = true; // Switch to a harder trans_PID controller to get increased braking
+        Kp_trans_hard+=0.2; // Increase Kp_trans_hard in steps for smooth transition 
         if (Kp_trans_hard>2 * Kp_trans){Kp_trans_hard = 2 * Kp_trans;}
         /*if the ratio of current velocity and the minimum velocity measured since the robot started moving backward
         is less than speed_ratio_mode_change, change mode_prev to balance*/
@@ -209,13 +209,13 @@ void loop() {
       else if (mode_prev == "balance"){
         V_min_bck = -0.01; // Re-initialise the variables
         V_max_fwd = 0.01;
-        switch_trans_controller = false;
+        switch_trans_controller = false; // Switch now to the softer Kp_trans
         
         double dt_mode_switch = millis() - t_mode_switch;        
         if (dt_mode_switch < 2000){Setpoint_trans = 0.0;}                
         /*Switch to a stiffer balancing controller 2 seconds after stopping*/        
         else if (dt_mode_switch > 2000){
-          switch_bal_controller = false;
+          switch_bal_controller = false;  // Switch to a harder Kp_bal controller for better balancing
           Hold_Position();
           Setpoint_trans = Output_hp;          
         }
@@ -364,28 +364,24 @@ void Hold_Position(){
    Input_hp = int(0.25 * (myEnc_r.read() + myEnc_l.read())); // Take reading now and these are the input values
    Hold_Posn.Compute();
 
-//   /* Logic for de-accelerating the robot to stop it from overshooting from the target position*/
-//   if (Input_hp > enc_ref & V_trans > 0){ // Robot is moving in forward direction, so start checking the encoder values for maximum
-//    fwd_enc = true;
-//    if (Enc_max_fwd < Input_hp) {Enc_max_fwd = Input_hp;} // If the current velocity is less than Enc_max_fwd, then this is the new max enocdercount
-//    } 
-//   else if (Input_hp < enc_ref & V_trans < 0){ // Robot is moving in backward direction, so start checking the encoder values for minimum values
-//    bck_enc = true;
-//    if (Enc_min_bck > Input_hp) {Enc_min_bck = Input_hp;} // If the current encoder count is less than Enc_min_bck, then this is the new min enocdercount
-//    }
-//    /*De-accelerate the robot when initially it was going in +ve direction but now it is going in -ve direction when the ratio of enc_now and max_enc is 0.6  */
-//   if (fwd_enc == true & V_trans < 0){
-//    Serial.println("Entered here1");
-//    if (Input_hp > enc_ref &  Input_hp / Enc_max_fwd <0.70){Output_hp = 0.0;Serial.println("Entered here2");}     
-//    if (-50<Input_hp<50){fwd_enc = false;Enc_max_fwd = 1.0 ;}// Re-initialise the variable
-//    
-//   }
-//   /*De-accelerate the robot when initially it was going in -ve direction but now it is going in +ve direction when the ratio of enc_now and min_enc is 0.6  */
-//   else if (bck_enc == true & V_trans > 0){
-//    if (Input_hp < enc_ref & Input_hp / Enc_min_bck <0.70){Output_hp = 0.0;}
-//    if (-50<Input_hp<50){bck_enc = false;Enc_min_bck = -1.0 ;}     // Re-initialise the variable
-//   }
-
+  // // We need to manipulate the Output_hp only when the robot has reversed its direction
+   
+  //  if (Input_hp > enc_ref){ // Robot is moving in forward direction, so start checking the encoder values for maximum
+  //   if (Enc_max_fwd < Input_hp) {Enc_max_fwd = Input_hp;} // Update Enc_max_fwd
+  // /* If the ratio of input / Enc max comes down below 0.6, this means that the robot started going back.
+  // This Won't happed when going forward because Enc_max is still getting updated at that time. 
+  // But once the robot reached extremity, Enc_max will become constant*/
+  //   if (Input_hp / Enc_max_fwd <0.6 & Input_hp / enc_ref > 2.0){Output_hp = 0.0;}
+  //   else if (Input_hp / enc_ref < 2.0){Enc_max_fwd = 1.0;} // Re-initialise Enc_max to 1.0 to start again
+  // }
+  // else if (Input_hp < enc_ref){ // Robot is moving in backward direction, so start checking the encoder values for maximum
+  //   if (Enc_min_bck < Input_hp) {Enc_min_bck = Input_hp;} // Update Enc_min_bck
+  // /* If the ratio of input / Enc min comes down below 0.6, this means that the robot started going fwd.
+  // This Won't happed when going bck because Enc_min is still getting updated at that time. 
+  // But once the robot reached extremity, Enc_min will become constant*/
+  //   if (Input_hp / Enc_min_bck <0.6 & Input_hp / enc_ref > 2.0){Output_hp = 0.0;}
+  //   else if (Input_hp / enc_ref < 2.0){Enc_min_bck = -1.0;} // Re-initialise Enc_min to -1.0 to start again
+  // }
 }
 
 /*
