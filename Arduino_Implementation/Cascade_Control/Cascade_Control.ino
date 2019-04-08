@@ -470,13 +470,13 @@ void read_BT(){
     else if (c =='l' & lock == false){
       //Reset all parameters to default values
       Serial.print("Reset"); 
-      mode_now = "balance";mode_prev = "balance"; rotating = false;
+      mode_now = "balance";mode_prev = "balance"; rotating = false;enc_initialised == false;
       switch_bal_controller = false;
       switch_trans_controller = false;
-      Kp_bal = 44.0; Kd_bal = 0.8;
+      Kp_bal = 38.0; Kd_bal = 0.8;
       Kp_trans = 5.0;
       trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);
-      motor_corr_fac_fwd = 0.95;motor_corr_fac_bck = 0.97;
+      motor_corr_fac_fwd = 0.95;motor_corr_fac_bck = 0.94;
       speed_ratio_mode_change = 0.40;
       speed_steps = 0.08;brake_steps = 0.04;
       frac_full_speed = 0.40;
