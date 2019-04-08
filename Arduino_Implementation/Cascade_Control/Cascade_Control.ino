@@ -183,10 +183,10 @@ void loop() {
       Kp_trans_hard = Kp_trans;// reset Kp_trans_hard to Kp_trans which got increased while braking
       
       Setpoint_trans = Setpoint_trans - speed_steps; // Start reducing the setpoints slowly
-      mode_prev = "go bck";
-      
+      mode_prev = "go bck";      
       if (Setpoint_trans < -V_max){Setpoint_trans = -V_max;}
       if (V_min_bck > V_trans) {V_min_bck = V_trans;} // If the current velocity is less than V_min_bck, then this is the new min velocity
+    }
     else if (mode_now == "balance"){ // If we change mode to balance now, we need to apply brakes      
       if (mode_prev == "go fwd"){
         Setpoint_trans = Setpoint_trans - brake_steps; // If going in fwd direction, apply brakes by setting the trans setpoint to opposite value
