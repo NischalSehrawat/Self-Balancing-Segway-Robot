@@ -36,7 +36,7 @@ Encoder myEnc_r(R_enc_pin2, R_enc_pin1); // Make encoder objects to calculate mo
 Encoder myEnc_l(L_enc_pin1, L_enc_pin2); // Make encoder objects to calculate motor velocties
 double Output_lmot, Output_rmot; // Variables for storing PWM outputs seperately for left and right motors
 double enc_ref; // Variables to store encoder values for holding position
-float Enc_max_fwd = 1.0, Enc_min_bck = 1.0; // Variables used for storing minimum and maximum values of Encoder reading for applying brakes
+float Enc_max_fwd = 1.0, Enc_min_bck = -1.0; // Variables used for storing minimum and maximum values of Encoder reading for applying brakes
 
 
 ///////////////////////////////// Balancing PID parameters ///////////////////////////////////////////////////
