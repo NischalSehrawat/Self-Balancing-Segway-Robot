@@ -58,7 +58,7 @@ PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, 
 
 double Input_hp, Output_hp, Setpoint_hp; // Input output and setpoint variables defined
 double Out_min_hp = -1.5, Out_max_hp = 1.5; // PID Output limits, this output is in [m/s]
-double Kp_hp = 0.0002, Ki_hp = 0.0005, Kd_hp = 0.0000; // Initializing the Proportional, integral and derivative gain constants
+double Kp_hp = 0.003, Ki_hp = 0.0, Kd_hp = 0.0001; // Initializing the Proportional, integral and derivative gain constants
 PID Hold_Posn(&Input_hp, &Output_hp, &Setpoint_hp, Kp_hp, Ki_hp, Kd_hp, P_ON_E, DIRECT); // PID Controller for holding poistion
 
 ///////////////////////////////// ROBOT PHYSICAL PROPERTIES ////////////////////////////////////////////
@@ -371,7 +371,7 @@ void Hold_Position(){
   /* If the ratio of input / Enc max comes down below 0.6, this means that the robot started going back.
   This Won't happed when going forward because Enc_max is still getting updated at that time. 
   But once the robot reached extremity, Enc_max will become constant*/
-    if (Input_hp / Enc_max_fwd <0.6 & Input_hp / enc_ref > 2.0){Hold_Posn.Reset_Iterm();}
+    if (Input_hp / Enc_max_fwd <0.6 & Input_hp / enc_ref > 2.0){Output_hp = 0.0;}
     else if (Input_hp / enc_ref < 2.0){Enc_max_fwd = 1.0;} // Re-initialise Enc_max to 1.0 to start again
   }
   else if (Input_hp < enc_ref){ // Robot is moving in backward direction, so start checking the encoder values for maximum
@@ -379,7 +379,7 @@ void Hold_Position(){
   /* If the ratio of input / Enc min comes down below 0.6, this means that the robot started going fwd.
   This Won't happed when going bck because Enc_min is still getting updated at that time. 
   But once the robot reached extremity, Enc_min will become constant*/
-    if (Input_hp / Enc_min_bck <0.6 & Input_hp / enc_ref > 2.0){Hold_Posn.Reset_Iterm();}
+    if (Input_hp / Enc_min_bck <0.6 & Input_hp / enc_ref > 2.0){Output_hp = 0.0;}
     else if (Input_hp / enc_ref < 2.0){Enc_min_bck = -1.0;} // Re-initialise Enc_min to -1.0 to start again
   }
 }
