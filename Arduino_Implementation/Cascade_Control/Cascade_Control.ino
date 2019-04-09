@@ -251,7 +251,7 @@ void loop() {
     if (rotating == true){
       if (start_again == true){Rot_Speed = Rot_Max; start_again = false;}          	
     	Rot_Speed-=rot_steps;
-    	if (Rot_Speed<0){Rot_Speed = 0; rotating == true;}    	
+    	if (Rot_Speed<0){Rot_Speed = 0; rotating = false;}// If Rot_Speed <0, set rotating = false to get out of rotation if statement
     	if (rotation_direction == "clockwise"){
     		Output_lmot -=  Rot_Speed;
     		Output_rmot +=  Rot_Speed;
