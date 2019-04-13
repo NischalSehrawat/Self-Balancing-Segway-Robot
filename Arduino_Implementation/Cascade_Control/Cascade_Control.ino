@@ -212,9 +212,9 @@ void loop() {
         switch_trans_controller = false; // Switch now to the softer Kp_trans
         
         double dt_mode_switch = millis() - t_mode_switch;        
-        if (dt_mode_switch < 2000){Setpoint_trans = 0.0;}                
+        if (dt_mode_switch < 2000 || rotating == true){Setpoint_trans = 0.0;}                
         /*Switch to a stiffer balancing controller 2 seconds after stopping*/        
-        else if (dt_mode_switch > 2000){
+        else if (dt_mode_switch > 2000 & rotating == false){
           switch_bal_controller = false;  // Switch to a harder Kp_bal controller for better balancing
           Hold_Position();
           Setpoint_trans = Output_hp;          
@@ -251,7 +251,7 @@ void loop() {
     if (rotating == true){
       if (start_again == true){Rot_Speed = Rot_Max; start_again = false;}          	
     	Rot_Speed-=rot_steps;
-    	if (Rot_Speed<0){Rot_Speed = 0; rotating = false;}// If Rot_Speed <0, set rotating = false to get out of rotation if statement
+    	if (Rot_Speed<0){Rot_Speed = 0; rotating = false; enc_initialised == false;}// If Rot_Speed <0, set rotating = false to get out of rotation if statement & initialise encoder count
     	if (rotation_direction == "clockwise"){
     		Output_lmot -=  Rot_Speed;
     		Output_rmot +=  Rot_Speed;
