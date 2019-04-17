@@ -96,8 +96,6 @@ bool rotating = false;  // To set rotation mode on the robot
 bool start_again; // Boolean to reset Rot_Speed = Rot_max once Rot_Speed decreases from Rot_Max to 0
 bool led_state = 0; // Parameter to turn LED from ON / OFF
 bool enc_initialised = false; // Variable to store Setpoint value for holding position control
-bool fwd_enc, bck_enc; // Varibles to decide in which direction the robot is moving after being distrubed
-
 
 ////////////// LED BLINKING / Loop time PARAMETERS/////////////////////////
 
