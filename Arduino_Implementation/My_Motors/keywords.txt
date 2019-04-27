@@ -14,7 +14,8 @@ My_Motors	KEYWORD1
 
 getRPM	KEYWORD2
 getInstRpm	KEYWORD2
-getDn	KEYWORD2
+set_Ninit       KEYWORD2
+
 
 
 

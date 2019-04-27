@@ -14,7 +14,7 @@ class My_Motors{
 	
 	float getInstRpm();                                // Return instantaneous RPM
 
-	int set_Ninit(int ticks); 									// Set initial encoder ticks
+	void set_Ninit(int ticks); 									// Set initial encoder ticks
 	
   private:
 	
