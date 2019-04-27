@@ -71,4 +71,4 @@ void My_Motors::getRPM(long ticks, String units){
 
 
 float My_Motors::getInstRpm(){return inst_rpm;}
-void My_Motors::setN_init(int ticks){n_init = ticks;}
+void My_Motors::set_Ninit(int ticks){n_init = ticks;}
