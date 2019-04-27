@@ -13,6 +13,8 @@ class My_Motors{
     void getRPM(long ticks, String units);            // * Calculates motor RPM
 	
 	float getInstRpm();                                // Return instantaneous RPM
+
+	int setN_init(int ticks); 									// Set initial encoder ticks
 	
   private:
 	
@@ -25,7 +27,9 @@ class My_Motors{
 	float rpm_prev; 
 	float *my_final_rpm;
 
-	int rpm_limit; // Below this rpm, return "0"
+	int n_init; // Encoder count initialiser for driving straight
+
+	float rpm_limit; // Below this rpm, return "0"
 
 	float avg_points; // Number of points to be considered for taking averages
 
