@@ -16,6 +16,8 @@ class My_Motors{
 
 	void set_Ninit(int ticks); 									// Set initial encoder ticks
 	
+	int get_Dn(int enc_count); 									// Get the difference between initial encoder count and encoder count now
+
   private:
 	
 	long n_prev; // Parameters for encoder increment	

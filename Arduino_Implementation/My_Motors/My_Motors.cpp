@@ -72,3 +72,4 @@ void My_Motors::getRPM(long ticks, String units){
 
 float My_Motors::getInstRpm(){return inst_rpm;}
 void My_Motors::set_Ninit(int ticks){n_init = ticks;}
+int My_Motors::get_Dn(int enc_count){return int(0.25*(enc_count - n_init));}

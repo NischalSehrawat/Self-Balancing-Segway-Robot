@@ -50,8 +50,8 @@ PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON
 ///////////////////////////////// TRANSLATION PID parameters ///////////////////////////////////////////////////
 
 double Input_trans, Output_trans, Setpoint_trans; // Input output and setpoint variables defined
-double Out_min_trans = -25, Out_max_trans = 25; // PID Output limits, this output is in degrees
-double Kp_trans = 5.0, Kp_trans_hard = 5.0,  Ki_trans = 0.0, Kd_trans = 0.0; // Initializing the Proportional, integral and derivative gain constants
+double Out_min_trans = -15, Out_max_trans = 15; // PID Output limits, this output is in degrees
+double Kp_trans = 10.0, Kp_trans_hard = 10.0,  Ki_trans = 0.0, Kd_trans = 0.0; // Initializing the Proportional, integral and derivative gain constants
 PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, Kd_trans, P_ON_E, DIRECT); // PID Controller for translating
 
 ///////////////////////////////// HOLD POSITION PID parameters ///////////////////////////////////////////////////
@@ -60,6 +60,15 @@ double Input_hp, Output_hp, Setpoint_hp; // Input output and setpoint variables 
 double Out_min_hp = -1.5, Out_max_hp = 1.5; // PID Output limits, this output is in [m/s]
 double Kp_hp = 0.003, Ki_hp = 0.0, Kd_hp = 0.0; // Initializing the Proportional, integral and derivative gain constants
 PID Hold_Posn(&Input_hp, &Output_hp, &Setpoint_hp, Kp_hp, Ki_hp, Kd_hp, P_ON_E, DIRECT); // PID Controller for holding poistion
+
+
+///////////////////////////////// Motor speed difference correction PID parameters //////////////////////////////////
+
+double Input_sd, Output_sd, Setpoint_sd; // Input output and setpoint variables defined
+double Out_min_sd = -10, Out_max_sd = 10; // PID Output limits, this output is PWM
+double Kp_sd = 0.3, Ki_sd = 0.0, Kd_sd = 0.0; // Initializing the Proportional, integral and derivative gain constants
+PID Motor_Diff(&Input_sd, &Output_sd, &Setpoint_sd, Kp_sd, Ki_sd, Kd_sd, P_ON_E, DIRECT); // PID Controller for motor speed diff correction
+
 
 ///////////////////////////////// ROBOT PHYSICAL PROPERTIES ////////////////////////////////////////////
 
@@ -131,7 +140,13 @@ void setup() {
     Hold_Posn.SetSampleTime(t_loop); // Set Loop time for PID [milliseconds]
     Hold_Posn.SetMode(AUTOMATIC); // Set PID mode to Automatic        
     Hold_Posn.SetOutputLimits(Out_min_hp, Out_max_hp); // Set upper and lower limits for the maximum output limits for PID loop
- 
+   
+   ////////////////////////// Motor speed difference correction PID initialization ////////////////////////////////////////////////////////        
+
+    Motor_Diff.SetSampleTime(t_loop); // Set Loop time for PID [milliseconds]
+    Motor_Diff.SetMode(AUTOMATIC); // Set PID mode to Automatic        
+    Motor_Diff.SetOutputLimits(Out_min_sd, Out_max_sd); // Set upper and lower limits for the maximum output limits for PID loop 
+    
     ////////////////////////// MPU initialization ///////////////////////////////////////////////////
     
     Wire.begin(); // Start wire library    
@@ -214,6 +229,7 @@ void loop() {
         /*Switch to a stiffer balancing controller 2 seconds after stopping*/        
         else if (dt_mode_switch > 2000 & rotating == false){
           switch_bal_controller = false;  // Switch to a harder Kp_bal controller for better balancing
+//          Setpoint_trans = 0.0;
           Hold_Position();
           Setpoint_trans = Output_hp;          
         }
@@ -261,8 +277,8 @@ void loop() {
     }
     
     else if (rotating == false){ // Account for motor speed differences, if not rotating
-      if (Final_Rpm_l>0 && Final_Rpm_r>0){Output_lmot*=motor_corr_fac_fwd;}
-      else if (Final_Rpm_l<0 && Final_Rpm_r<0){Output_lmot*=motor_corr_fac_bck;}      
+      
+      Mot_Diff_Correction();   
 
       // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg      
       if (abs(error_bal)<0.2 && mode_now == "balance"){Output_rmot = 0.0; Output_lmot = 0.0;} 
@@ -348,6 +364,36 @@ void get_MPU_data(){
 void Blink_Led(){
   if (led_state ==0){digitalWrite(pin, 1);led_state = 1;}
   else if(led_state == 1){digitalWrite(pin, 0);led_state = 0;}
+}
+
+void Mot_Diff_Correction(){
+
+    Setpoint_sd = Lmot.get_Dn(myEnc_l.read()); // Set point is left motor
+    Input_sd = Rmot.get_Dn(myEnc_r.read()); // Input is right motor
+    Motor_Diff.Compute(); // Compute the PID output
+
+    if (V_trans>0.0){ // Robot is going forward, both Ouput_lmot & Ouput_rmot are -ve
+      if (Output_sd>0.0){ // Left motor is faster, so increase right motor speed and decrease left motor speed
+        Output_rmot-=Output_sd; // Output_rmot is -ve, so to increase it, we have to "subtract" a +ve quantity
+        Output_lmot+=Output_sd; // Output_lmot is -ve, so to decrease it, we have to "add" a +ve quantity
+
+      }
+      else if (Output_sd<0.0){ // Right motor is faster, so increase left motor speed and decrease right motor speed
+        Output_lmot+=Output_sd; // Output_lmot is -ve, so to increase it, we have to "add" a -ve quantity
+        Output_rmot-=Output_sd; // Output_rmot is -ve, so to decrease it, we have to "subtract" a -ve quantity
+      }
+    }
+    else if (V_trans<0.0){ // Robot is going backward, both Ouput_lmot & Ouput_rmot are +ve
+      if (Output_sd>0.0){ // Right motor is faster, so increase left motor speed
+        Output_lmot+=Output_sd; // Output_lmot is +ve, so to increase it, we have to "add" a +ve quantity
+        Output_rmot-=Output_sd; // Output_rmot is +ve, so to increase it, we have to "subtract" a +ve quantity
+
+      }
+      else if (Output_sd<0.0){ // Left motor is faster, so increase right motor speed
+        Output_rmot-=Output_sd; // Output_rmot is +ve, so to increase it, we have to "subtract" a -ve quantity
+        Output_lmot+=Output_sd; // Output_lmot is +ve, so to decrease it, we have to "add" a -ve quantity
+      }
+    }        
 }
 
 void Hold_Position(){
