@@ -40,5 +40,7 @@ A lot of problems were encountered and solved during the implementation on a mic
 
 - **Connecting Arduino to RaspberryPi**: It is very frustrating to connect the Arduino to the computer with a USB cable each time some piece of code needs to be updated. Therefore, it is very hand to install a RaspberryPi and connect the Arduino to it so that by using **VNC viewer** or **TeamViewer**, we can remotely log into the RaspberryPi and program the Arduino. But is it very important that you donot install the Arduino IDE from the command line using **sudo apt-get install arduino** because this throws a lot of errors and even the simplest codes (like blink) donto get uploaded to the Arduino. Therefore we need to install Arduino IDE using [this link](https://www.raspberrypi.org/magpi/program-arduino-uno-raspberry-pi/). After this it works perfectly fine.
 
+- **Robot Remote Control with App**: To remotely change control parameters by observing robot behavior in realtime and also to drive around the robot with a mobile phone, a I developed a small app using **MIT AppInventor**. In the code, there are a lot of interlocks between different robot behaviors.
 
+![Screenshot_20190429-105907](https://user-images.githubusercontent.com/33701903/56886170-a34a1980-6a6e-11e9-8e3d-af838f586ba7.jpg)
 
