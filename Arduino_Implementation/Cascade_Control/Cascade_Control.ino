@@ -386,7 +386,7 @@ void Mot_Diff_Correction(){
     Motor_Diff.Compute(); // Compute the PID output
 	
 	/*Correct for motor differences only when a command to go forward or backward is given*/
-    if ((V_trans>0.0 & mode_now == "go fwd" & mode_prev == "go fwd"){ // Robot is going forward, both Ouput_lmot & Ouput_rmot are -ve
+    if (V_trans>0.0 & mode_now == "go fwd" & mode_prev == "go fwd"){ // Robot is going forward, both Ouput_lmot & Ouput_rmot are -ve
       if (Output_sd>0.0){ // Left motor is faster, so increase right motor speed and decrease left motor speed
         Output_rmot-=Output_sd; // Output_rmot is -ve, so to increase it, we have to "subtract" a +ve quantity
         Output_lmot+=Output_sd; // Output_lmot is -ve, so to decrease it, we have to "add" a +ve quantity
