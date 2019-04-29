@@ -42,9 +42,7 @@ A lot of problems were encountered and solved during the implementation on a mic
 
 - **Robot Remote Control with App**: To remotely change control parameters by observing robot behavior in realtime and also to drive around the robot with a mobile phone, I developed a small app using **MIT AppInventor**. In the code on Arduino, there are a lot of interlocks between different robot behaviors. The screenshot of the app is shown below.
 
-<p align="center">
-  <src="https://user-images.githubusercontent.com/33701903/56886911-641cc800-6a70-11e9-8647-d584369ff7c6.png">
-</p>
+![rsz_optimized-capture](https://user-images.githubusercontent.com/33701903/56886911-641cc800-6a70-11e9-8647-d584369ff7c6.png)
 
 
 
