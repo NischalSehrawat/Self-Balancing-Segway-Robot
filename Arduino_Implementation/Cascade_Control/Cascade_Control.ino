@@ -104,7 +104,8 @@ bool lock = true; // Variable to prevent accidental changing of parameters by bl
 bool rotating = false;  // To set rotation mode on the robot
 bool start_again; // Boolean to reset Rot_Speed = Rot_max once Rot_Speed decreases from Rot_Max to 0
 bool led_state = 0; // Parameter to turn LED from ON / OFF
-bool enc_initialised = false; // Variable to store Setpoint value for holding position control
+bool enc_init_hp= false; // Variable for taking reference value for holding position control
+bool enc_init_mdc = false; // Variable for taking reference value for motor difference correction (mdc)
 
 ////////////// LED BLINKING / Loop time PARAMETERS/////////////////////////
 
@@ -180,9 +181,14 @@ void loop() {
       // If we change mode to forward now, switch controllers and start increasing the setpoint slowly to avoid jerky behaviour
       switch_bal_controller = true; // Switch to a softer Kp_bal controller for smooth movements
       rotating = false; // Set rotating = false as an interlock
-      enc_initialised = false; // Initialise encoder for the next time the robot comes to standstill and starts balancing
+      enc_init_hp = false; // Initialise encoder for the next time the robot comes to standstill and starts balancing
       Kp_trans_hard = Kp_trans; // reset Kp_trans_hard to Kp_trans which got increased while braking
       
+      if (enc_init_mdc == false){ // Take reference readings for motor difference correction for driving straight in fwd direction
+      	Lmot.set_Ninit(myEnc_l.read());Rmot.set_Ninit(myEnc_r.read()); // Initialise encoder counts
+      	enc_init_mdc = true; // We have taken the reference value, so now we need to stop taking reference values
+      }
+
       Setpoint_trans = Setpoint_trans + speed_steps;
       mode_prev = "go fwd";
       if (Setpoint_trans > V_max){Setpoint_trans = V_max;}
@@ -192,9 +198,14 @@ void loop() {
       // If we change mode to back now, switch controllers and start decreasing the setpoint slowly to avoid jerky behaviour
       switch_bal_controller = true; // Switch to a softer Kp_bal controller for smooth movements
       rotating = false;// Set rotating = false as an interlock
-      enc_initialised = false; // Initialise encoder for the next time the robot comes to standstill and starts balancing
+      enc_init_hp = false; // Initialise encoder for the next time the robot comes to standstill and starts balancing
       Kp_trans_hard = Kp_trans;// reset Kp_trans_hard to Kp_trans which got increased while braking
       
+      if (enc_init_mdc == false){ // Take reference readings for motor difference correction for driving straight in backward direction
+      	Lmot.set_Ninit(myEnc_l.read());Rmot.set_Ninit(myEnc_r.read()); // Initialise encoder counts
+      	enc_init_mdc = true; // We have taken the reference value, so now we need to stop taking reference values
+      }  
+
       Setpoint_trans = Setpoint_trans - speed_steps; // Start reducing the setpoints slowly
       mode_prev = "go bck";      
       if (Setpoint_trans < -V_max){Setpoint_trans = -V_max;}
@@ -225,11 +236,11 @@ void loop() {
         switch_trans_controller = false; // Switch now to the softer Kp_trans
         
         double dt_mode_switch = millis() - t_mode_switch;        
-        if (dt_mode_switch < 2000 || rotating == true){Setpoint_trans = 0.0;}                
+        if (dt_mode_switch < 2000 || rotating == true){Setpoint_trans = 0.0; enc_init_mdc = false;}                
         /*Switch to a stiffer balancing controller 2 seconds after stopping*/        
         else if (dt_mode_switch > 2000 & rotating == false){
           switch_bal_controller = false;  // Switch to a harder Kp_bal controller for better balancing
-//          Setpoint_trans = 0.0;
+          enc_init_mdc = false; // Initialise motor difference controller
           Hold_Position();
           Setpoint_trans = Output_hp;          
         }
@@ -265,7 +276,7 @@ void loop() {
     if (rotating == true){
       if (start_again == true){Rot_Speed = Rot_Max; start_again = false;}          	
     	Rot_Speed-=rot_steps;
-    	if (Rot_Speed<0){Rot_Speed = 0; rotating = false; enc_initialised == false;}// If Rot_Speed <0, set rotating = false to get out of rotation if statement & initialise encoder count
+    	if (Rot_Speed<0){Rot_Speed = 0; rotating = false;enc_init_hp== false;}// If Rot_Speed <0, set rotating = false to get out of rotation if statement & initialise encoder count
     	if (rotation_direction == "clockwise"){
     		Output_lmot -=  Rot_Speed;
     		Output_rmot +=  Rot_Speed;
@@ -278,6 +289,8 @@ void loop() {
     
     else if (rotating == false){ // Account for motor speed differences, if not rotating
       
+      /*This Correction  for motor differences only applied when a command to go forward or backward is given*/
+
       Mot_Diff_Correction();   
 
       // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg      
@@ -293,7 +306,7 @@ void loop() {
        Rot_Speed = 0.0;
        switch_bal_controller = false;
        switch_trans_controller = false;
-       enc_initialised == false;
+      enc_init_hp== false;
        mode_now = "balance"; // Change mode to balance
        mode_prev = "balance"; // Change mode to balance
        }
@@ -371,8 +384,9 @@ void Mot_Diff_Correction(){
     Setpoint_sd = Lmot.get_Dn(myEnc_l.read()); // Set point is left motor
     Input_sd = Rmot.get_Dn(myEnc_r.read()); // Input is right motor
     Motor_Diff.Compute(); // Compute the PID output
-
-    if (V_trans>0.0){ // Robot is going forward, both Ouput_lmot & Ouput_rmot are -ve
+	
+	/*Correct for motor differences only when a command to go forward or backward is given*/
+    if ((V_trans>0.0 & mode_now == "go fwd" & mode_prev == "go fwd"){ // Robot is going forward, both Ouput_lmot & Ouput_rmot are -ve
       if (Output_sd>0.0){ // Left motor is faster, so increase right motor speed and decrease left motor speed
         Output_rmot-=Output_sd; // Output_rmot is -ve, so to increase it, we have to "subtract" a +ve quantity
         Output_lmot+=Output_sd; // Output_lmot is -ve, so to decrease it, we have to "add" a +ve quantity
@@ -383,7 +397,7 @@ void Mot_Diff_Correction(){
         Output_rmot-=Output_sd; // Output_rmot is -ve, so to decrease it, we have to "subtract" a -ve quantity
       }
     }
-    else if (V_trans<0.0){ // Robot is going backward, both Ouput_lmot & Ouput_rmot are +ve
+    else if (V_trans<0.0 & mode_now == "go bck" & mode_prev == "go bck"){ // Robot is going backward, both Ouput_lmot & Ouput_rmot are +ve
       if (Output_sd>0.0){ // Right motor is faster, so increase left motor speed
         Output_lmot+=Output_sd; // Output_lmot is +ve, so to increase it, we have to "add" a +ve quantity
         Output_rmot-=Output_sd; // Output_rmot is +ve, so to increase it, we have to "subtract" a +ve quantity
@@ -398,9 +412,9 @@ void Mot_Diff_Correction(){
 
 void Hold_Position(){
 
-  if (enc_initialised == false){
+  if (enc_init_hp == false){
     enc_ref = int(0.25 * (myEnc_r.read() + myEnc_l.read())); // This is the setpoint value
-    enc_initialised = true; // We have taken the reference value, so now we need to stop taking reference values
+   enc_init_hp= true; // We have taken the reference value, so now we need to stop taking reference values
     } 
     
    Setpoint_hp = enc_ref;
@@ -514,7 +528,7 @@ void read_BT(){
     else if (c =='l' & lock == false){
       //Reset all parameters to default values
       Serial.print("Reset"); 
-      mode_now = "balance";mode_prev = "balance"; rotating = false;enc_initialised == false;
+      mode_now = "balance";mode_prev = "balance"; rotating = falseenc_init_hp== false;
       switch_bal_controller = false;
       switch_trans_controller = false;
       Kp_bal = 38.0; Kd_bal = 0.8;
