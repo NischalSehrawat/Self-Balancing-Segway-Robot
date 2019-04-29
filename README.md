@@ -42,6 +42,11 @@ A lot of problems were encountered and solved during the implementation on a mic
 
 - **Robot Remote Control with App**: To remotely change control parameters by observing robot behavior in realtime and also to drive around the robot with a mobile phone, I developed a small app using **MIT AppInventor**. In the code on Arduino, there are a lot of interlocks between different robot behaviors. The screenshot of the app is shown below.
 
+<p align="center">
+  <src="https://user-images.githubusercontent.com/33701903/56886911-641cc800-6a70-11e9-8647-d584369ff7c6.png">
+</p>
+
+
 ![rsz_optimized-capture](img align="centre", https://user-images.githubusercontent.com/33701903/56886911-641cc800-6a70-11e9-8647-d584369ff7c6.png)
 
 - **Position Maintain Capability**: The robot tends to drift due to the fact that the chassis is not balanced. So I implemented position maintaining capabities to it. I used a **"P** only controller here. This controller gives an input velocity to the outer Cascade loop that is proportional to how many encoder counts away the robot is from the reference position. This velocity is directed towards the initial starting position. To prevent overshoot, I implemented braking logic before the robot reaches the reference position so as to minimise overshoot. 
