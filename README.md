@@ -40,9 +40,12 @@ A lot of problems were encountered and solved during the implementation on a mic
 
 - **Connecting Arduino to RaspberryPi**: It is very frustrating to connect the Arduino to the computer with a USB cable each time some piece of code needs to be updated. Therefore, it is very hand to install a RaspberryPi and connect the Arduino to it so that by using **VNC viewer** or **TeamViewer**, we can remotely log into the RaspberryPi and program the Arduino. But is it very important that you donot install the Arduino IDE from the command line using **sudo apt-get install arduino** because this throws a lot of errors and even the simplest codes (like blink) donto get uploaded to the Arduino. Therefore we need to install Arduino IDE using [this link](https://www.raspberrypi.org/magpi/program-arduino-uno-raspberry-pi/). After this it works perfectly fine.
 
-- **Robot Remote Control with App**: To remotely change control parameters by observing robot behavior in realtime and also to drive around the robot with a mobile phone, I developed a small app using **MIT AppInventor**. In the code on Arduino, there are a lot of interlocks between different robot behaviors.
+- **Robot Remote Control with App**: To remotely change control parameters by observing robot behavior in realtime and also to drive around the robot with a mobile phone, I developed a small app using **MIT AppInventor**. In the code on Arduino, there are a lot of interlocks between different robot behaviors. The screenshot of the app is shown below.
 
 ![rsz_optimized-capture](https://user-images.githubusercontent.com/33701903/56886911-641cc800-6a70-11e9-8647-d584369ff7c6.png)
+
+
+
 
 - **Position Maintain Capability**: The robot tends to drift due to the fact that the chassis is not balanced. So I implemented position maintaining capabities to it. I used a **"P** only controller here. This controller gives an input velocity to the outer Cascade loop that is proportional to how many encoder counts away the robot is from the reference position. This velocity is directed towards the initial starting position. To prevent overshoot, I implemented braking logic before the robot reaches the reference position so as to minimise overshoot. 
 
