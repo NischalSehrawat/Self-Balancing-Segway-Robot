@@ -94,7 +94,7 @@ float speed_steps = 0.08; // Steps in which speed should be incremented in order
 float brake_steps = 0.04; // Steps in which speed should be decremented in order to apply brakes, the smaller the value, the longer the duration of brake application
 String mode_prev = "balance", mode_now = "balance"; // To set balancing, moving fwd and moving backward modes on the robot
 String rotation_direction = ""; // To set rotation direction
-double Rot_Max = 150.0, rot_steps = 20.0; // Max rotation speed and the steps in which speed is decreased to "0"
+double Rot_Max = 150.0, rot_steps = 20.0; // Max rotation PWM and the steps in which speed is decreased to "0"
 double Rot_Speed = Rot_Max;
 
 ////////////// All boolean switching PARAMETERS/////////////////////////
@@ -276,20 +276,20 @@ void loop() {
     if (rotating == true){
       if (start_again == true){Rot_Speed = Rot_Max; start_again = false;}          	
     	Rot_Speed-=rot_steps;
-    	if (Rot_Speed<0){Rot_Speed = 0; rotating = false;enc_init_hp== false;}// If Rot_Speed <0, set rotating = false to get out of rotation if statement & initialise encoder count
+    	if (Rot_Speed<0.0){Rot_Speed = 0.0; rotating = false; enc_init_hp = false;}// If Rot_Speed <0, set rotating = false to get out of rotation if statement & initialise encoder count
     	if (rotation_direction == "clockwise"){
-    		Output_lmot -=  Rot_Speed;
-    		Output_rmot +=  Rot_Speed;
+    		Output_lmot -=  Rot_Speed; // Rot_Speed is a +ve quantity
+    		Output_rmot +=  Rot_Speed; // Rot_Speed is a +ve quantity
     	}
     	else if (rotation_direction == "anti_clockwise"){
-    		Output_lmot +=   Rot_Speed;
-    		Output_rmot -=  Rot_Speed;
+    		Output_lmot +=   Rot_Speed; // Rot_Speed is a +ve quantity
+    		Output_rmot -=  Rot_Speed; // Rot_Speed is a +ve quantity
     	}
     }
     
     else if (rotating == false){ // Account for motor speed differences, if not rotating
-      
-      /*This Correction  for motor differences only applied when a command to go forward or backward is given*/
+
+	  /*Correct for motor differences only when a command to go forward or backward is given*/
 
       Mot_Diff_Correction();   
 
@@ -381,33 +381,45 @@ void Blink_Led(){
 
 void Mot_Diff_Correction(){
 
-    Setpoint_sd = Lmot.get_Dn(myEnc_l.read()); // Set point is left motor
-    Input_sd = Rmot.get_Dn(myEnc_r.read()); // Input is right motor
+    Setpoint_sd = Lmot.get_Dn(myEnc_l.read()); // Set point is left motor difference between cureent enc reading and reference value
+    Input_sd = Rmot.get_Dn(myEnc_r.read()); // Input is right motor difference between cureent enc reading and reference value
     Motor_Diff.Compute(); // Compute the PID output
-	
-	/*Correct for motor differences only when a command to go forward or backward is given*/
-    if (V_trans>0.0 & mode_now == "go fwd" & mode_prev == "go fwd"){ // Robot is going forward, both Ouput_lmot & Ouput_rmot are -ve
-      if (Output_sd>0.0){ // Left motor is faster, so increase right motor speed and decrease left motor speed
-        Output_rmot-=Output_sd; // Output_rmot is -ve, so to increase it, we have to "subtract" a +ve quantity
-        Output_lmot+=Output_sd; // Output_lmot is -ve, so to decrease it, we have to "add" a +ve quantity
 
-      }
-      else if (Output_sd<0.0){ // Right motor is faster, so increase left motor speed and decrease right motor speed
-        Output_lmot+=Output_sd; // Output_lmot is -ve, so to increase it, we have to "add" a -ve quantity
-        Output_rmot-=Output_sd; // Output_rmot is -ve, so to decrease it, we have to "subtract" a -ve quantity
-      }
+    /*In the code below, all the conditions appear similar dues to sign conventions
+     therefore, let's try to replace 4 checks with just 1*/
+
+    bool condition_1 = V_trans>0.0 & mode_now == "go fwd" & mode_prev == "go fwd";
+    bool condition_2 = V_trans<0.0 & mode_now == "go bck" & mode_prev == "go bck";
+
+    if (condition_1 || condition_2){
+        
+        Output_rmot-=Output_sd; 
+        Output_lmot+=Output_sd;   	
     }
-    else if (V_trans<0.0 & mode_now == "go bck" & mode_prev == "go bck"){ // Robot is going backward, both Ouput_lmot & Ouput_rmot are +ve
-      if (Output_sd>0.0){ // Right motor is faster, so increase left motor speed
-        Output_lmot+=Output_sd; // Output_lmot is +ve, so to increase it, we have to "add" a +ve quantity
-        Output_rmot-=Output_sd; // Output_rmot is +ve, so to increase it, we have to "subtract" a +ve quantity
+	
+	// /*Correct for motor differences only when a command to go forward or backward is given*/
+ //    if (V_trans>0.0 & mode_now == "go fwd" & mode_prev == "go fwd"){ // Robot is going forward, both Ouput_lmot & Ouput_rmot are -ve
+ //      if (Output_sd>0.0){ // Left motor is faster, so increase right motor speed and decrease left motor speed
+ //        Output_rmot-=Output_sd; // Output_rmot is -ve, so to increase it, we have to "subtract" a +ve quantity
+ //        Output_lmot+=Output_sd; // Output_lmot is -ve, so to decrease it, we have to "add" a +ve quantity
 
-      }
-      else if (Output_sd<0.0){ // Left motor is faster, so increase right motor speed
-        Output_rmot-=Output_sd; // Output_rmot is +ve, so to increase it, we have to "subtract" a -ve quantity
-        Output_lmot+=Output_sd; // Output_lmot is +ve, so to decrease it, we have to "add" a -ve quantity
-      }
-    }        
+ //      }
+ //      else if (Output_sd<0.0){ // Right motor is faster, so increase left motor speed and decrease right motor speed
+ //        Output_lmot+=Output_sd; // Output_lmot is -ve, so to increase it, we have to "add" a -ve quantity
+ //        Output_rmot-=Output_sd; // Output_rmot is -ve, so to decrease it, we have to "subtract" a -ve quantity
+ //      }
+ //    }
+ //    else if (V_trans<0.0 & mode_now == "go bck" & mode_prev == "go bck"){ // Robot is going backward, both Ouput_lmot & Ouput_rmot are +ve
+ //      if (Output_sd>0.0){ // Right motor is faster, so increase left motor speed
+ //        Output_lmot+=Output_sd; // Output_lmot is +ve, so to increase it, we have to "add" a +ve quantity
+ //        Output_rmot-=Output_sd; // Output_rmot is +ve, so to decrease it, we have to "subtract" a +ve quantity
+
+ //      }
+ //      else if (Output_sd<0.0){ // Left motor is faster, so increase right motor speed
+ //        Output_rmot-=Output_sd; // Output_rmot is +ve, so to increase it, we have to "subtract" a -ve quantity
+ //        Output_lmot+=Output_sd; // Output_lmot is +ve, so to decrease it, we have to "add" a -ve quantity
+ //      }
+ //    }        
 }
 
 void Hold_Position(){
