@@ -540,13 +540,13 @@ void Mot_Diff_Correction_smart(){
     */
 	
 	bool dn1 = Setpoint_sd>0 & Input_sd>0; // Case when the robot is in +X region i.e. diff b/w enc_count_now and ref_enc_count is "+ve"
-    bool dn2 = Setpoint_sd<0 & Input_sd<0; // Case when the robot is in -X region i.e. diff b/w enc_count_now and ref_enc_count is "-ve"
+	bool dn2 = Setpoint_sd<0 & Input_sd<0; // Case when the robot is in -X region i.e. diff b/w enc_count_now and ref_enc_count is "-ve"
 	bool condition_1 = ((dn1) & (V_trans>0.0 & mode_now == "go fwd")) || ((dn2) & (V_trans<0.0 & mode_now == "go bck")); // Robot is accelerating in both the cases
 	bool condition_2 = ((dn1) & (V_trans>0.0) & (mode_now == "balance") & (Input_bal<0.0)) || ((dn2) & (V_trans<0.0) & (mode_now == "balance") & (Input_bal>0.0)); // Robot is de-celerating in both cases 
 	bool condition_3 = ((dn1) & (V_trans<0.0) & (mode_now == "balance") & (Input_bal<0.0)) || ((dn2) & (V_trans>0.0) & (mode_now == "balance") & (Input_bal>0.0)); // Robot is accelerating in both the cases	
 	bool condition_4 = ((dn1) & (V_trans>0.0) & (mode_now == "balance") & (Input_bal>0.0)) || ((dn2) & (V_trans<0.0) & (mode_now == "balance") & (Input_bal<0.0)); // Robot is accelerating in both the cases	
 
-	if (condition_1 || condition_3){Output_lmot+=Output_sd;Output_rmot-=Output_sd;} // Robot is accelerating in both cases
+	if (condition_1 || condition_3 || condition_4){Output_lmot+=Output_sd;Output_rmot-=Output_sd;} // Robot is accelerating in both cases
 	else if (condition_2){Output_lmot-=Output_sd;Output_rmot+=Output_sd;} // Robot is de-celerating
 
 void Hold_Position(){
