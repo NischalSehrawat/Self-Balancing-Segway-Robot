@@ -245,7 +245,7 @@ void loop() {
           if (enc_init_mdc == false){ // Take reference readings for motor difference correction for driving straight in fwd direction if distrubed
       		Lmot.set_Ninit(myEnc_l.read());Rmot.set_Ninit(myEnc_r.read()); // Initialise encoder counts
       		enc_init_mdc = true; // We have taken the reference value, so now we need to stop taking reference values
-      	}          
+      	  }          
         }
       }
     }
