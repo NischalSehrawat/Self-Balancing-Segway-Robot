@@ -159,9 +159,6 @@ void setup() {
     t_loop_prev = millis(); // Log time for overall control loop [ms]
     Timer1.initialize(150000);
     Timer1.attachInterrupt(Blink_Led);
-    Serial.print("Theta_now");Serial.print(",");Serial.print("V_trans");Serial.print(",");Serial.print("Lmot_RPM");Serial.print(",");
-    Serial.print("Rmot_RPM");Serial.print(",");Serial.print("Output_lmot");Serial.print(",");Serial.print("Output_rmot");Serial.print(",");
-    Serial.print("DN_Lmot");Serial.print(",");Serial.println("DN_Rmot");
     delay(1000);  
 }
 
@@ -316,9 +313,7 @@ void loop() {
        mode_prev = "balance"; // Change mode to balance
        }
     ///////////////////////////////////////// Apply motor controls /////////////////////////////////////////////
-    Serial.print(Theta_now);Serial.print(",");Serial.print(V_trans);Serial.print(",");Serial.print(Final_Rpm_l);Serial.print(",");
-    Serial.print(Final_Rpm_r);Serial.print(",");Serial.print(Output_lmot);Serial.print(",");Serial.print(Output_rmot);Serial.print(",");
-    Serial.print(Lmot.get_Dn(myEnc_l.read()));Serial.print(",");Serial.println(Rmot.get_Dn(myEnc_r.read()));   
+  
     mot_cont(); // Apply the calculated output to control the motor
     t_loop_prev = t_loop_now; // Set prev loop time equal to current loop time for calculating dt for next loop 
   }  
