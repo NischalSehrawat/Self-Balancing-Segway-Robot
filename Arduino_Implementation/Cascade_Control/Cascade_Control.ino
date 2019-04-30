@@ -236,13 +236,16 @@ void loop() {
         switch_trans_controller = false; // Switch now to the softer Kp_trans
         
         double dt_mode_switch = millis() - t_mode_switch;        
-        if (dt_mode_switch < 2000 || rotating == true){Setpoint_trans = 0.0; enc_init_mdc = false;}                
+        if (dt_mode_switch < 2000 || rotating == true){Setpoint_trans = 0.0;  enc_init_hp = false; enc_init_mdc = false;}                
         /*Switch to a stiffer balancing controller 2 seconds after stopping*/        
         else if (dt_mode_switch > 2000 & rotating == false){
           switch_bal_controller = false;  // Switch to a harder Kp_bal controller for better balancing
-          enc_init_mdc = false; // Initialise motor difference controller
           Hold_Position();
-          Setpoint_trans = Output_hp;          
+          Setpoint_trans = Output_hp;
+          if (enc_init_mdc == false){ // Take reference readings for motor difference correction for driving straight in fwd direction if distrubed
+      		Lmot.set_Ninit(myEnc_l.read());Rmot.set_Ninit(myEnc_r.read()); // Initialise encoder counts
+      		enc_init_mdc = true; // We have taken the reference value, so now we need to stop taking reference values
+      	}          
         }
       }
     }
@@ -276,7 +279,8 @@ void loop() {
     if (rotating == true){
       if (start_again == true){Rot_Speed = Rot_Max; start_again = false;}          	
     	Rot_Speed-=rot_steps;
-    	if (Rot_Speed<0.0){Rot_Speed = 0.0; rotating = false; enc_init_hp = false;}// If Rot_Speed <0, set rotating = false to get out of rotation if statement & initialise encoder count
+    	// If Rot_Speed <0, set rotating = false to get out of rotation if statement & initialise encoder counts for both hold position and driving straight
+    	if (Rot_Speed<0.0){Rot_Speed = 0.0; rotating = false;}
     	if (rotation_direction == "clockwise"){
     		Output_lmot -=  Rot_Speed; // Rot_Speed is a +ve quantity
     		Output_rmot +=  Rot_Speed; // Rot_Speed is a +ve quantity
@@ -388,15 +392,111 @@ void Mot_Diff_Correction(){
     /*In the code below, all the conditions appear similar dues to sign conventions
      therefore, let's try to replace 4 checks with just 1*/
 
-    bool condition_1 = V_trans>0.0 & mode_now == "go fwd" & mode_prev == "go fwd";
-    bool condition_2 = V_trans<0.0 & mode_now == "go bck" & mode_prev == "go bck";
+    bool delta_n1 = Setpoint_sd>0 & Input_sd>0; // Case when the robot is in +X region i.e. diff b/w enc_count_now and ref_enc_count is "+ve"
+    bool delta_n2 = Setpoint_sd<0 & Input_sd<0; // Case when the robot is in -X region i.e. diff b/w enc_count_now and ref_enc_count is "-ve"
+    
+    /*If the robot is in +X region there can be 3 possibilities namely
+	  1) The robot has a +ve V_trans and is accelerating due to a command "go fwd" given
+	  2) The robot has a +ve V_trans and is de-celerating because it was pushed from the rest position or due to a "stop" command given after "go fwd"
+	  3) The robot has a -ve V_trans and is either returning to the origin or is braking after "stop" command 
 
-    if (condition_1 || condition_2){
-        
-        Output_rmot-=Output_sd; 
-        Output_lmot+=Output_sd;   	
+	  Else If the robot is in -X region there can be 3 possibilities namely
+	  1) The robot has a -ve V_trans and is accelerating due to a command "go bck" given
+	  2) The robot has a -ve V_trans and is de-celerating because it was pushed from the rest position or due to a "stop" command given after "go bck"
+	  3) The robot has a +ve V_trans and is either returning to the origin or is braking after "stop" command 
+    */
+
+    if (delta_n1){
+
+// Case1: In this case both Output_lmot and Output_rmot are "-ve" and the robot is accelerating and is bent in +ve direction
+    	if (V_trans>0.0 & mode_now == "go fwd"){ 
+
+    		if (Output_sd>0.0){ // This means left motor is spinning faster, so reduce its speed and increase right motor speed
+    			Output_lmot+=Output_sd; // Output_lmot is -ve, so to decrease it, we have to "add" a +ve quantity
+    			Output_rmot-=Output_sd; // Output_rmot is -ve, so to increase it, we have to "subtract" a +ve quantity
+    		}
+
+    		else if (Output_sd<0.0){ // This means right motor is spinning faster, so reduce its speed and increase left motor speed
+    			Output_lmot+=Output_sd; // Output_lmot is -ve, so to increase it, we have to "add" a -ve quantity
+    			Output_rmot-=Output_sd; // Output_rmot is -ve, so to decrease it, we have to "subtract" a -ve quantity
+    		}
+    	}
+
+//case 2: In this case both Output_lmot and Output_rmot are "+ve and the robot is de-celerating and is bent in -ve direction"
+    	else if (V_trans>0.0 & mode_now == "balance"){ 
+
+    		if (Output_sd>0.0){ // This means left motor is spinning faster, so reduce its speed and increase right motor speed
+    			Output_lmot-=Output_sd; // Output_lmot is +ve, so to decrease it, we have to "subtract" a +ve quantity
+    			Output_rmot+=Output_sd; // Output_rmot is +ve, so to increase it, we have to "add" a +ve quantity
+    		}
+
+    		else if (Output_sd<0.0){ // This means right motor is spinning faster, so reduce its speed and increase left motor speed
+    			Output_lmot-=Output_sd; // Output_lmot is +ve, so to increase it, we have to "subtract" a -ve quantity
+    			Output_rmot+=Output_sd; // Output_rmot is +ve, so to decrease it, we have to "add" a -ve quantity
+    		}
+    	}
+
+/*case 3: In this case both Output_lmot and Output_rmot are "+ve" and the robot is either returning to 
+vertical position or returning back to the origin & bent in -ve direction*/
+     	else if (V_trans<0.0 & mode_now == "balance"){ 
+
+    		if (Output_sd>0.0){ // This means right motor is spinning faster, so reduce its speed and increase left motor speed
+    			Output_lmot+=Output_sd; // Output_lmot is +ve, so to increase it, we have to "add" a +ve quantity
+    			Output_rmot-=Output_sd; // Output_rmot is +ve, so to decrease it, we have to "subtract" a +ve quantity
+    		}
+
+    		else if (Output_sd<0.0){ // This means left motor is spinning faster, so reduce its speed and increase right motor speed
+    			Output_lmot+=Output_sd; // Output_lmot is +ve, so to decrease it, we have to "add" a -ve quantity
+    			Output_rmot-=Output_sd; // Output_rmot is +ve, so to increase it, we have to "subtract" a -ve quantity
+    		}
+    	}    	   	    	
     }
-	
+
+    else if (delta_n2){
+
+// Case1: In this case both Output_lmot and Output_rmot are "+ve" and the robot is accelerating and is bent in -ve direction
+    	if (V_trans<0.0 & mode_now == "go bck"){ 
+
+    		if (Output_sd>0.0){ // This means right motor is spinning faster, so reduce its speed and increase left motor speed
+    			Output_lmot+=Output_sd; // Output_lmot is +ve, so to increase it, we have to "add" a +ve quantity
+    			Output_rmot-=Output_sd; // Output_rmot is +ve, so to decrease it, we have to "subtract" a +ve quantity
+    		}
+
+    		else if (Output_sd<0.0){ // This means left motor is spinning faster, so reduce its speed and increase right motor speed
+    			Output_lmot+=Output_sd; // Output_lmot is +ve, so to decrease it, we have to "add" a -ve quantity
+    			Output_rmot-=Output_sd; // Output_rmot is +ve, so to increase it, we have to "subtract" a -ve quantity
+    		}
+    	}
+
+//case 2: In this case both Output_lmot and Output_rmot are "-ve and the robot is de-celerating and is bent in +ve direction"
+    	else if (V_trans<0.0 & mode_now == "balance"){ 
+
+    		if (Output_sd>0.0){ // This means right motor is spinning faster, so reduce its speed and increase left motor speed
+    			Output_lmot-=Output_sd; // Output_lmot is -ve, so to increase it, we have to "subtract" a +ve quantity
+    			Output_rmot+=Output_sd; // Output_rmot is -ve, so to decrease it, we have to "add" a +ve quantity
+    		}
+
+    		else if (Output_sd<0.0){ // This means left motor is spinning faster, so reduce its speed and increase right motor speed
+    			Output_lmot-=Output_sd; // Output_lmot is -ve, so to decrease it, we have to "subtract" a -ve quantity
+    			Output_rmot+=Output_sd; // Output_rmot is -ve, so to increase it, we have to "add" a -ve quantity
+    		}
+    	}
+
+/*case 3: In this case both Output_lmot and Output_rmot are "-ve" and the robot is either returning to 
+vertical position or returning back to the origin & bent in +ve direction*/
+     	else if (V_trans>0.0 & mode_now == "balance"){ 
+
+    		if (Output_sd>0.0){ // This means left motor is spinning faster, so reduce its speed and increase right motor speed
+    			Output_lmot+=Output_sd; // Output_lmot is -ve, so to decrease it, we have to "add" a +ve quantity
+    			Output_rmot-=Output_sd; // Output_rmot is -ve, so to increase it, we have to "subtract" a +ve quantity
+    		}
+
+    		else if (Output_sd<0.0){ // This means right motor is spinning faster, so reduce its speed and increase left motor speed
+    			Output_lmot+=Output_sd; // Output_lmot is -ve, so to increase it, we have to "add" a -ve quantity
+    			Output_rmot-=Output_sd; // Output_rmot is -ve, so to decrease it, we have to "subtract" a -ve quantity
+    		}
+    	}    	   	    	
+    }	
 	// /*Correct for motor differences only when a command to go forward or backward is given*/
  //    if (V_trans>0.0 & mode_now == "go fwd" & mode_prev == "go fwd"){ // Robot is going forward, both Ouput_lmot & Ouput_rmot are -ve
  //      if (Output_sd>0.0){ // Left motor is faster, so increase right motor speed and decrease left motor speed
@@ -421,6 +521,33 @@ void Mot_Diff_Correction(){
  //      }
  //    }        
 }
+
+void Mot_Diff_Correction_smart(){
+
+    Setpoint_sd = Lmot.get_Dn(myEnc_l.read()); // Set point is left motor difference between cureent enc reading and reference value
+    Input_sd = Rmot.get_Dn(myEnc_r.read()); // Input is right motor difference between current enc reading and reference value
+    Motor_Diff.Compute(); // Compute the PID output
+    
+    /*If the robot is in +X region there can be 3 possibilities namely
+	  1) The robot has a +ve V_trans and is accelerating due to a command "go fwd" given
+	  2) The robot has a +ve V_trans and is de-celerating because it was pushed from the rest position or due to a "stop" command given after "go fwd"
+	  3) The robot has a -ve V_trans and is either returning to the origin or is braking after "stop" command 
+
+	  Else If the robot is in -X region there can be 3 possibilities namely
+	  1) The robot has a -ve V_trans and is accelerating due to a command "go bck" given
+	  2) The robot has a -ve V_trans and is de-celerating because it was pushed from the rest position or due to a "stop" command given after "go bck"
+	  3) The robot has a +ve V_trans and is either returning to the origin or is braking after "stop" command 
+    */
+	
+	bool dn1 = Setpoint_sd>0 & Input_sd>0; // Case when the robot is in +X region i.e. diff b/w enc_count_now and ref_enc_count is "+ve"
+    bool dn2 = Setpoint_sd<0 & Input_sd<0; // Case when the robot is in -X region i.e. diff b/w enc_count_now and ref_enc_count is "-ve"
+	bool condition_1 = ((dn1) & (V_trans>0.0 & mode_now == "go fwd")) || ((dn2) & (V_trans<0.0 & mode_now == "go bck")); // Robot is accelerating in both the cases
+	bool condition_2 = ((dn1) & (V_trans>0.0) & (mode_now == "balance") & (Input_bal<0.0)) || ((dn2) & (V_trans<0.0) & (mode_now == "balance") & (Input_bal>0.0)); // Robot is de-celerating in both cases 
+	bool condition_3 = ((dn1) & (V_trans<0.0) & (mode_now == "balance") & (Input_bal<0.0)) || ((dn2) & (V_trans>0.0) & (mode_now == "balance") & (Input_bal>0.0)); // Robot is accelerating in both the cases	
+	bool condition_4 = ((dn1) & (V_trans>0.0) & (mode_now == "balance") & (Input_bal>0.0)) || ((dn2) & (V_trans<0.0) & (mode_now == "balance") & (Input_bal<0.0)); // Robot is accelerating in both the cases	
+
+	if (condition_1 || condition_3){Output_lmot+=Output_sd;Output_rmot-=Output_sd;} // Robot is accelerating in both cases
+	else if (condition_2){Output_lmot-=Output_sd;Output_rmot+=Output_sd;} // Robot is de-celerating
 
 void Hold_Position(){
 
@@ -544,7 +671,7 @@ void read_BT(){
       switch_bal_controller = false;
       switch_trans_controller = false;
       Kp_bal = 38.0; Kd_bal = 0.8;
-      Kp_trans = 5.0;
+      Kp_trans = 10.0;
       trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);
       motor_corr_fac_fwd = 0.95;motor_corr_fac_bck = 0.94;
       speed_ratio_mode_change = 0.40;
