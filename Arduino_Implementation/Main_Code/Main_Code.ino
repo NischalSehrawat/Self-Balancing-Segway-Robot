@@ -393,17 +393,15 @@ void Mot_Diff_Correction(){
 	  2) The robot has a -ve V_trans and is de-celerating because it was pushed from the rest position or due to a "stop" command given after "go bck"
 	  3) The robot has a +ve V_trans and is either returning to the origin or is braking after "stop" command 
     */
-	
-	bool dn1 = Setpoint_sd>0 & Input_sd>0; // Case when the robot is in +X region i.e. diff b/w enc_count_now and ref_enc_count is "+ve"
-	bool dn2 = Setpoint_sd<0 & Input_sd<0; // Case when the robot is in -X region i.e. diff b/w enc_count_now and ref_enc_count is "-ve"
-	bool condition_1 = ((dn1) & (V_trans>0.0 & mode_now == "go fwd")) || ((dn2) & (V_trans<0.0 & mode_now == "go bck")); // Robot is accelerating in both the cases
-	// bool condition_2 = ((dn1) & (V_trans>0.0) & (mode_now == "balance") & (Input_bal<0.0)) || ((dn2) & (V_trans<0.0) & (mode_now == "balance") & (Input_bal>0.0)); // Robot is de-celerating in both cases 
-	// bool condition_3 = ((dn1) & (V_trans<0.0) & (mode_now == "balance") & (Input_bal<0.0)) || ((dn2) & (V_trans>0.0) & (mode_now == "balance") & (Input_bal>0.0)); // Robot is accelerating in both the cases	
-	// bool condition_4 = ((dn1) & (V_trans>0.0) & (mode_now == "balance") & (Input_bal>0.0)) || ((dn2) & (V_trans<0.0) & (mode_now == "balance") & (Input_bal<0.0)); // Robot is accelerating in both the cases	
-
-	if (condition_1){Output_lmot+=Output_sd;Output_rmot-=Output_sd;} // Robot is accelerating in this case
-	else {Output_lmot*=motor_corr_fac;} // The motors are highly non-linear so for the time being this relationship is being used to correct for the difference.
-//	else if (condition_2){Output_lmot-=Output_sd;Output_rmot+=Output_sd;} // Robot is de-celerating
+    bool dn1 = Setpoint_sd>0 & Input_sd>0; // Case when the robot is in +X region i.e. diff b/w enc_count_now and ref_enc_count is "+ve"
+    bool dn2 = Setpoint_sd<0 & Input_sd<0; // Case when the robot is in -X region i.e. diff b/w enc_count_now and ref_enc_count is "-ve"
+    bool condition_1 = ((dn1) & (V_trans>0.0 & mode_now == "go fwd")) || ((dn2) & (V_trans<0.0 & mode_now == "go bck")); // Robot is accelerating in both the cases
+    // bool condition_2 = ((dn1) & (V_trans>0.0) & (mode_now == "balance") & (Input_bal<0.0)) || ((dn2) & (V_trans<0.0) & (mode_now == "balance") & (Input_bal>0.0)); // Robot is de-celerating in both cases 
+    // bool condition_3 = ((dn1) & (V_trans<0.0) & (mode_now == "balance") & (Input_bal<0.0)) || ((dn2) & (V_trans>0.0) & (mode_now == "balance") & (Input_bal>0.0)); // Robot is accelerating in both the cases
+    // bool condition_4 = ((dn1) & (V_trans>0.0) & (mode_now == "balance") & (Input_bal>0.0)) || ((dn2) & (V_trans<0.0) & (mode_now == "balance") & (Input_bal<0.0)); // Robot is accelerating in both the cases
+    if (condition_1){Output_lmot+=Output_sd;Output_rmot-=Output_sd;} // Robot is accelerating in this case
+    else {Output_lmot*=motor_corr_fac;} // The motors are highly non-linear so for the time being this relationship is being used to correct for the difference.
+    //	else if (condition_2){Output_lmot-=Output_sd;Output_rmot+=Output_sd;} // Robot is de-celerating
 }
 
 void Mot_Diff_Correction_new(){
