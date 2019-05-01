@@ -411,13 +411,13 @@ void Mot_Diff_Correction_new(){
     Motor_Diff.Compute(); // Compute the PID output
 
     /*If output is +ve that means left motor is spinning faster and if it is -ve then right motor is spinning faster*/
-    if (Ouput_lmot>0.0 & Ouput_rmot>0.0){
-    	Ouput_lmot-=Output_sd;
-    	Ouput_rmot+=Output_sd;
+    if (Output_lmot>0.0 & Output_rmot>0.0){
+    	Output_lmot-=Output_sd;
+    	Output_rmot+=Output_sd;
     }
-    else if (Ouput_lmot<0.0 & Ouput_rmot<0.0){
-    	Ouput_lmot+=Output_sd;
-    	Ouput_rmot-=Output_sd;
+    else if (Output_lmot<0.0 & Output_rmot<0.0){
+    	Output_lmot+=Output_sd;
+    	Output_rmot-=Output_sd;
     }
 }
 void Hold_Position(){
@@ -512,8 +512,8 @@ void read_BT(){
     else if (c =='6' & lock == false){Kd_bal-=0.01;Serial.print("Kd_bal = "+String(Kd_bal));}
     else if (c =='7' & lock == false){Kp_trans+=0.5;trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);Serial.print("Kp_trans = "+String(Kp_trans));} 
     else if (c =='8' & lock == false){Kp_trans-=0.5;trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);Serial.print("Kp_trans = "+String(Kp_trans));} 
-    else if (c =='9' & lock == false){motor_corr_fac_fwd+=0.01;Serial.print("MoFac = "+String(motor_corr_fac_fwd));} 
-    else if (c =='a' & lock == false){motor_corr_fac_fwd-=0.01;Serial.print("MoFac = "+String(motor_corr_fac_fwd));} 
+    else if (c =='9' & lock == false){motor_corr_fac+=0.01;Serial.print("MoFac = "+String(motor_corr_fac));} 
+    else if (c =='a' & lock == false){motor_corr_fac-=0.01;Serial.print("MoFac = "+String(motor_corr_fac));} 
     else if (c =='b' & lock == false & mode_now == "balance"){
       rotating = true;
       start_again = true;
