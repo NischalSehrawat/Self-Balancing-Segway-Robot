@@ -413,15 +413,14 @@ void Mot_Diff_Correction_new(){
     Motor_Diff.Compute(); // Compute the PID output
 
     /*If output is +ve that means left motor is spinning faster and if it is -ve then right motor is spinning faster*/
-
-	if (Ouput_lmot>0.0 & Ouput_rmot>0.0){
-		Ouput_lmot-=Output_sd;
-		Ouput_rmot+=Output_sd;
-	}
-	else if (Ouput_lmot<0.0 & Ouput_rmot<0.0){
-		Ouput_lmot+=Output_sd;
-		Ouput_rmot-=Output_sd;
-	}
+    if (Ouput_lmot>0.0 & Ouput_rmot>0.0){
+    	Ouput_lmot-=Output_sd;
+    	Ouput_rmot+=Output_sd;
+    }
+    else if (Ouput_lmot<0.0 & Ouput_rmot<0.0){
+    	Ouput_lmot+=Output_sd;
+    	Ouput_rmot-=Output_sd;
+    }
 }
 void Hold_Position(){
 
