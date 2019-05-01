@@ -74,7 +74,7 @@ PID Motor_Diff(&Input_sd, &Output_sd, &Setpoint_sd, Kp_sd, Ki_sd, Kd_sd, P_ON_E,
 
 /*Both motors have different characteristics, the right motor spins faster when going in forward direction but slower in backward direction.
 Therefore, we need correction factors to drive straight*/
-float motor_corr_fac = 0.935;// factor to correct for the difference b/w the motor characteristics
+float motor_corr_fac = 0.92;// factor to correct for the difference b/w the motor characteristics
 float r_whl = 0.5 * 0.130; // Wheel radius [m]
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 float full_speed = 350.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 350 RPM @ 12 V]
@@ -236,12 +236,16 @@ void loop() {
         switch_trans_controller = false; // Switch now to the softer Kp_trans
         
         double dt_mode_switch = millis() - t_mode_switch;        
-        if (dt_mode_switch < 2000 || rotating == true){Setpoint_trans = 0.0;  enc_init_hp = false;}                
+        if (dt_mode_switch < 2000 || rotating == true){Setpoint_trans = 0.0;  enc_init_hp = false;enc_init_mdc = false;}                
         /*Switch to a stiffer balancing controller 2 seconds after stopping*/        
         else if (dt_mode_switch > 2000 & rotating == false){
           switch_bal_controller = false;  // Switch to a harder Kp_bal controller for better balancing
           Hold_Position();
-          Setpoint_trans = Output_hp;       
+          Setpoint_trans = Output_hp;
+          if (enc_init_mdc == false){ // Take reference readings for motor difference correction for driving straight in fwd direction
+            Lmot.set_Ninit(myEnc_l.read());Rmot.set_Ninit(myEnc_r.read()); // Initialise encoder counts
+            enc_init_mdc = true; // We have taken the reference value, so now we need to stop taking reference values
+            }     
         }
       }
     }
@@ -289,7 +293,7 @@ void loop() {
     
     else if (rotating == false){ // Account for motor speed differences, if not rotating
       
-      Mot_Diff_Correction(); // Currently only working when commands given for going fwd or bcwd
+      Mot_Diff_Correction(); // Currently only working when commands given for going fwd or bckwd
 
       // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg      
       if (abs(error_bal)<0.2 && mode_now == "balance"){Output_rmot = 0.0; Output_lmot = 0.0;} 
@@ -404,22 +408,6 @@ void Mot_Diff_Correction(){
     //	else if (condition_2){Output_lmot-=Output_sd;Output_rmot+=Output_sd;} // Robot is de-celerating
 }
 
-void Mot_Diff_Correction_new(){
-
-    Setpoint_sd = 9.55 * abs(Final_Rpm_l); // Set point is left motor RPM (convert rad/s to RPM)
-    Input_sd = 9.55 * abs(Final_Rpm_r); // Input is right motor RPM (convert rad/s to RPM)
-    Motor_Diff.Compute(); // Compute the PID output
-
-    /*If output is +ve that means left motor is spinning faster and if it is -ve then right motor is spinning faster*/
-    if (Output_lmot>0.0 & Output_rmot>0.0){
-    	Output_lmot-=Output_sd;
-    	Output_rmot+=Output_sd;
-    }
-    else if (Output_lmot<0.0 & Output_rmot<0.0){
-    	Output_lmot+=Output_sd;
-    	Output_rmot-=Output_sd;
-    }
-}
 void Hold_Position(){
 
   if (enc_init_hp == false){
@@ -526,10 +514,10 @@ void read_BT(){
       rotation_direction = "clockwise";
       Serial.print("Rot clk");
     }
-    else if (c =='d' & lock == false){Kp_hp=0.0001;Serial.print("Kp_hp = "+String(Kp_hp));} 
-    else if (c =='e' & lock == false){Kp_hp-=.0001;Serial.print("Kp_hp = "+String(Kp_hp));}
-//    else if (c =='f' & lock == false){Kp_hp+=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); Serial.print("Kp_hp = "+String(Kp_hp));} 
-//    else if (c =='g' & lock == false){Kp_hp-=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); Serial.print("Kp_hp = "+String(Kp_hp));} 
+    else if (c =='d' & lock == false){Kp_sd+=0.01;Motor_Diff.SetTunings(Kp_sd, Ki_sd, Kd_sd);Serial.print("Kp_sd = "+String(Kp_sd));} 
+    else if (c =='e' & lock == false){Kp_sd-=0.01;Motor_Diff.SetTunings(Kp_sd, Ki_sd, Kd_sd);Serial.print("Kp_sd = "+String(Kp_sd));}
+    else if (c =='f' & lock == false){Kp_hp+=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); Serial.print("Kp_hp = "+String(Kp_hp));} 
+    else if (c =='g' & lock == false){Kp_hp-=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); Serial.print("Kp_hp = "+String(Kp_hp));} 
     else if (c =='h' & lock == false){frac_full_speed+=0.05;V_max = frac_full_speed * full_speed; Serial.print("FrFs = "+String(frac_full_speed));} 
     else if (c =='i' & lock == false){frac_full_speed-=0.05;V_max = frac_full_speed * full_speed; Serial.print("FrFs = "+String(frac_full_speed));} 
     else if (c =='j' & lock == false){Theta_correction+=0.1;Serial.print("Theta_Cor = "+String(Theta_correction));} 
@@ -543,7 +531,7 @@ void read_BT(){
       Kp_bal = 38.0; Kd_bal = 0.8;
       Kp_trans = 8.0;
       trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);
-      motor_corr_fac = 0.935;
+      motor_corr_fac = 0.92;
       speed_ratio_mode_change = 0.40;
       speed_steps = 0.08;brake_steps = 0.04;
       frac_full_speed = 0.40;
