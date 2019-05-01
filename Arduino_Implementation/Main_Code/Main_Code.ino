@@ -406,7 +406,7 @@ void Mot_Diff_Correction(){
 	bool condition_4 = ((dn1) & (V_trans>0.0) & (mode_now == "balance") & (Input_bal>0.0)) || ((dn2) & (V_trans<0.0) & (mode_now == "balance") & (Input_bal<0.0)); // Robot is accelerating in both the cases	
 
 	if (condition_1){Output_lmot+=Output_sd;Output_rmot-=Output_sd;} // Robot is accelerating in this case
-	else {Output_lmot*=0.955;}
+	else {Output_lmot*=0.935;}
 //	else if (condition_2){Output_lmot-=Output_sd;Output_rmot+=Output_sd;} // Robot is de-celerating
 }
 void Hold_Position(){
