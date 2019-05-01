@@ -74,7 +74,7 @@ PID Motor_Diff(&Input_sd, &Output_sd, &Setpoint_sd, Kp_sd, Ki_sd, Kd_sd, P_ON_E,
 
 /*Both motors have different characteristics, the right motor spins faster when going in forward direction but slower in backward direction.
 Therefore, we need correction factors to drive straight*/
-float motor_corr_fac_fwd = 0.95, motor_corr_fac_bck = 0.94;// factor to correct for the difference b/w the motor characteristics
+float motor_corr_fac = 0.935;// factor to correct for the difference b/w the motor characteristics
 float r_whl = 0.5 * 0.130; // Wheel radius [m]
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 float full_speed = 350.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 350 RPM @ 12 V]
@@ -402,7 +402,7 @@ void Mot_Diff_Correction(){
 	bool condition_4 = ((dn1) & (V_trans>0.0) & (mode_now == "balance") & (Input_bal>0.0)) || ((dn2) & (V_trans<0.0) & (mode_now == "balance") & (Input_bal<0.0)); // Robot is accelerating in both the cases	
 
 	if (condition_1){Output_lmot+=Output_sd;Output_rmot-=Output_sd;} // Robot is accelerating in this case
-	else {Output_lmot*=0.935;} // The motors are highly non-linear so for the time being this relationship is being used to correct for the difference.
+	else {Output_lmot*=motor_corr_fac;} // The motors are highly non-linear so for the time being this relationship is being used to correct for the difference.
 //	else if (condition_2){Output_lmot-=Output_sd;Output_rmot+=Output_sd;} // Robot is de-celerating
 }
 void Hold_Position(){
@@ -528,7 +528,7 @@ void read_BT(){
       Kp_bal = 38.0; Kd_bal = 0.8;
       Kp_trans = 8.0;
       trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);
-      motor_corr_fac_fwd = 0.95;motor_corr_fac_bck = 0.94;
+      motor_corr_fac = 0.935;
       speed_ratio_mode_change = 0.40;
       speed_steps = 0.08;brake_steps = 0.04;
       frac_full_speed = 0.40;
