@@ -51,7 +51,7 @@ PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON
 
 double Input_trans, Output_trans, Setpoint_trans; // Input output and setpoint variables defined
 double Out_min_trans = -15, Out_max_trans = 15; // PID Output limits, this output is in degrees
-double Kp_trans = 8.0, Kp_trans_hard = 8.0,  Ki_trans = 0.0, Kd_trans = 0.0; // Initializing the Proportional, integral and derivative gain constants
+double Kp_trans = 10.0, Kp_trans_hard = 10.0,  Ki_trans = 0.0, Kd_trans = 0.0; // Initializing the Proportional, integral and derivative gain constants
 PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, Kd_trans, P_ON_E, DIRECT); // PID Controller for translating
 
 ///////////////////////////////// HOLD POSITION PID parameters ///////////////////////////////////////////////////
@@ -308,12 +308,16 @@ void loop() {
        Rot_Speed = 0.0;
        switch_bal_controller = false;
        switch_trans_controller = false;
-       enc_init_hp== false;
+      enc_init_hp== false;
        mode_now = "balance"; // Change mode to balance
        mode_prev = "balance"; // Change mode to balance
        }
     ///////////////////////////////////////// Apply motor controls /////////////////////////////////////////////
+<<<<<<< HEAD:Arduino_Implementation/Main_Code/Main_Code.ino
   
+=======
+   
+>>>>>>> parent of 03f5f8a... Changed Kp_trans from 10.0 to 8.0:Arduino_Implementation/Cascade_Control/Cascade_Control.ino
     mot_cont(); // Apply the calculated output to control the motor
     t_loop_prev = t_loop_now; // Set prev loop time equal to current loop time for calculating dt for next loop 
   }  
@@ -417,6 +421,7 @@ void Hold_Position(){
     
    Setpoint_hp = enc_ref;
    Input_hp = int(0.25 * (myEnc_r.read() + myEnc_l.read())); // Take reading now and these are the input values
+   
    Hold_Posn.Compute();
 
   // // We need to manipulate the Output_hp only when the robot has reversed its direction
