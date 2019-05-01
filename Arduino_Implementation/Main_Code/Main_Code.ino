@@ -242,10 +242,17 @@ void loop() {
           switch_bal_controller = false;  // Switch to a harder Kp_bal controller for better balancing
           Hold_Position();
           Setpoint_trans = Output_hp;
+<<<<<<< HEAD:Arduino_Implementation/Main_Code/Main_Code.ino
           if (enc_init_mdc == false){ // Take reference readings for motor difference correction for driving straight in fwd direction
             Lmot.set_Ninit(myEnc_l.read());Rmot.set_Ninit(myEnc_r.read()); // Initialise encoder counts
             enc_init_mdc = true; // We have taken the reference value, so now we need to stop taking reference values
             }     
+=======
+          if (enc_init_mdc == false){ // Take reference readings for motor difference correction for driving straight in fwd direction if distrubed
+      		Lmot.set_Ninit(myEnc_l.read());Rmot.set_Ninit(myEnc_r.read()); // Initialise encoder counts
+      		enc_init_mdc = true; // We have taken the reference value, so now we need to stop taking reference values
+      	}          
+>>>>>>> parent of 2517af0... -:Arduino_Implementation/Cascade_Control/Cascade_Control.ino
         }
       }
     }
