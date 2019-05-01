@@ -405,6 +405,24 @@ void Mot_Diff_Correction(){
 	else {Output_lmot*=motor_corr_fac;} // The motors are highly non-linear so for the time being this relationship is being used to correct for the difference.
 //	else if (condition_2){Output_lmot-=Output_sd;Output_rmot+=Output_sd;} // Robot is de-celerating
 }
+
+void Mot_Diff_Correction_new(){
+
+    Setpoint_sd = 9.55 * abs(Final_Rpm_l); // Set point is left motor RPM (convert rad/s to RPM)
+    Input_sd = 9.55 * abs(Final_Rpm_r); // Input is right motor RPM (convert rad/s to RPM)
+    Motor_Diff.Compute(); // Compute the PID output
+
+    /*If output is +ve that means left motor is spinning faster and if it is -ve then right motor is spinning faster*/
+
+	if (Ouput_lmot>0.0 & Ouput_rmot>0.0){
+		Ouput_lmot-=Output_sd;
+		Ouput_rmot+=Output_sd;
+	}
+	else if (Ouput_lmot<0.0 & Ouput_rmot<0.0){
+		Ouput_lmot+=Output_sd;
+		Ouput_rmot-=Output_sd;
+	}
+}
 void Hold_Position(){
 
   if (enc_init_hp == false){
