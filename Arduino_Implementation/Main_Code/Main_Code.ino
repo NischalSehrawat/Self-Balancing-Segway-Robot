@@ -526,7 +526,7 @@ void read_BT(){
       switch_bal_controller = false;
       switch_trans_controller = false;
       Kp_bal = 38.0; Kd_bal = 0.8;
-      Kp_trans = 10.0;
+      Kp_trans = 8.0;
       trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);
       motor_corr_fac_fwd = 0.95;motor_corr_fac_bck = 0.94;
       speed_ratio_mode_change = 0.40;
