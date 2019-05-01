@@ -384,14 +384,14 @@ void Mot_Diff_Correction(){
     Motor_Diff.Compute(); // Compute the PID output
     
     /*If the robot is in +X region there can be 3 possibilities namely
-  1) The robot has a +ve V_trans and is accelerating due to a command "go fwd" given
-  2) The robot has a +ve V_trans and is de-celerating because it was pushed from the rest position or due to a "stop" command given after "go fwd"
-  3) The robot has a -ve V_trans and is either returning to the origin or is braking after "stop" command 
+   1) The robot has a +ve V_trans and is accelerating due to a command "go fwd" given
+   2) The robot has a +ve V_trans and is de-celerating because it was pushed from the rest position or due to a "stop" command given after "go fwd"
+   3) The robot has a -ve V_trans and is either returning to the origin or is braking after "stop" command 
 
-  Else If the robot is in -X region there can be 3 possibilities namely
-  1) The robot has a -ve V_trans and is accelerating due to a command "go bck" given
-  2) The robot has a -ve V_trans and is de-celerating because it was pushed from the rest position or due to a "stop" command given after "go bck"
-  3) The robot has a +ve V_trans and is either returning to the origin or is braking after "stop" command 
+   Else If the robot is in -X region there can be 3 possibilities namely
+   1) The robot has a -ve V_trans and is accelerating due to a command "go bck" given
+   2) The robot has a -ve V_trans and is de-celerating because it was pushed from the rest position or due to a "stop" command given after "go bck"
+   3) The robot has a +ve V_trans and is either returning to the origin or is braking after "stop" command 
     */
     bool dn1 = Setpoint_sd>0 & Input_sd>0; // Case when the robot is in +X region i.e. diff b/w enc_count_now and ref_enc_count is "+ve"
     bool dn2 = Setpoint_sd<0 & Input_sd<0; // Case when the robot is in -X region i.e. diff b/w enc_count_now and ref_enc_count is "-ve"
