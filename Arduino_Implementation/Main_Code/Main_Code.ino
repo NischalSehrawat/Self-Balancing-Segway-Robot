@@ -51,7 +51,7 @@ PID bal_PID(&Input_bal, &Output_bal, &Setpoint_bal, Kp_bal, Ki_bal, Kd_bal, P_ON
 
 double Input_trans, Output_trans, Setpoint_trans; // Input output and setpoint variables defined
 double Out_min_trans = -15, Out_max_trans = 15; // PID Output limits, this output is in degrees
-double Kp_trans = 8.0, Kp_trans_hard = 8.0,  Ki_trans = 0.0, Kd_trans = 0.0; // Initializing the Proportional, integral and derivative gain constants
+double Kp_trans = 10.0, Kp_trans_hard = 10.0,  Ki_trans = 0.0, Kd_trans = 0.0; // Initializing the Proportional, integral and derivative gain constants
 PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, Kd_trans, P_ON_E, DIRECT); // PID Controller for translating
 
 ///////////////////////////////// HOLD POSITION PID parameters ///////////////////////////////////////////////////
@@ -74,7 +74,7 @@ PID Motor_Diff(&Input_sd, &Output_sd, &Setpoint_sd, Kp_sd, Ki_sd, Kd_sd, P_ON_E,
 
 /*Both motors have different characteristics, the right motor spins faster when going in forward direction but slower in backward direction.
 Therefore, we need correction factors to drive straight*/
-float motor_corr_fac_fwd = 0.95, motor_corr_fac_bck = 0.94;// factor to correct for the difference b/w the motor characteristics
+float motor_corr_fac = 0.92;// factor to correct for the difference b/w the motor characteristics
 float r_whl = 0.5 * 0.130; // Wheel radius [m]
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 float full_speed = 350.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 350 RPM @ 12 V]
@@ -236,16 +236,34 @@ void loop() {
         switch_trans_controller = false; // Switch now to the softer Kp_trans
         
         double dt_mode_switch = millis() - t_mode_switch;        
+<<<<<<< HEAD
         if (dt_mode_switch < 2000 || rotating == true){Setpoint_trans = 0.0;  enc_init_hp = false;}                
+=======
+        if (dt_mode_switch < 2000 || rotating == true){Setpoint_trans = 0.0;  enc_init_hp = false;enc_init_mdc = false;}                
+>>>>>>> a3cad19b4b7f3fc9145dcee5068669dab5192041
         /*Switch to a stiffer balancing controller 2 seconds after stopping*/        
         else if (dt_mode_switch > 2000 & rotating == false){
           switch_bal_controller = false;  // Switch to a harder Kp_bal controller for better balancing
           Hold_Position();
           Setpoint_trans = Output_hp;
+<<<<<<< HEAD
 //          if (enc_init_mdc == false){ // Take reference readings for motor difference correction for driving straight in fwd direction if distrubed
 //      		Lmot.set_Ninit(myEnc_l.read());Rmot.set_Ninit(myEnc_r.read()); // Initialise encoder counts
 //      		enc_init_mdc = true; // We have taken the reference value, so now we need to stop taking reference values
 //      	  }          
+=======
+<<<<<<< HEAD:Arduino_Implementation/Main_Code/Main_Code.ino
+          if (enc_init_mdc == false){ // Take reference readings for motor difference correction for driving straight in fwd direction
+            Lmot.set_Ninit(myEnc_l.read());Rmot.set_Ninit(myEnc_r.read()); // Initialise encoder counts
+            enc_init_mdc = true; // We have taken the reference value, so now we need to stop taking reference values
+            }     
+=======
+          if (enc_init_mdc == false){ // Take reference readings for motor difference correction for driving straight in fwd direction if distrubed
+      		Lmot.set_Ninit(myEnc_l.read());Rmot.set_Ninit(myEnc_r.read()); // Initialise encoder counts
+      		enc_init_mdc = true; // We have taken the reference value, so now we need to stop taking reference values
+      	}          
+>>>>>>> parent of 2517af0... -:Arduino_Implementation/Cascade_Control/Cascade_Control.ino
+>>>>>>> a3cad19b4b7f3fc9145dcee5068669dab5192041
         }
       }
     }
@@ -293,7 +311,7 @@ void loop() {
     
     else if (rotating == false){ // Account for motor speed differences, if not rotating
       
-      Mot_Diff_Correction(); // Currently only working when commands given for going fwd or bcwd
+      Mot_Diff_Correction(); // Currently only working when commands given for going fwd or bckwd
 
       // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg      
       if (abs(error_bal)<0.2 && mode_now == "balance"){Output_rmot = 0.0; Output_lmot = 0.0;} 
@@ -308,12 +326,16 @@ void loop() {
        Rot_Speed = 0.0;
        switch_bal_controller = false;
        switch_trans_controller = false;
-       enc_init_hp== false;
+      enc_init_hp== false;
        mode_now = "balance"; // Change mode to balance
        mode_prev = "balance"; // Change mode to balance
        }
     ///////////////////////////////////////// Apply motor controls /////////////////////////////////////////////
+<<<<<<< HEAD:Arduino_Implementation/Main_Code/Main_Code.ino
   
+=======
+   
+>>>>>>> parent of 03f5f8a... Changed Kp_trans from 10.0 to 8.0:Arduino_Implementation/Cascade_Control/Cascade_Control.ino
     mot_cont(); // Apply the calculated output to control the motor
     t_loop_prev = t_loop_now; // Set prev loop time equal to current loop time for calculating dt for next loop 
   }  
@@ -388,27 +410,26 @@ void Mot_Diff_Correction(){
     Motor_Diff.Compute(); // Compute the PID output
     
     /*If the robot is in +X region there can be 3 possibilities namely
-	  1) The robot has a +ve V_trans and is accelerating due to a command "go fwd" given
-	  2) The robot has a +ve V_trans and is de-celerating because it was pushed from the rest position or due to a "stop" command given after "go fwd"
-	  3) The robot has a -ve V_trans and is either returning to the origin or is braking after "stop" command 
+   1) The robot has a +ve V_trans and is accelerating due to a command "go fwd" given
+   2) The robot has a +ve V_trans and is de-celerating because it was pushed from the rest position or due to a "stop" command given after "go fwd"
+   3) The robot has a -ve V_trans and is either returning to the origin or is braking after "stop" command 
 
-	  Else If the robot is in -X region there can be 3 possibilities namely
-	  1) The robot has a -ve V_trans and is accelerating due to a command "go bck" given
-	  2) The robot has a -ve V_trans and is de-celerating because it was pushed from the rest position or due to a "stop" command given after "go bck"
-	  3) The robot has a +ve V_trans and is either returning to the origin or is braking after "stop" command 
+   Else If the robot is in -X region there can be 3 possibilities namely
+   1) The robot has a -ve V_trans and is accelerating due to a command "go bck" given
+   2) The robot has a -ve V_trans and is de-celerating because it was pushed from the rest position or due to a "stop" command given after "go bck"
+   3) The robot has a +ve V_trans and is either returning to the origin or is braking after "stop" command 
     */
-	
-	bool dn1 = Setpoint_sd>0 & Input_sd>0; // Case when the robot is in +X region i.e. diff b/w enc_count_now and ref_enc_count is "+ve"
-	bool dn2 = Setpoint_sd<0 & Input_sd<0; // Case when the robot is in -X region i.e. diff b/w enc_count_now and ref_enc_count is "-ve"
-	bool condition_1 = ((dn1) & (V_trans>0.0 & mode_now == "go fwd")) || ((dn2) & (V_trans<0.0 & mode_now == "go bck")); // Robot is accelerating in both the cases
-	bool condition_2 = ((dn1) & (V_trans>0.0) & (mode_now == "balance") & (Input_bal<0.0)) || ((dn2) & (V_trans<0.0) & (mode_now == "balance") & (Input_bal>0.0)); // Robot is de-celerating in both cases 
-	bool condition_3 = ((dn1) & (V_trans<0.0) & (mode_now == "balance") & (Input_bal<0.0)) || ((dn2) & (V_trans>0.0) & (mode_now == "balance") & (Input_bal>0.0)); // Robot is accelerating in both the cases	
-	bool condition_4 = ((dn1) & (V_trans>0.0) & (mode_now == "balance") & (Input_bal>0.0)) || ((dn2) & (V_trans<0.0) & (mode_now == "balance") & (Input_bal<0.0)); // Robot is accelerating in both the cases	
-
-	if (condition_1){Output_lmot+=Output_sd;Output_rmot-=Output_sd;} // Robot is accelerating in this case
-  else {Output_lmot*=0.955;}
-//	else if (condition_2){Output_lmot-=Output_sd;Output_rmot+=Output_sd;} // Robot is de-celerating
+    bool dn1 = Setpoint_sd>0 & Input_sd>0; // Case when the robot is in +X region i.e. diff b/w enc_count_now and ref_enc_count is "+ve"
+    bool dn2 = Setpoint_sd<0 & Input_sd<0; // Case when the robot is in -X region i.e. diff b/w enc_count_now and ref_enc_count is "-ve"
+    bool condition_1 = ((dn1) & (V_trans>0.0 & mode_now == "go fwd")) || ((dn2) & (V_trans<0.0 & mode_now == "go bck")); // Robot is accelerating in both the cases
+    // bool condition_2 = ((dn1) & (V_trans>0.0) & (mode_now == "balance") & (Input_bal<0.0)) || ((dn2) & (V_trans<0.0) & (mode_now == "balance") & (Input_bal>0.0)); // Robot is de-celerating in both cases 
+    // bool condition_3 = ((dn1) & (V_trans<0.0) & (mode_now == "balance") & (Input_bal<0.0)) || ((dn2) & (V_trans>0.0) & (mode_now == "balance") & (Input_bal>0.0)); // Robot is accelerating in both the cases
+    // bool condition_4 = ((dn1) & (V_trans>0.0) & (mode_now == "balance") & (Input_bal>0.0)) || ((dn2) & (V_trans<0.0) & (mode_now == "balance") & (Input_bal<0.0)); // Robot is accelerating in both the cases
+    if (condition_1){Output_lmot+=Output_sd;Output_rmot-=Output_sd;} // Robot is accelerating in this case
+    else {Output_lmot*=motor_corr_fac;} // The motors are highly non-linear so for the time being this relationship is being used to correct for the difference.
+    //	else if (condition_2){Output_lmot-=Output_sd;Output_rmot+=Output_sd;} // Robot is de-celerating
 }
+
 void Hold_Position(){
 
   if (enc_init_hp == false){
@@ -418,6 +439,7 @@ void Hold_Position(){
     
    Setpoint_hp = enc_ref;
    Input_hp = int(0.25 * (myEnc_r.read() + myEnc_l.read())); // Take reading now and these are the input values
+   
    Hold_Posn.Compute();
 
   // // We need to manipulate the Output_hp only when the robot has reversed its direction
@@ -501,8 +523,8 @@ void read_BT(){
     else if (c =='6' & lock == false){Kd_bal-=0.01;Serial.print("Kd_bal = "+String(Kd_bal));}
     else if (c =='7' & lock == false){Kp_trans+=0.5;trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);Serial.print("Kp_trans = "+String(Kp_trans));} 
     else if (c =='8' & lock == false){Kp_trans-=0.5;trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);Serial.print("Kp_trans = "+String(Kp_trans));} 
-    else if (c =='9' & lock == false){motor_corr_fac_fwd+=0.01;Serial.print("MoFac = "+String(motor_corr_fac_fwd));} 
-    else if (c =='a' & lock == false){motor_corr_fac_fwd-=0.01;Serial.print("MoFac = "+String(motor_corr_fac_fwd));} 
+    else if (c =='9' & lock == false){motor_corr_fac+=0.01;Serial.print("MoFac = "+String(motor_corr_fac));} 
+    else if (c =='a' & lock == false){motor_corr_fac-=0.01;Serial.print("MoFac = "+String(motor_corr_fac));} 
     else if (c =='b' & lock == false & mode_now == "balance"){
       rotating = true;
       start_again = true;
@@ -515,10 +537,10 @@ void read_BT(){
       rotation_direction = "clockwise";
       Serial.print("Rot clk");
     }
-    else if (c =='d' & lock == false){Kp_hp=0.0001;Serial.print("Kp_hp = "+String(Kp_hp));} 
-    else if (c =='e' & lock == false){Kp_hp-=.0001;Serial.print("Kp_hp = "+String(Kp_hp));}
-//    else if (c =='f' & lock == false){Kp_hp+=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); Serial.print("Kp_hp = "+String(Kp_hp));} 
-//    else if (c =='g' & lock == false){Kp_hp-=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); Serial.print("Kp_hp = "+String(Kp_hp));} 
+    else if (c =='d' & lock == false){Kp_sd+=0.01;Motor_Diff.SetTunings(Kp_sd, Ki_sd, Kd_sd);Serial.print("Kp_sd = "+String(Kp_sd));} 
+    else if (c =='e' & lock == false){Kp_sd-=0.01;Motor_Diff.SetTunings(Kp_sd, Ki_sd, Kd_sd);Serial.print("Kp_sd = "+String(Kp_sd));}
+    else if (c =='f' & lock == false){Kp_hp+=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); Serial.print("Kp_hp = "+String(Kp_hp));} 
+    else if (c =='g' & lock == false){Kp_hp-=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); Serial.print("Kp_hp = "+String(Kp_hp));} 
     else if (c =='h' & lock == false){frac_full_speed+=0.05;V_max = frac_full_speed * full_speed; Serial.print("FrFs = "+String(frac_full_speed));} 
     else if (c =='i' & lock == false){frac_full_speed-=0.05;V_max = frac_full_speed * full_speed; Serial.print("FrFs = "+String(frac_full_speed));} 
     else if (c =='j' & lock == false){Theta_correction+=0.1;Serial.print("Theta_Cor = "+String(Theta_correction));} 
@@ -530,9 +552,9 @@ void read_BT(){
       switch_bal_controller = false;
       switch_trans_controller = false;
       Kp_bal = 38.0; Kd_bal = 0.8;
-      Kp_trans = 10.0;
+      Kp_trans = 8.0;
       trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);
-      motor_corr_fac_fwd = 0.95;motor_corr_fac_bck = 0.94;
+      motor_corr_fac = 0.92;
       speed_ratio_mode_change = 0.40;
       speed_steps = 0.08;brake_steps = 0.04;
       frac_full_speed = 0.40;
@@ -543,4 +565,3 @@ void read_BT(){
    
     }  
 }
-
