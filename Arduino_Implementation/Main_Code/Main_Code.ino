@@ -66,7 +66,7 @@ PID Hold_Posn(&Input_hp, &Output_hp, &Setpoint_hp, Kp_hp, Ki_hp, Kd_hp, P_ON_E, 
 
 double Input_sd, Output_sd, Setpoint_sd; // Input output and setpoint variables defined
 double Out_min_sd = -10, Out_max_sd = 10; // PID Output limits, this output is PWM
-double Kp_sd = 0.35, Ki_sd = 0.0, Kd_sd = 0.0; // Initializing the Proportional, integral and derivative gain constants
+double Kp_sd = 0.60, Ki_sd = 0.0, Kd_sd = 0.0; // Initializing the Proportional, integral and derivative gain constants
 PID Motor_Diff(&Input_sd, &Output_sd, &Setpoint_sd, Kp_sd, Ki_sd, Kd_sd, P_ON_E, DIRECT); // PID Controller for motor speed diff correction
 
 
@@ -574,7 +574,9 @@ void read_Serial(){
         switch_trans_controller = false;
         Kp_bal = 38.0; Kd_bal = 0.8;
         Kp_trans = 8.0;
+        Kp_sd = 0.60;
         trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);
+        Motor_Diff.SetTunings(Kp_sd, Ki_sd, Kd_sd);
         motor_corr_fac = 0.92;
         speed_ratio_mode_change = 0.40;
         speed_steps = 0.08;brake_steps = 0.04;
