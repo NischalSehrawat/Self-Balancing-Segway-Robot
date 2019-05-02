@@ -278,12 +278,12 @@ void loop() {
     	// If Rot_Speed <0, set rotating = false to get out of rotation if statement & initialise encoder counts for both hold position and driving straight
     	if (Rot_Speed<0.0){Rot_Speed = 0.0; rotating = false;}
     	if (rotation_direction == "clockwise"){
-    		Output_lmot -=  Rot_Speed; // Rot_Speed is a +ve quantity
-    		Output_rmot +=  Rot_Speed; // Rot_Speed is a +ve quantity
+    	  Output_lmot -=  Rot_Speed; // Rot_Speed is a +ve quantity
+    	  Output_rmot +=  Rot_Speed; // Rot_Speed is a +ve quantity
     	}
     	else if (rotation_direction == "anti_clockwise"){
-    		Output_lmot +=   Rot_Speed; // Rot_Speed is a +ve quantity
-    		Output_rmot -=  Rot_Speed; // Rot_Speed is a +ve quantity
+    	  Output_lmot +=   Rot_Speed; // Rot_Speed is a +ve quantity
+    	  Output_rmot -=  Rot_Speed; // Rot_Speed is a +ve quantity
     	}
     }
     
