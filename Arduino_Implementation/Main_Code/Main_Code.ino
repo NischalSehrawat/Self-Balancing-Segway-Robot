@@ -169,7 +169,7 @@ void loop() {
   /*Begin the main computing loop, enter the loop only if the minimum loop time is elapsed*/
   if (dt_loop>=t_loop){    
   
-    read_BT(); // Read data from the bluetooth
+    read_Serial(); // Read data from the bluetooth
     Get_Tilt_Angle(); // Update the angle readings to get updated omega_x_calculated, Theta_now
     Lmot.getRPM(myEnc_l.read(), "rad/s"); // Get current encoder counts & compute left motor rotational velocity in [rad/s] 
     Rmot.getRPM(myEnc_r.read(), "rad/s"); // Get current encoder counts & compute right motor rotational velocity in [rad/s]
@@ -481,65 +481,7 @@ void mot_cont(){
   }
 }
 
-///////////////////////////////// READ BLUETOOTH ////////////////////////
-
-void read_BT(){
-  if (Serial.available()>0){
-    char c = Serial.read();
-    if (c == 'm'){lock = false;Serial.print("Unlocked");}
-    if (c == 'n'){lock = true;Serial.print("Locked");}
-    else if (c =='0' & lock == false){mode_now = "balance";Serial.print(mode_now);} 
-    else if (c =='1' & lock == false){mode_now = "go fwd";enc_init_mdc = false;Serial.print(mode_now);} 
-    else if (c =='2' & lock == false){mode_now = "go bck";enc_init_mdc = false;Serial.print(mode_now);} 
-    else if (c =='3' & lock == false){Kp_bal+=1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
-    else if (c =='4' & lock == false){Kp_bal-= 1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
-    else if (c =='5' & lock == false){Kd_bal+=0.01;Serial.print("Kd_bal = "+String(Kd_bal));}
-    else if (c =='6' & lock == false){Kd_bal-=0.01;Serial.print("Kd_bal = "+String(Kd_bal));}
-    else if (c =='7' & lock == false){Kp_trans+=0.5;trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);Serial.print("Kp_trans = "+String(Kp_trans));} 
-    else if (c =='8' & lock == false){Kp_trans-=0.5;trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);Serial.print("Kp_trans = "+String(Kp_trans));} 
-    else if (c =='9' & lock == false){motor_corr_fac+=0.01;Serial.print("MoFac = "+String(motor_corr_fac));} 
-    else if (c =='a' & lock == false){motor_corr_fac-=0.01;Serial.print("MoFac = "+String(motor_corr_fac));} 
-    else if (c =='b' & lock == false & mode_now == "balance"){
-      rotating = true;
-      start_again = true;
-      rotation_direction = "anti_clockwise";
-      Serial.print("Rot anticlk");
-    }
-    else if (c =='c' & lock == false & mode_now == "balance"){
-      rotating = true;
-      start_again = true;
-      rotation_direction = "clockwise";
-      Serial.print("Rot clk");
-    }
-    else if (c =='d' & lock == false){Kp_sd+=0.01;Motor_Diff.SetTunings(Kp_sd, Ki_sd, Kd_sd);Serial.print("Kp_sd = "+String(Kp_sd));} 
-    else if (c =='e' & lock == false){Kp_sd-=.01;Motor_Diff.SetTunings(Kp_sd, Ki_sd, Kd_sd);Serial.print("Kp_sd = "+String(Kp_sd));}
-    else if (c =='f' & lock == false){Kp_hp+=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); Serial.print("Kp_hp = "+String(Kp_hp));} 
-    else if (c =='g' & lock == false){Kp_hp-=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); Serial.print("Kp_hp = "+String(Kp_hp));} 
-    else if (c =='h' & lock == false){frac_full_speed+=0.05;V_max = frac_full_speed * full_speed; Serial.print("FrFs = "+String(frac_full_speed));} 
-    else if (c =='i' & lock == false){frac_full_speed-=0.05;V_max = frac_full_speed * full_speed; Serial.print("FrFs = "+String(frac_full_speed));} 
-    else if (c =='j' & lock == false){Theta_correction+=0.1;Serial.print("Theta_Cor = "+String(Theta_correction));} 
-    else if (c =='k' & lock == false){Theta_correction-=0.1;Serial.print("Theta_Cor = "+String(Theta_correction));} 
-    else if (c =='l' & lock == false){
-      //Reset all parameters to default values
-      Serial.print("Reset"); 
-      mode_now = "balance";mode_prev = "balance"; rotating = false; enc_init_hp== false;
-      switch_bal_controller = false;
-      switch_trans_controller = false;
-      Kp_bal = 38.0; Kd_bal = 0.8;
-      Kp_trans = 8.0;
-      trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);
-      motor_corr_fac = 0.92;
-      speed_ratio_mode_change = 0.40;
-      speed_steps = 0.08;brake_steps = 0.04;
-      frac_full_speed = 0.40;
-      Theta_correction = 2.5;
-      Rot_Max = 150;
-
-    } 
-   
-    }  
-}
-
+///////////////////////////////// READ Serial data ////////////////////////
 
 void read_Serial(){
   if (Serial.available()>0){
