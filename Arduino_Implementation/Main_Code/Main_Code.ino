@@ -304,7 +304,7 @@ void loop() {
        Rot_Speed = 0.0;
        switch_bal_controller = false;
        switch_trans_controller = false;
-       enc_init_hp== false;
+       enc_init_hp = false;
        mode_now = "balance"; // Change mode to balance
        mode_prev = "balance"; // Change mode to balance
        }
