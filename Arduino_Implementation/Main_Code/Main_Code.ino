@@ -488,103 +488,103 @@ void read_Serial(){
     char c = Serial.read();
     switch (c) {
       case 'm':
-      lock = false; Serial.print("Unlocked");
-      break;
+        lock = false; Serial.print("Unlocked");
+        break;
       case 'n':
-      lock = true; Serial.print("Locked");
-      break;
+        lock = true; Serial.print("Locked");
+        break;
       case '0':
-      if (lock == false){mode_now = "balance"; Serial.print(mode_now);}
-      break;
+        if (lock == false){mode_now = "balance"; Serial.print(mode_now);}
+        break;
       case '1':
-      if (lock == false){mode_now = "go fwd";enc_init_mdc = false;Serial.print(mode_now);}
-      break;
+        if (lock == false){mode_now = "go fwd";enc_init_mdc = false;Serial.print(mode_now);}
+        break;
       case '2':
-      if (lock == false){mode_now = "go bck";enc_init_mdc = false;Serial.print(mode_now);}
-      break;
+        if (lock == false){mode_now = "go bck";enc_init_mdc = false;Serial.print(mode_now);}
+        break;
       case '3':
-      if (lock == false){Kp_bal+=1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
-      break;
+        if (lock == false){Kp_bal+=1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
+        break;
       case '4':
-      if (lock == false){Kp_bal-= 1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
-      break;
+        if (lock == false){Kp_bal-= 1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
+        break;
       case '5':
-      if (lock == false){Kd_bal+=0.01;Serial.print("Kd_bal = "+String(Kd_bal));}
-      break;
+        if (lock == false){Kd_bal+=0.01;Serial.print("Kd_bal = "+String(Kd_bal));}
+        break;
       case '6':
-      if (lock == false){Kd_bal-=0.01;Serial.print("Kd_bal = "+String(Kd_bal));}
-      break;
+        if (lock == false){Kd_bal-=0.01;Serial.print("Kd_bal = "+String(Kd_bal));}
+        break;
       case '7':
-      if (lock == false){Kp_trans+=0.5; trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans); Serial.print("Kp_trans = "+String(Kp_trans));}
-      break;
+        if (lock == false){Kp_trans+=0.5; trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans); Serial.print("Kp_trans = "+String(Kp_trans));}
+        break;
       case '8':
-      if (lock == false){Kp_trans-=0.5; trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans); Serial.print("Kp_trans = "+String(Kp_trans));}
-      break;
+        if (lock == false){Kp_trans-=0.5; trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans); Serial.print("Kp_trans = "+String(Kp_trans));}
+        break;
       case '9':
-      if (lock == false){motor_corr_fac+=0.01; Serial.print("MoFac = "+String(motor_corr_fac));}
-      break;
+        if (lock == false){motor_corr_fac+=0.01; Serial.print("MoFac = "+String(motor_corr_fac));}
+        break;
       case 'a':
-      if (lock == false){motor_corr_fac-=0.01; Serial.print("MoFac = "+String(motor_corr_fac));}
-      break;
+        if (lock == false){motor_corr_fac-=0.01; Serial.print("MoFac = "+String(motor_corr_fac));}
+        break;
       case 'b':
-      if (lock == false & mode_now == "balance"){
-        rotating = true;
-        start_again = true;
-        rotation_direction = "anti_clockwise";
-        Serial.print("Rot anticlk");
-        }
-      break;
+        if (lock == false & mode_now == "balance"){
+          rotating = true;
+          start_again = true;
+          rotation_direction = "anti_clockwise";
+          Serial.print("Rot anticlk");
+          }
+        break;
       case 'c':
-      if (lock == false & mode_now == "balance"){
-        rotating = true;
-        start_again = true;
-        rotation_direction = "clockwise";
-        Serial.print("Rot clk");
-        }
-      break;
+        if (lock == false & mode_now == "balance"){
+          rotating = true;
+          start_again = true;
+          rotation_direction = "clockwise";
+          Serial.print("Rot clk");
+          }
+        break;
       case 'd':
-      if (lock == false){Kp_sd+=0.01;Motor_Diff.SetTunings(Kp_sd, Ki_sd, Kd_sd);Serial.print("Kp_sd = "+String(Kp_sd));}
-      break;
+        if (lock == false){Kp_sd+=0.01;Motor_Diff.SetTunings(Kp_sd, Ki_sd, Kd_sd);Serial.print("Kp_sd = "+String(Kp_sd));}
+        break;
       case 'e':
-      if (lock == false){Kp_sd-=.01;Motor_Diff.SetTunings(Kp_sd, Ki_sd, Kd_sd);Serial.print("Kp_sd = "+String(Kp_sd));}
-      break;
+        if (lock == false){Kp_sd-=.01;Motor_Diff.SetTunings(Kp_sd, Ki_sd, Kd_sd);Serial.print("Kp_sd = "+String(Kp_sd));}
+        break;
       case 'f':
-      if (lock == false){Kp_hp+=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); Serial.print("Kp_hp = "+String(Kp_hp));}
-      break;
+        if (lock == false){Kp_hp+=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); Serial.print("Kp_hp = "+String(Kp_hp));}
+        break;
       case 'g':
-      if (lock == false){Kp_hp-=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); Serial.print("Kp_hp = "+String(Kp_hp));}
-      break;
+        if (lock == false){Kp_hp-=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); Serial.print("Kp_hp = "+String(Kp_hp));}
+        break;
       case 'h':
-      if (lock == false){frac_full_speed+=0.05;V_max = frac_full_speed * full_speed; Serial.print("FrFs = "+String(frac_full_speed));}
-      break;
+        if (lock == false){frac_full_speed+=0.05;V_max = frac_full_speed * full_speed; Serial.print("FrFs = "+String(frac_full_speed));}
+        break;
       case 'i':
-      if (lock == false){frac_full_speed-=0.05;V_max = frac_full_speed * full_speed; Serial.print("FrFs = "+String(frac_full_speed));}
-      break;
+        if (lock == false){frac_full_speed-=0.05;V_max = frac_full_speed * full_speed; Serial.print("FrFs = "+String(frac_full_speed));}
+        break;
       case 'j':
-      if (lock == false){Theta_correction+=0.1;Serial.print("Theta_Cor = "+String(Theta_correction));}
-      break;
+        if (lock == false){Theta_correction+=0.1;Serial.print("Theta_Cor = "+String(Theta_correction));}
+        break;
       case 'k':
-      if (lock == false){Theta_correction-=0.1;Serial.print("Theta_Cor = "+String(Theta_correction));}
-      break;
+        if (lock == false){Theta_correction-=0.1;Serial.print("Theta_Cor = "+String(Theta_correction));}
+        break;
       case 'l':
-      if (lock == false){
-        Serial.print("Reset");
-        mode_now = "balance";mode_prev = "balance"; rotating = false; enc_init_hp== false;
-        switch_bal_controller = false;
-        switch_trans_controller = false;
-        Kp_bal = 38.0; Kd_bal = 0.8;
-        Kp_trans = 8.0;
-        Kp_sd = 0.60;
-        trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);
-        Motor_Diff.SetTunings(Kp_sd, Ki_sd, Kd_sd);
-        motor_corr_fac = 0.92;
-        speed_ratio_mode_change = 0.40;
-        speed_steps = 0.08;brake_steps = 0.04;
-        frac_full_speed = 0.40;
-        Theta_correction = 2.5;
-        Rot_Max = 150;
-        }
-      break;	
-	}
- }
+        if (lock == false){
+          Serial.print("Reset");
+          mode_now = "balance";mode_prev = "balance"; rotating = false; enc_init_hp== false;
+          switch_bal_controller = false;
+          switch_trans_controller = false;
+          Kp_bal = 38.0; Kd_bal = 0.8;
+          Kp_trans = 8.0;
+          Kp_sd = 0.60;
+          trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);
+          Motor_Diff.SetTunings(Kp_sd, Ki_sd, Kd_sd);
+          motor_corr_fac = 0.92;
+          speed_ratio_mode_change = 0.40;
+          speed_steps = 0.08;brake_steps = 0.04;
+          frac_full_speed = 0.40;
+          Theta_correction = 2.5;
+          Rot_Max = 150;
+          }
+        break;	
+	  }
+  }
 }
