@@ -583,7 +583,7 @@ void read_Serial(){
           frac_full_speed = 0.40;
           Theta_correction = 2.5;
           Rot_Max = 150;
-          }
+        }
         break;	
 	  }
   }
