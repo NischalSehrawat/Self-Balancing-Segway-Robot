@@ -584,7 +584,7 @@ void read_Serial(){
           Theta_correction = 2.5;
           Rot_Max = 150;
         }
-        break;	
-	  }
+        break;
+    }
   }
 }
