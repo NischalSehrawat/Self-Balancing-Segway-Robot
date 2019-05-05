@@ -4,6 +4,15 @@
 #include <My_Motors.h>
 #include <Encoder.h>
 #include <TimerOne.h>
+#include <SoftwareSerial.h>
+
+
+///////////////////////////// BLUETOOTH MODULE PARAMETERS////////////////////////////////////////////////////
+
+/* CONNECT BT RX PIN TO ARDUINO 11 PIN | CONNECT BT TX PIN TO ARDUINO 10 PIN. 
+If we connect the BT module directly to TX/RX of Arduino, we get problems while uploading the code, so use Software serial instead*/
+
+SoftwareSerial BTSerial(10, 11); 
 
 ///////////////////////////////// MPU-6050 parameters //////////////////////////////////////////////
 
@@ -109,15 +118,16 @@ bool enc_init_mdc = false; // Variable for taking reference value for motor diff
 
 ////////////// LED BLINKING / Loop time PARAMETERS/////////////////////////
 
-int pin = 13; // PIN where LED is attached
+int led_pin = 13; // PIN where LED is attached
 double t_loop_prev, t_loop_now, dt_loop, t_mode_switch; // Time parameters to log times for main control loop
 double t_loop = 20.0; // Overall loop time [millis]
 
-
 void setup() {
 
-    Serial.begin(115200);  
-    pinMode(pin, OUTPUT);
+//    Serial.begin(115200);  
+    pinMode(led_pin, OUTPUT);
+    BTSerial.begin(115200);  // Start BT Serial communication
+
     
     /////////////////////////////// Motor initialization ///////////////////////////////////////////
   
@@ -236,9 +246,9 @@ void loop() {
         switch_trans_controller = false; // Switch now to the softer Kp_trans
         
         double dt_mode_switch = millis() - t_mode_switch;        
-        if (dt_mode_switch < 2000 || rotating == true){Setpoint_trans = 0.0;  enc_init_hp = false;}                
-        /*Switch to a stiffer balancing controller 2 seconds after stopping*/        
-        else if (dt_mode_switch > 2000 & rotating == false){
+        if (dt_mode_switch < 1000 || rotating == true){Setpoint_trans = 0.0;  enc_init_hp = false;}                
+        /*Switch to a stiffer balancing controller 1 seconds after stopping*/        
+        else if (dt_mode_switch > 1000 & rotating == false){
           switch_bal_controller = false;  // Switch to a harder Kp_bal controller for better balancing
           Hold_Position();
           Setpoint_trans = Output_hp;        
@@ -292,7 +302,7 @@ void loop() {
       Mot_Diff_Correction(); // Currently only working when commands given for going fwd or bcwd
 
       // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg      
-      if (abs(error_bal)<0.2 && mode_now == "balance"){Output_rmot = 0.0; Output_lmot = 0.0;} 
+//      if (abs(error_bal)<0.05 && mode_now == "balance"){Output_rmot = 0.0; Output_lmot = 0.0;} 
     }    
     
     ///////////////////////////////////////// If robot has fallen then stop the motors /////////////////////////////////////////////
@@ -373,8 +383,8 @@ void get_MPU_data(){
 ///////////////////////// Function for motor control ////////////////////////////////////////////////////////
 
 void Blink_Led(){
-  if (led_state ==0){digitalWrite(pin, 1);led_state = 1;}
-  else if(led_state == 1){digitalWrite(pin, 0);led_state = 0;}
+  if (led_state ==0){digitalWrite(led_pin, 1);led_state = 1;}
+  else if(led_state == 1){digitalWrite(led_pin, 0);led_state = 0;}
 }
 
 void Mot_Diff_Correction(){
@@ -484,54 +494,54 @@ void mot_cont(){
 ///////////////////////////////// READ Serial data ////////////////////////
 
 void read_Serial(){
-  if (Serial.available()>0){
-    char c = Serial.read();
+  if (BTSerial.available()>0){
+    char c = BTSerial.read();
     switch (c) {
       case 'm':
-        lock = false; Serial.print("Unlocked");
+        lock = false; BTSerial.print("Unlocked");
         break;
       case 'n':
-        lock = true; Serial.print("Locked");
+        lock = true; BTSerial.print("Locked");
         break;
       case '0':
-        if (lock == false){mode_now = "balance"; Serial.print(mode_now);}
+        if (lock == false){mode_now = "balance"; BTSerial.print(mode_now);}
         break;
       case '1':
-        if (lock == false){mode_now = "go fwd";enc_init_mdc = false;Serial.print(mode_now);}
+        if (lock == false){mode_now = "go fwd";enc_init_mdc = false;BTSerial.print(mode_now);}
         break;
       case '2':
-        if (lock == false){mode_now = "go bck";enc_init_mdc = false;Serial.print(mode_now);}
+        if (lock == false){mode_now = "go bck";enc_init_mdc = false;BTSerial.print(mode_now);}
         break;
       case '3':
-        if (lock == false){Kp_bal+=1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
+        if (lock == false){Kp_bal+=1.0;BTSerial.print("Kp_bal = "+String(Kp_bal));}
         break;
       case '4':
-        if (lock == false){Kp_bal-= 1.0;Serial.print("Kp_bal = "+String(Kp_bal));}
+        if (lock == false){Kp_bal-= 1.0;BTSerial.print("Kp_bal = "+String(Kp_bal));}
         break;
       case '5':
-        if (lock == false){Kd_bal+=0.01;Serial.print("Kd_bal = "+String(Kd_bal));}
+        if (lock == false){Kd_bal+=0.01;BTSerial.print("Kd_bal = "+String(Kd_bal));}
         break;
       case '6':
-        if (lock == false){Kd_bal-=0.01;Serial.print("Kd_bal = "+String(Kd_bal));}
+        if (lock == false){Kd_bal-=0.01;BTSerial.print("Kd_bal = "+String(Kd_bal));}
         break;
       case '7':
-        if (lock == false){Kp_trans+=0.5; trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans); Serial.print("Kp_trans = "+String(Kp_trans));}
+        if (lock == false){Kp_trans+=0.5; trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans); BTSerial.print("Kp_trans = "+String(Kp_trans));}
         break;
       case '8':
-        if (lock == false){Kp_trans-=0.5; trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans); Serial.print("Kp_trans = "+String(Kp_trans));}
+        if (lock == false){Kp_trans-=0.5; trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans); BTSerial.print("Kp_trans = "+String(Kp_trans));}
         break;
       case '9':
-        if (lock == false){motor_corr_fac+=0.01; Serial.print("MoFac = "+String(motor_corr_fac));}
+        if (lock == false){motor_corr_fac+=0.01; BTSerial.print("MoFac = "+String(motor_corr_fac));}
         break;
       case 'a':
-        if (lock == false){motor_corr_fac-=0.01; Serial.print("MoFac = "+String(motor_corr_fac));}
+        if (lock == false){motor_corr_fac-=0.01; BTSerial.print("MoFac = "+String(motor_corr_fac));}
         break;
       case 'b':
         if (lock == false & mode_now == "balance"){
           rotating = true;
           start_again = true;
           rotation_direction = "anti_clockwise";
-          Serial.print("Rot anticlk");
+          BTSerial.print("Rot anticlk");
           }
         break;
       case 'c':
@@ -539,36 +549,36 @@ void read_Serial(){
           rotating = true;
           start_again = true;
           rotation_direction = "clockwise";
-          Serial.print("Rot clk");
+          BTSerial.print("Rot clk");
           }
         break;
       case 'd':
-        if (lock == false){Kp_sd+=0.01;Motor_Diff.SetTunings(Kp_sd, Ki_sd, Kd_sd);Serial.print("Kp_sd = "+String(Kp_sd));}
+        if (lock == false){Kp_sd+=0.01;Motor_Diff.SetTunings(Kp_sd, Ki_sd, Kd_sd);BTSerial.print("Kp_sd = "+String(Kp_sd));}
         break;
       case 'e':
-        if (lock == false){Kp_sd-=.01;Motor_Diff.SetTunings(Kp_sd, Ki_sd, Kd_sd);Serial.print("Kp_sd = "+String(Kp_sd));}
+        if (lock == false){Kp_sd-=.01;Motor_Diff.SetTunings(Kp_sd, Ki_sd, Kd_sd);BTSerial.print("Kp_sd = "+String(Kp_sd));}
         break;
       case 'f':
-        if (lock == false){Kp_hp+=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); Serial.print("Kp_hp = "+String(Kp_hp));}
+        if (lock == false){Kp_hp+=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); BTSerial.print("Kp_hp = "+String(Kp_hp));}
         break;
       case 'g':
-        if (lock == false){Kp_hp-=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); Serial.print("Kp_hp = "+String(Kp_hp));}
+        if (lock == false){Kp_hp-=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); BTSerial.print("Kp_hp = "+String(Kp_hp));}
         break;
       case 'h':
-        if (lock == false){frac_full_speed+=0.05;V_max = frac_full_speed * full_speed; Serial.print("FrFs = "+String(frac_full_speed));}
+        if (lock == false){frac_full_speed+=0.05;V_max = frac_full_speed * full_speed; BTSerial.print("FrFs = "+String(frac_full_speed));}
         break;
       case 'i':
-        if (lock == false){frac_full_speed-=0.05;V_max = frac_full_speed * full_speed; Serial.print("FrFs = "+String(frac_full_speed));}
+        if (lock == false){frac_full_speed-=0.05;V_max = frac_full_speed * full_speed; BTSerial.print("FrFs = "+String(frac_full_speed));}
         break;
       case 'j':
-        if (lock == false){Theta_correction+=0.1;Serial.print("Theta_Cor = "+String(Theta_correction));}
+        if (lock == false){Theta_correction+=0.1;BTSerial.print("Theta_Cor = "+String(Theta_correction));}
         break;
       case 'k':
-        if (lock == false){Theta_correction-=0.1;Serial.print("Theta_Cor = "+String(Theta_correction));}
+        if (lock == false){Theta_correction-=0.1;BTSerial.print("Theta_Cor = "+String(Theta_correction));}
         break;
       case 'l':
         if (lock == false){
-          Serial.print("Reset");
+          BTSerial.print("Reset");
           mode_now = "balance";mode_prev = "balance"; rotating = false; enc_init_hp== false;
           switch_bal_controller = false;
           switch_trans_controller = false;
