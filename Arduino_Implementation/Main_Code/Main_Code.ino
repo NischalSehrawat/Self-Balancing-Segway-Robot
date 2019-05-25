@@ -106,7 +106,7 @@ String rotation_direction = ""; // To set rotation direction
 double Rot_Max = 150.0, rot_steps = 20.0; // Max rotation PWM and the steps in which speed is decreased to "0"
 double Rot_Speed = Rot_Max;
 
-////////////// All boolean switching PARAMETERS/////////////////////////
+////////////// All boolean switching FLAGS /////////////////////////
 
 bool switch_trans_controller = false, switch_bal_controller = false; // Variable to switch trans controller behavior once moving commands are issued
 bool lock = true; // Variable to prevent accidental changing of parameters by bluetooth app
@@ -124,7 +124,7 @@ double t_loop = 20.0; // Overall loop time [millis]
 
 void setup() {
 
-//    Serial.begin(115200);  
+    Serial.begin(115200);// Enable Serial port for communication with Raspberry Pi 
     pinMode(led_pin, OUTPUT);
     BTSerial.begin(115200);  // Start BT Serial communication
 
@@ -179,7 +179,8 @@ void loop() {
   /*Begin the main computing loop, enter the loop only if the minimum loop time is elapsed*/
   if (dt_loop>=t_loop){    
   
-    read_Serial(); // Read data from the bluetooth
+    BT_Serial(); // Read serial data from the bluetooth
+    Main_Serial(); // Read data from Raspberry pi Serial port
     Get_Tilt_Angle(); // Update the angle readings to get updated omega_x_calculated, Theta_now
     Lmot.getRPM(myEnc_l.read(), "rad/s"); // Get current encoder counts & compute left motor rotational velocity in [rad/s] 
     Rmot.getRPM(myEnc_r.read(), "rad/s"); // Get current encoder counts & compute right motor rotational velocity in [rad/s]
@@ -492,8 +493,37 @@ void mot_cont(){
 }
 
 ///////////////////////////////// READ Serial data ////////////////////////
-
-void read_Serial(){
+void Main_Serial(){
+  if (Serial.available()>0){
+    char c = Serial.read();
+    switch (c) {
+      case '0':
+        mode_now = "balance"; // Set mode_now to balance
+        break;
+      case '1':
+        mode_now = "go fwd"; enc_init_mdc = false; // Set mode_now to go fwd and enc_init_mdc to false to correct motor difference
+        break;
+      case '2':
+        mode_now = "go bck";enc_init_mdc = false; // Set mode_now to go bck and enc_init_mdc to false to correct motor difference
+        break;
+      case 'b':
+        if (mode_now == "balance"){ // Rotate anti_clock_wise
+          rotating = true; // Set rotating = true to get into the rotating condition
+          start_again = true; // Set start_again to true to set rotation speed to max which is then decremented to "0"
+          rotation_direction = "anti_clockwise"; // Set rotation direction = anti_clockwise
+          }
+        break;
+      case 'c':
+        if (mode_now == "balance"){
+          rotating = true;
+          start_again = true;
+          rotation_direction = "clockwise";
+          }
+        break;
+    }
+  }
+}
+void BT_Serial(){
   if (BTSerial.available()>0){
     char c = BTSerial.read();
     switch (c) {
