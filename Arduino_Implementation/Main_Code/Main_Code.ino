@@ -67,7 +67,7 @@ PID trans_PID(&Input_trans, &Output_trans, &Setpoint_trans, Kp_trans, Ki_trans, 
 
 double Input_hp, Output_hp, Setpoint_hp; // Input output and setpoint variables defined
 double Out_min_hp = -1.5, Out_max_hp = 1.5; // PID Output limits, this output is in [m/s]
-double Kp_hp = 0.003, Ki_hp = 0.0, Kd_hp = 0.0; // Initializing the Proportional, integral and derivative gain constants
+double Kp_hp = 0.001, Ki_hp = 0.0, Kd_hp = 0.0; // Initializing the Proportional, integral and derivative gain constants
 PID Hold_Posn(&Input_hp, &Output_hp, &Setpoint_hp, Kp_hp, Ki_hp, Kd_hp, P_ON_E, DIRECT); // PID Controller for holding poistion
 
 
@@ -75,7 +75,7 @@ PID Hold_Posn(&Input_hp, &Output_hp, &Setpoint_hp, Kp_hp, Ki_hp, Kd_hp, P_ON_E, 
 
 double Input_sd, Output_sd, Setpoint_sd; // Input output and setpoint variables defined
 double Out_min_sd = -10, Out_max_sd = 10; // PID Output limits, this output is PWM
-double Kp_sd = 0.60, Ki_sd = 0.0, Kd_sd = 0.0; // Initializing the Proportional, integral and derivative gain constants
+double Kp_sd = 0.30, Ki_sd = 0.0, Kd_sd = 0.0; // Initializing the Proportional, integral and derivative gain constants
 PID Motor_Diff(&Input_sd, &Output_sd, &Setpoint_sd, Kp_sd, Ki_sd, Kd_sd, P_ON_E, DIRECT); // PID Controller for motor speed diff correction
 
 
@@ -87,7 +87,7 @@ float motor_corr_fac = 0.92;// factor to correct for the difference b/w the moto
 float r_whl = 0.5 * 0.130; // Wheel radius [m]
 short fall_angle = 45; // Angles at which the motors must stop rotating [deg]
 float full_speed = 350.0 * (2.0*3.14 / 60.0) * r_whl; // Full linear speed of the robot @ motor rated RPM [here 350 RPM @ 12 V]
-float frac_full_speed = 0.40; // Fraction of full speed allowed 
+float frac_full_speed = 0.30; // Fraction of full speed allowed 
 float V_max = frac_full_speed * full_speed; // Maximum speed allowed [m/s]
 float V_max_fwd = 0.01, V_min_bck = -0.01; // Variables used for storing minimum and maximum values of translation speed for applying brakes
 float V_trans; // Variable for storing instantaneous translation speed of the robot [m/s]
@@ -103,7 +103,7 @@ float speed_steps = 0.08; // Steps in which speed should be incremented in order
 float brake_steps = 0.04; // Steps in which speed should be decremented in order to apply brakes, the smaller the value, the longer the duration of brake application
 String mode_prev = "balance", mode_now = "balance"; // To set balancing, moving fwd and moving backward modes on the robot
 String rotation_direction = ""; // To set rotation direction
-double Rot_Max = 150.0, rot_steps = 20.0; // Max rotation PWM and the steps in which speed is decreased to "0"
+double Rot_Max = 120.0, rot_steps = 10.0; // Max rotation PWM and the steps in which speed is decreased to "0"
 double Rot_Speed = Rot_Max;
 
 ////////////// All boolean switching FLAGS /////////////////////////
@@ -173,14 +173,14 @@ void setup() {
 }
 
 void loop() {
-
+  
+  BT_Serial(); // Read serial data from the bluetooth
+  Main_Serial(); // Read data from Raspberry pi Serial port
   t_loop_now = millis();
   dt_loop = t_loop_now - t_loop_prev; // Calculate time change since last loop [millis]
   /*Begin the main computing loop, enter the loop only if the minimum loop time is elapsed*/
   if (dt_loop>=t_loop){    
   
-    BT_Serial(); // Read serial data from the bluetooth
-    Main_Serial(); // Read data from Raspberry pi Serial port
     Get_Tilt_Angle(); // Update the angle readings to get updated omega_x_calculated, Theta_now
     Lmot.getRPM(myEnc_l.read(), "rad/s"); // Get current encoder counts & compute left motor rotational velocity in [rad/s] 
     Rmot.getRPM(myEnc_r.read(), "rad/s"); // Get current encoder counts & compute right motor rotational velocity in [rad/s]
@@ -303,7 +303,7 @@ void loop() {
       Mot_Diff_Correction(); // Currently only working when commands given for going fwd or bcwd
 
       // To prevent continuous jerky behaviour, the robot starts balancing outside +- 0.2 deg      
-//      if (abs(error_bal)<0.05 && mode_now == "balance"){Output_rmot = 0.0; Output_lmot = 0.0;} 
+//      if (abs(error_ba/l)<0.05 && mode_now == "balance"){Output_rmot = 0.0; Output_lmot = 0.0;} 
     }    
     
     ///////////////////////////////////////// If robot has fallen then stop the motors /////////////////////////////////////////////
@@ -589,10 +589,10 @@ void BT_Serial(){
         if (lock == false){Kp_sd-=.01;Motor_Diff.SetTunings(Kp_sd, Ki_sd, Kd_sd);BTSerial.print("Kp_sd = "+String(Kp_sd));}
         break;
       case 'f':
-        if (lock == false){Kp_hp+=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); BTSerial.print("Kp_hp = "+String(Kp_hp));}
+        if (lock == false){Kp_hp+=0.001;Hold_Posn.SetTunings(Kp_hp, Ki_hp, Kd_hp); BTSerial.print("Kp_hp = "+String(Kp_hp));}
         break;
       case 'g':
-        if (lock == false){Kp_hp-=0.001;trans_PID.SetTunings(Kp_hp, Ki_hp, Kd_hp); BTSerial.print("Kp_hp = "+String(Kp_hp));}
+        if (lock == false){Kp_hp-=0.001;Hold_Posn.SetTunings(Kp_hp, Ki_hp, Kd_hp); BTSerial.print("Kp_hp = "+String(Kp_hp));}
         break;
       case 'h':
         if (lock == false){frac_full_speed+=0.05;V_max = frac_full_speed * full_speed; BTSerial.print("FrFs = "+String(frac_full_speed));}
@@ -615,6 +615,8 @@ void BT_Serial(){
           Kp_bal = 38.0; Kd_bal = 0.8;
           Kp_trans = 8.0;
           Kp_sd = 0.60;
+          Kp_hp = 0.005;
+          Hold_Posn.SetTunings(Kp_hp, Ki_hp, Kd_hp);
           trans_PID.SetTunings(Kp_trans, Ki_trans, Kd_trans);
           Motor_Diff.SetTunings(Kp_sd, Ki_sd, Kd_sd);
           motor_corr_fac = 0.92;
